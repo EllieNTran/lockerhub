@@ -39,7 +39,7 @@ export const query = async (text, params) => {
   const start = Date.now()
   try {
     const res = await pool.query(text, params)
-    const duration = 
+    const duration = Date.now() - start
     logger.debug({ text, duration, rows: res.rowCount }, 'Executed query')
     return res
   } catch (error) {
