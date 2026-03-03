@@ -1,0 +1,10 @@
+services:
+  webapp:
+    build:
+      context: ../apps/webapp
+    ports:
+      - 3001:80
+    environment:
+      - NODE_SINGLE_THREAD=true
+      - PORT=80
+      - LOCALHOST_MODE=true
