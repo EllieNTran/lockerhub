@@ -6,12 +6,33 @@ import rateLimit from 'express-rate-limit'
 import { requestLogger } from '../middleware/request-logger.js'
 import { errorHandler } from '../middleware/error-handler.js'
 import { notFoundHandler } from '../middleware/not-found.js'
+import { refreshPublicKey } from '../utils/verify-jwt.js'
 import apiRoutes from './routes/api.js'
 import logger from '../logger.js'
 import { fromEnv } from '../constants.js'
 
 const app = express()
 const PORT = fromEnv('PORT') || 80
+
+const initJWKS = async () => {
+  try {
+    await refreshPublicKey()
+    logger.info('JWKS fetched and cached successfully')
+
+    // Refresh JWKS every hour
+    setInterval(async () => {
+      try {
+        await refreshPublicKey()
+        logger.info('JWKS refreshed')
+      } catch (error) {
+        logger.error({ error }, 'Failed to refresh JWKS')
+      }
+    }, 60 * 60 * 1000) // 1 hour
+  } catch (error) {
+    logger.error({ error }, 'Failed to initialize JWKS')
+    throw error
+  }
+}
 
 app.use(helmet())
 app.use(cors({
@@ -48,9 +69,22 @@ app.use('/api', apiRoutes)
 app.use(notFoundHandler)
 app.use(errorHandler)
 
-const server = app.listen(PORT, async () => {
-  logger.info(`API server listening on port ${PORT}`)
-})
+const startServer = async () => {
+  try {
+    await initJWKS()
+
+    const server = app.listen(PORT, () => {
+      logger.info(`API server listening on port ${PORT}`)
+    })
+
+    return server
+  } catch (error) {
+    logger.error({ error }, 'Failed to start server')
+    process.exit(1)
+  }
+}
+
+const server = await startServer()
 
 const shutdown = (signal) => {
   logger.info(`${signal} received, shutting down gracefully`)
