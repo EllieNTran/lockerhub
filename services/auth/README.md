@@ -7,12 +7,15 @@ JWT-based authentication service for LockerHub using RSA256 asymmetric signing.
 - ✅ JWT token generation (RS256)
 - ✅ Access & refresh tokens
 - ✅ Token verification
+- ✅ JWKS endpoint for standard key distribution
+- ✅ Token introspection (OAuth 2.0 RFC 7662)
 - ✅ Public key endpoint for other services
 - ✅ PostgreSQL database integration
 - ✅ User authentication with bcrypt
 - ✅ Rate limiting
 - ✅ Security headers (Helmet)
 - ✅ Request logging (Pino)
+- ✅ RBAC support with role and scope claims
 
 ## Setup
 
@@ -86,35 +89,28 @@ Get new access token using refresh token.
 }
 ```
 
-### POST /auth/verify
-Verify if a token is valid.
+### GET /auth/.well-known/jwks.json
+Get JSON Web Key Set for JWT verification.
 
-**Request:**
-```json
-{
-  "token": "eyJhbGc..."
-}
-```
-
-**Response:**
-```json
-{
-  "valid": true,
-  "payload": {
-    "userId": 1,
-    "email": "user@example.com",
-    "role": "admin"
-  }
-}
-```
-
-### GET /auth/public-key
-Get the public key for JWT verification (for other services).
+**Usage by webapp API and microservices:**
+1. Fetch this endpoint once at startup
+2. Cache the keystore
+3. Verify JWT signatures locally
+4. Refresh periodically (e.g., every hour)
 
 **Response:**
 ```json
 {
-  "publicKey": "-----BEGIN PUBLIC KEY-----\n..."
+  "keys": [
+    {
+      "kty": "RSA",
+      "use": "sig",
+      "alg": "RS256",
+      "kid": "lockerhub-auth-key-1",
+      "n": "...",
+      "e": "AQAB"
+    }
+  ]
 }
 ```
 
@@ -143,7 +139,7 @@ Health check endpoint.
 
 ## Environment Variables
 
-Configured in `.env-cmdrc.json` per environment:
+Configured in `.env-cmdrc.json`:
 
 | Variable | Default (debug) | Description |
 |----------|---------|-------------|

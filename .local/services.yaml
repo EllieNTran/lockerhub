@@ -16,6 +16,7 @@ services:
     environment:
       - PORT=80
       - LOCALHOST_MODE=true
+      - AUTH_SERVICE_URL=http://auth:80
 
   auth:
     build:
