@@ -38,6 +38,9 @@ env/
 .env.*.local
 .env-cmdrc.json
 
+# RSA keys (auth service)
+*.pem
+
 # IDE
 .vscode/
 .idea/
