@@ -5,6 +5,35 @@ services:
     ports:
       - 3001:80
     environment:
-      - NODE_SINGLE_THREAD=true
       - PORT=80
       - LOCALHOST_MODE=true
+
+  api:
+    build:
+      context: ../apps/api
+    ports:
+      - 3002:80
+    environment:
+      - PORT=80
+      - LOCALHOST_MODE=true
+
+  auth:
+    build:
+      context: ../services/auth
+    ports:
+      - 3003:80
+    environment:
+      - PORT=80
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - ACCESS_TOKEN_EXPIRY=15m
+      - REFRESH_TOKEN_EXPIRY=7d
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - LOCALHOST_MODE=true
+    depends_on:
+      postgres:
+        condition: service_healthy
