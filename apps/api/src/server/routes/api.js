@@ -1,40 +1,5 @@
-import { Router } from 'express'
-import { authenticate, requireRole } from '../../middleware/auth.js'
-import { proxyToService } from '../../connectors/services.js'
+import { Router, json } from 'express'
 
 const router = Router()
-
-router.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-  })
-})
-
-/**
- * Admin service routes
- */
-router.use(
-  '/admin',
-  authenticate,
-  requireRole('admin'),
-  proxyToService('admin'),
-)
-
-router.use(
-  '/analytics',
-  authenticate,
-  requireRole('admin'),
-  proxyToService('analytics'),
-)
-
-/**
- * User service routes
- */
-router.use(
-  '/bookings',
-  authenticate,
-  proxyToService('booking'),
-)
 
 export default router
