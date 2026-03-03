@@ -7,13 +7,13 @@ const logger = pino({
   level: fromEnv('LOG_LEVEL') || (isDevelopment ? 'debug' : 'info'),
   transport: isDevelopment
     ? {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname',
-      },
-    }
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname',
+        },
+      }
     : undefined,
   formatters: {
     level: (label) => {
