@@ -21,7 +21,7 @@ export const findUserByEmail = async (email) => {
         created_at
       FROM lockerhub.users 
       WHERE email = $1`,
-      [email]
+      [email],
     )
 
     return result.rows[0] || null
@@ -50,7 +50,7 @@ export const findUserById = async (userId) => {
         created_at
       FROM lockerhub.users 
       WHERE user_id = $1`,
-      [userId]
+      [userId],
     )
 
     return result.rows[0] || null
@@ -97,7 +97,7 @@ export const createUser = async (userData) => {
         staff_number,
         department_id,
         created_at`,
-      [firstName, lastName, email, passwordHash, role, staffNumber, departmentId]
+      [firstName, lastName, email, passwordHash, role, staffNumber, departmentId],
     )
 
     return result.rows[0]
@@ -119,7 +119,7 @@ export const updateUserPassword = async (userId, passwordHash) => {
       `UPDATE lockerhub.users 
       SET password_hash = $1, updated_at = CURRENT_TIMESTAMP
       WHERE user_id = $2`,
-      [passwordHash, userId]
+      [passwordHash, userId],
     )
 
     return result.rowCount > 0

@@ -1,85 +1,76 @@
-import jwt from 'jsonwebtoken'
+import { verifyTokenWithJWKS } from '../utils/verify-jwt.js'
+import logger from '../logger.js'
 import { AppError } from './error-handler.js'
-import { fromEnv } from '../constants.js'
 
-const JWT_SECRET = fromEnv('JWT_SECRET')
-
-if (!JWT_SECRET && fromEnv('NODE_ENV') === 'production') {
-  throw new Error('JWT_SECRET must be set in production')
-}
-
+/**
+ * Authenticate requests using JWT verification with JWKS
+ * Verifies JWT signature using cached public key from auth service
+ */
 export const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new AppError('Authentication required', 401)
+
+    if (!authHeader) {
+      throw new AppError('Authorization header required', 401, 'MISSING_TOKEN')
     }
 
-    const token = authHeader.replace('Bearer ', '')
+    if (!authHeader.startsWith('Bearer ')) {
+      throw new AppError('Invalid authorization header format. Expected: Bearer <token>', 401, 'INVALID_TOKEN_FORMAT')
+    }
+
+    const token = authHeader.substring(7) // Remove 'Bearer '
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET)
+      const decoded = await verifyTokenWithJWKS(token)
 
       req.user = {
-        id: decoded.userId || decoded.sub,
+        userId: decoded.userId,
         email: decoded.email,
         role: decoded.role,
         departmentId: decoded.departmentId,
+        scope: decoded.scope,
       }
 
+      logger.debug({ userId: decoded.userId, role: decoded.role }, 'User authenticated')
       next()
     } catch (jwtError) {
+      logger.warn({ error: jwtError.message }, 'JWT verification failed')
+
       if (jwtError.name === 'TokenExpiredError') {
-        throw new AppError('Token expired', 401)
+        throw new AppError('Token expired', 401, 'TOKEN_EXPIRED')
       }
-      if (jwtError.name === 'JsonWebTokenError') {
-        throw new AppError('Invalid token', 401)
-      }
-      throw jwtError
+      throw new AppError('Invalid or expired token', 401, 'INVALID_TOKEN')
     }
   } catch (error) {
     next(error)
   }
 }
 
-export const requireRole = (...roles) => {
+/**
+ * Require specific role(s) to access endpoint
+ * Must be used after authenticate middleware
+ *
+ * @param {...string} allowedRoles - Roles that are allowed to access
+ */
+export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return next(new AppError('Authentication required', 401))
+      return next(new AppError('Authentication required', 401, 'UNAUTHENTICATED'))
     }
 
-    if (!roles.includes(req.user.role)) {
-      return next(new AppError('Insufficient permissions', 403))
+    if (!allowedRoles.includes(req.user.role)) {
+      logger.warn(
+        { userId: req.user.userId, userRole: req.user.role, requiredRoles: allowedRoles },
+        'Access denied - insufficient permissions',
+      )
+      return next(new AppError(
+        `Insufficient permissions. Required roles: ${allowedRoles.join(', ')}`,
+        403,
+        'FORBIDDEN',
+      ))
     }
 
+    logger.debug({ userId: req.user.userId, role: req.user.role }, 'Role authorization passed')
     next()
-  }
-}
-
-export const optionalAuth = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '')
-      
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET)
-        req.user = {
-          id: decoded.userId || decoded.sub,
-          email: decoded.email,
-          role: decoded.role,
-          departmentId: decoded.departmentId,
-        }
-      } catch {
-        // Ignore invalid tokens for optional auth
-        req.user = null
-      }
-    }
-    
-    next()
-  } catch (error) {
-    next(error)
   }
 }
