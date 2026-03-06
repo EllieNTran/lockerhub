@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Layout from "../layout/Layout";
+import UserLayout from "../layout/UserLayout";
 import { mockBookings, mockNotifications, mockLockers, mockFloors } from "@/shared/data/mockData";
 
 const statusColors: Record<string, string> = {
@@ -43,7 +43,7 @@ const Home = () => {
   const notifications = mockNotifications.filter((n) => n.user_id === 'u1');
 
   return (
-    <Layout>
+    <UserLayout>
       <div className="w-full">
         {/* Hero Banner */}
         <div className="mb-8 rounded-2xl bg-gradient-to-br from-primary via-primary to-secondary p-8 text-white relative overflow-hidden">
@@ -250,7 +250,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </UserLayout>
   );
 };
 

@@ -1,5 +1,6 @@
 import { Lock, ShieldCheck, User } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router";
+import { useEffect } from "react";
 import { cn } from "@/shared/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { useViewMode } from "../context/ViewModeContext";
@@ -9,6 +10,17 @@ const Header = () => {
   const { viewMode, setViewMode, isAdmin } = useViewMode();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
+  // Sync viewMode with current route
+  useEffect(() => {
+    if (isAdminRoute && viewMode !== "admin") {
+      setViewMode("admin");
+    } else if (!isAdminRoute && viewMode !== "user") {
+      setViewMode("user");
+    }
+  }, [isAdminRoute, viewMode, setViewMode]);
 
   const handleToggle = (checked: boolean) => {
     setViewMode(checked ? "admin" : "user");
@@ -25,11 +37,9 @@ const Header = () => {
       isActive ? "text-primary-foreground" : "text-primary-foreground/60"
     );
 
-  const isAdminRoute = location.pathname.startsWith("/admin");
-
   return (
     <header className="border-b bg-primary">
-      <div className="container flex h-16 items-center justify-between px-6">
+      <div className="flex h-16 items-center justify-between px-8">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
