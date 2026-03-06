@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* ========================================
+     COLOR SYSTEM - Light Mode (Default)
+     Edit these hex values to change app colors
+     ======================================== */
+  
+  /* Primary Blue */
+  --color-primary: #00308F;
+  --color-primary-foreground: #D6DEF0;
+  --color-primary-outline: #6B87BF;
+
+  /* Bright Blue (Secondary) */
+  --color-secondary: #1C44E3;
+  --color-secondary-foreground: #D2DAF9;
+  --color-secondary-outline: #778FEE;
+  --color-secondary-muted: #F4F6FD;
+
+  /* Dark Blue */
+  --color-dark-blue: #0C233C;
+
+  /* Success Green */
+  --color-success: #4DC089;
+  --color-success-foreground: #DCF2E6;
+  --color-success-outline: #A4E1C4;
+
+  /* Pending Orange */
+  --color-pending: #FF9C00;
+  --color-pending-foreground: #FFF6EA;
+  --color-pending-outline: #FFC975;
+
+  /* Error Red */
+  --color-error: #F10015;
+  --color-error-foreground: #FFE9EB;
+  --color-error-outline: #F87580;
+
+  /* Purple */
+  --color-purple: #7706F2;
+  --color-purple-foreground: #E4CCFC;
+  --color-purple-outline: #AD69F7;
+
+  /* Pink */
+  --color-pink: #FF009E;
+  --color-pink-foreground: #FFE5F5;
+  --color-pink-outline: #FF73C9;
+
+  /* Baby Blue */
+  --color-baby-blue: #00BBFC;
+
+  /* Base Colors */
+  --color-background: #FAFAFA;
+  --color-foreground: #0a0a0a;
+
+
+
+
+  /* Card */
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+
+  /* Muted */
+  --color-muted: #F4F6FD;
+  --color-muted-foreground: #85919D;
+
+  /* Accent */
+  --color-accent: #F4F6FD;
+  --color-accent-foreground: #0a0a0a;
+
+  /* Destructive */
+  --color-destructive: #F10015;
+  --color-destructive-foreground: #ffffff;
+
+  /* Borders & Inputs */
+  --color-border: #E2E4EB;
+  --color-input: #E2E4EB;
+  --color-ring: #00308F;
+
+  /* Locker Status */
+  --color-locker-available: #4DC089;
+
+
+
+  
+  /* Greys */
+  --color-grey: #85919D;
+  --color-grey-outline: #E2E4EB;
+  --color-mid-grey: #AEB3BD;
+
+  /* Radius */
+  --radius: 0.5rem;
+}
+
+html,
+body {
+  @apply bg-background text-foreground;
+}

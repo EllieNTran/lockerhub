@@ -1,0 +1,85 @@
+import { Lock, ShieldCheck, User } from "lucide-react";
+import { NavLink, useNavigate, useLocation } from "react-router";
+import { cn } from "@/shared/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { useViewMode } from "../context/ViewModeContext";
+import { Badge } from "@/components/ui/badge";
+
+const Header = () => {
+  const { viewMode, setViewMode, isAdmin } = useViewMode();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleToggle = (checked: boolean) => {
+    setViewMode(checked ? "admin" : "user");
+    if (checked) {
+      navigate("/admin");
+    } else {
+      navigate("/");
+    }
+  };
+
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      "text-sm font-medium transition-colors hover:text-primary-foreground",
+      isActive ? "text-primary-foreground" : "text-primary-foreground/60"
+    );
+
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
+  return (
+    <header className="border-b bg-primary">
+      <div className="container flex h-16 items-center justify-between px-6">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
+              <Lock className="h-5 w-5 text-secondary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold leading-tight text-primary-foreground">
+                LockerHub
+              </h1>
+              <p className="text-xs text-primary-foreground/60">
+                All-in-one locker platform
+              </p>
+            </div>
+          </div>
+          {/* Only show user nav when not in admin routes */}
+          {!isAdminRoute && (
+            <nav className="flex items-center gap-4 ml-4">
+              <NavLink to="/" end className={linkClass}>Home</NavLink>
+              <NavLink to="/book" className={linkClass}>Book a Locker</NavLink>
+              <NavLink to="/my-bookings" className={linkClass}>My Bookings</NavLink>
+              <NavLink to="/special-request" className={linkClass}>Special Request</NavLink>
+              <NavLink to="/return-key" className={linkClass}>Return Key</NavLink>
+            </nav>
+          )}
+        </div>
+
+        {/* Admin / User view toggle */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
+            <User className="h-3.5 w-3.5 text-primary-foreground/70" />
+            <span className="text-xs text-primary-foreground/70">User</span>
+            <Switch
+              checked={isAdmin}
+              onCheckedChange={handleToggle}
+              className="data-[state=checked]:bg-secondary data-[state=unchecked]:bg-white/20"
+            />
+            <ShieldCheck className={cn("h-3.5 w-3.5 transition-colors", isAdmin ? "text-primary-foreground" : "text-primary-foreground/40")} />
+            <span className={cn("text-xs transition-colors", isAdmin ? "text-primary-foreground font-medium" : "text-primary-foreground/40")}>
+              Admin
+            </span>
+          </div>
+          {isAdmin && (
+            <Badge className="bg-secondary text-secondary-foreground text-xs px-2 py-0.5">
+              Admin View
+            </Badge>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
