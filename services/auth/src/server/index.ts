@@ -1,13 +1,13 @@
-import express from 'express'
+import express, { Request, Response } from 'express'
 import helmet from 'helmet'
 import compression from 'compression'
 import rateLimit from 'express-rate-limit'
-import { requestLogger } from '../middleware/request-logger.js'
-import { errorHandler } from '../middleware/error-handler.js'
-import { notFoundHandler } from '../middleware/not-found.js'
-import authRoutes from '../routes/auth.js'
-import logger from '../logger.js'
-import { fromEnv } from '../constants.js'
+import { requestLogger } from '../middleware/request-logger'
+import { errorHandler } from '../middleware/error-handler'
+import { notFoundHandler } from '../middleware/not-found'
+import authRoutes from '../routes/auth'
+import logger from '../logger'
+import { fromEnv } from '../constants'
 
 const app = express()
 const PORT = fromEnv('PORT') || 80
@@ -30,7 +30,7 @@ app.use(compression())
 
 app.use(requestLogger)
 
-app.get('/health', (req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     service: 'auth',
@@ -48,7 +48,7 @@ const server = app.listen(PORT, () => {
   logger.info(`Auth server listening on port ${PORT}`)
 })
 
-const shutdown = (signal) => {
+const shutdown = (signal: string) => {
   logger.info(`${signal} received, shutting down gracefully`)
   server.close(() => {
     logger.info('Server closed')

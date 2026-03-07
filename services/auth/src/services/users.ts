@@ -1,12 +1,11 @@
-import { query } from '../connectors/db.js'
-import logger from '../logger.js'
+import { query } from '../connectors/db'
+import logger from '../logger'
+import type { User } from '../types'
 
 /**
  * Find user by email
- * @param {string} email - User email
- * @returns {Promise<Object|null>} User object or null if not found
  */
-export const findUserByEmail = async (email) => {
+export const findUserByEmail = async (email: string): Promise<User | null> => {
   try {
     const result = await query(
       `SELECT 
@@ -25,7 +24,7 @@ export const findUserByEmail = async (email) => {
     )
 
     return result.rows[0] || null
-  } catch (error) {
+  } catch (error: any) {
     logger.error({ error, email }, 'Error finding user by email')
     throw error
   }
@@ -33,10 +32,8 @@ export const findUserByEmail = async (email) => {
 
 /**
  * Find user by ID
- * @param {string} userId - User ID (UUID)
- * @returns {Promise<Object|null>} User object or null if not found
  */
-export const findUserById = async (userId) => {
+export const findUserById = async (userId: string): Promise<User | null> => {
   try {
     const result = await query(
       `SELECT 
@@ -54,7 +51,7 @@ export const findUserById = async (userId) => {
     )
 
     return result.rows[0] || null
-  } catch (error) {
+  } catch (error: any) {
     logger.error({ error, userId }, 'Error finding user by ID')
     throw error
   }
@@ -62,17 +59,16 @@ export const findUserById = async (userId) => {
 
 /**
  * Create a new user
- * @param {Object} userData - User data
- * @param {string} userData.firstName - First name
- * @param {string} userData.lastName - Last name
- * @param {string} userData.email - Email
- * @param {string} userData.passwordHash - Hashed password
- * @param {string} [userData.role] - User role (default: 'user')
- * @param {string} [userData.staffNumber] - Staff number
- * @param {string} [userData.departmentId] - Department ID
- * @returns {Promise<Object>} Created user
  */
-export const createUser = async (userData) => {
+export const createUser = async (userData: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  passwordHash: string;
+  role?: string;
+  staffNumber?: string | null;
+  departmentId?: string | null;
+}): Promise<User> => {
   const {
     firstName,
     lastName,
@@ -101,7 +97,7 @@ export const createUser = async (userData) => {
     )
 
     return result.rows[0]
-  } catch (error) {
+  } catch (error: any) {
     logger.error({ error, email }, 'Error creating user')
     throw error
   }
@@ -109,11 +105,8 @@ export const createUser = async (userData) => {
 
 /**
  * Update user password
- * @param {string} userId - User ID
- * @param {string} passwordHash - New hashed password
- * @returns {Promise<boolean>} Success status
  */
-export const updateUserPassword = async (userId, passwordHash) => {
+export const updateUserPassword = async (userId: string, passwordHash: string): Promise<boolean> => {
   try {
     const result = await query(
       `UPDATE lockerhub.users 
@@ -122,8 +115,8 @@ export const updateUserPassword = async (userId, passwordHash) => {
       [passwordHash, userId],
     )
 
-    return result.rowCount > 0
-  } catch (error) {
+    return (result.rowCount ?? 0) > 0
+  } catch (error: any) {
     logger.error({ error, userId }, 'Error updating user password')
     throw error
   }

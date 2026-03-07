@@ -2,9 +2,10 @@ import jwt from 'jsonwebtoken'
 import fs from 'fs'
 import path from 'path'
 import jose from 'node-jose'
-import { fromEnv } from '../constants.js'
-import logger from '../logger.js'
-import { generateKeys } from '../../scripts/generate-keys.js'
+import { fromEnv } from '../constants'
+import logger from '../logger'
+import { generateKeys } from '../../scripts/generate-keys'
+import type { TokenPayload, DecodedToken, JWKS } from '../types'
 
 const keysDir = fromEnv('KEYS_DIR') || path.join(process.cwd(), 'keys')
 const privateKeyPath = path.join(keysDir, 'private.pem')
@@ -12,13 +13,15 @@ const publicKeyPath = path.join(keysDir, 'public.pem')
 
 const KEY_ID = 'lockerhub-auth-key-1'
 
-let privateKey, publicKey, jwkKeystore
+let privateKey: string
+let publicKey: string
+let jwkKeystore: jose.JWK.KeyStore
 
 try {
   privateKey = fs.readFileSync(privateKeyPath, 'utf8')
   publicKey = fs.readFileSync(publicKeyPath, 'utf8')
   logger.info('RSA keys loaded successfully')
-} catch (error) {
+} catch (error: any) {
   logger.info('RSA keys not found. Generating new key pair...')
   const result = generateKeys()
 
@@ -29,7 +32,7 @@ try {
   logger.warn('New RSA keys created. In production, use pre-generated keys from secure storage.')
 }
 
-const initializeKeystore = async () => {
+const initializeKeystore = async (): Promise<jose.JWK.KeyStore> => {
   try {
     const keystore = jose.JWK.createKeyStore()
     await keystore.add(publicKey, 'pem', {
@@ -39,7 +42,7 @@ const initializeKeystore = async () => {
     })
     logger.info('JWK keystore initialized successfully')
     return keystore
-  } catch (error) {
+  } catch (error: any) {
     logger.error({ error }, 'Failed to initialize JWK keystore')
     throw error
   }
@@ -50,14 +53,8 @@ jwkKeystore = await jwkKeystorePromise
 
 /**
  * Generate a JWT access token
- * @param {Object} payload - Token payload
- * @param {string|number} payload.userId - User ID
- * @param {string} payload.email - User email
- * @param {string} payload.role - User role
- * @param {string} [payload.departmentId] - Department ID (optional)
- * @returns {string} JWT token
  */
-export const generateAccessToken = (payload) => {
+export const generateAccessToken = (payload: TokenPayload): string => {
   const expiresIn = fromEnv('ACCESS_TOKEN_EXPIRY') || '15m'
 
   // Generate unique token ID for tracking and revocation
@@ -81,17 +78,14 @@ export const generateAccessToken = (payload) => {
       subject: payload.userId.toString(), // Subject claim
       notBefore: Math.floor(Date.now() / 1000), // Not valid before current time
       keyid: KEY_ID, // Key ID for JWKS key rotation support
-    },
+    } as jwt.SignOptions,
   )
 }
 
 /**
  * Generate a JWT refresh token
- * @param {Object} payload - Token payload
- * @param {string|number} payload.userId - User ID
- * @returns {string} JWT token
  */
-export const generateRefreshToken = (payload) => {
+export const generateRefreshToken = (payload: Pick<TokenPayload, 'userId'>): string => {
   const expiresIn = fromEnv('REFRESH_TOKEN_EXPIRY') || '7d'
 
   const tokenId = `refresh-${payload.userId}-${Date.now()}-${Math.random().toString(36).substring(7)}`
@@ -110,26 +104,24 @@ export const generateRefreshToken = (payload) => {
       jwtid: tokenId,
       subject: payload.userId.toString(),
       keyid: KEY_ID, // Key ID for JWKS key rotation support
-    },
+    } as jwt.SignOptions,
   )
 }
 
 /**
  * Verify a JWT token (used internally for refresh token validation)
- * @param {string} token - JWT token to verify
- * @param {Object} options - Verification options
- * @param {string|string[]} [options.audience] - Expected audience(s)
- * @returns {Object} Decoded token payload
- * @throws {Error} If token is invalid
  */
-export const verifyToken = (token, options = {}) => {
-  const audience = options.audience || ['lockerhub-api', 'lockerhub-services']
+export const verifyToken = (token: string, options: { audience?: string | string[] } = {}): DecodedToken => {
+  const defaultAudience = ['lockerhub-api', 'lockerhub-services'] as const
+  const audience = options.audience 
+    ? (Array.isArray(options.audience) ? options.audience[0] : options.audience)
+    : defaultAudience[0]
 
   return jwt.verify(token, publicKey, {
     algorithms: ['RS256'],
     issuer: 'lockerhub-auth',
     audience,
-  })
+  }) as DecodedToken
 }
 
 /**
@@ -140,9 +132,7 @@ export const verifyToken = (token, options = {}) => {
  * 2. Extract the public key from the JWKS response
  * 3. Use the public key to verify JWT signatures locally
  * 4. No need to call auth service for each request verification
- *
- * @returns {Object} JWKS (JSON Web Key Set) with the public key
  */
-export const getJWKS = () => {
-  return jwkKeystore.toJSON()
+export const getJWKS = (): JWKS => {
+  return jwkKeystore.toJSON() as JWKS
 }

@@ -1,17 +1,15 @@
 import bcrypt from 'bcryptjs'
-import { generateAccessToken, generateRefreshToken, verifyToken } from './token.js'
-import { findUserByEmail, findUserById } from './users.js'
-import logger from '../logger.js'
+import { generateAccessToken, generateRefreshToken, verifyToken } from './token'
+import { findUserByEmail, findUserById } from './users'
+import logger from '../logger'
+import type { LoginResponse, RefreshResponse, LogoutResponse, AppError } from '../types'
 
 /**
  * Authenticate user with email and password
- * @param {string} email - User email
- * @param {string} password - User password
- * @returns {Promise<Object>} Access token, refresh token, and user info
  */
-export const login = async (email, password) => {
+export const login = async (email: string, password: string): Promise<LoginResponse> => {
   if (!email || !password) {
-    const error = new Error('Email and password are required')
+    const error = new Error('Email and password are required') as AppError
     error.status = 400
     throw error
   }
@@ -20,7 +18,7 @@ export const login = async (email, password) => {
 
   if (!user) {
     logger.warn({ email }, 'Failed login attempt - user not found')
-    const error = new Error('Invalid email or password')
+    const error = new Error('Invalid email or password') as AppError
     error.status = 401
     throw error
   }
@@ -29,7 +27,7 @@ export const login = async (email, password) => {
 
   if (!isValidPassword) {
     logger.warn({ email, userId: user.user_id }, 'Failed login attempt - invalid password')
-    const error = new Error('Invalid email or password')
+    const error = new Error('Invalid email or password') as AppError
     error.status = 401
     throw error
   }
@@ -62,12 +60,10 @@ export const login = async (email, password) => {
 
 /**
  * Refresh access token using refresh token
- * @param {string} refreshToken - Refresh token
- * @returns {Promise<Object>} New access token
  */
-export const refresh = async (refreshToken) => {
+export const refresh = async (refreshToken: string): Promise<RefreshResponse> => {
   if (!refreshToken) {
-    const error = new Error('Refresh token is required')
+    const error = new Error('Refresh token is required') as AppError
     error.status = 400
     throw error
   }
@@ -75,9 +71,9 @@ export const refresh = async (refreshToken) => {
   let decoded
   try {
     decoded = verifyToken(refreshToken)
-  } catch (error) {
+  } catch (error: any) {
     logger.warn({ error: error.message }, 'Invalid refresh token')
-    const err = new Error('Invalid or expired refresh token')
+    const err = new Error('Invalid or expired refresh token') as AppError
     err.status = 401
     throw err
   }
@@ -88,7 +84,7 @@ export const refresh = async (refreshToken) => {
 
   if (!user) {
     logger.warn({ userId: decoded.userId }, 'Refresh token for non-existent user')
-    const error = new Error('Invalid refresh token')
+    const error = new Error('Invalid refresh token') as AppError
     error.status = 401
     throw error
   }
@@ -107,10 +103,8 @@ export const refresh = async (refreshToken) => {
 
 /**
  * Logout user
- * @param {string} _refreshToken - Refresh token to invalidate
- * @returns {Promise<Object>} Success message
  */
-export const logout = async (_refreshToken) => {
+export const logout = async (_refreshToken: string): Promise<LogoutResponse> => {
   // TODO: Add refresh token to blacklist in database
 
   logger.info('User logged out')

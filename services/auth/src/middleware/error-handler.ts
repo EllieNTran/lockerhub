@@ -1,6 +1,8 @@
-import logger from '../logger.js'
+import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express'
+import logger from '../logger'
+import type { AppError } from '../types'
 
-export const errorHandler = (err, req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (err: AppError, _req: Request, res: Response, _next: NextFunction) => {
   logger.error(err)
 
   const statusCode = err.status || err.statusCode || 500
