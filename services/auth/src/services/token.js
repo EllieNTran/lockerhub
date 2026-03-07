@@ -6,7 +6,6 @@ import { fromEnv } from '../constants.js'
 import logger from '../logger.js'
 import { generateKeys } from '../../scripts/generate-keys.js'
 
-// Load or generate RSA keys
 const keysDir = fromEnv('KEYS_DIR') || path.join(process.cwd(), 'keys')
 const privateKeyPath = path.join(keysDir, 'private.pem')
 const publicKeyPath = path.join(keysDir, 'public.pem')
@@ -30,7 +29,6 @@ try {
   logger.warn('New RSA keys created. In production, use pre-generated keys from secure storage.')
 }
 
-// Initialize JWK keystore
 const initializeKeystore = async () => {
   try {
     const keystore = jose.JWK.createKeyStore()
@@ -47,7 +45,6 @@ const initializeKeystore = async () => {
   }
 }
 
-// Initialize the keystore
 const jwkKeystorePromise = initializeKeystore()
 jwkKeystore = await jwkKeystorePromise
 

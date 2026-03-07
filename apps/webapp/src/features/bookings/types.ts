@@ -8,8 +8,8 @@ export interface Booking {
   booking_id: string
   user_id: string
   locker_id: string
-  booking_start: string // DATE
-  booking_end: string // DATE
+  start_date: string // DATE
+  end_date: string // DATE
   status: BookingStatus
   special_request_id: number | null
   created_at: string
@@ -18,12 +18,12 @@ export interface Booking {
 
 export interface CreateBookingData {
   locker_id: string
-  booking_start: string
-  booking_end: string
+  start_date: string
+  end_date: string
 }
 
 export interface UpdateBookingData {
-  booking_start?: string
-  booking_end?: string
+  start_date?: string
+  end_date?: string
   status?: BookingStatus
 }

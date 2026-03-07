@@ -1,6 +1,9 @@
 -- Create schema
 CREATE SCHEMA IF NOT EXISTS lockerhub;
 
+-- Create extensions
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
 -- Create all ENUM types
 CREATE TYPE lockerhub.user_role AS ENUM ('admin', 'user');
 CREATE TYPE lockerhub.locker_status AS ENUM ('available', 'occupied', 'maintenance', 'reserved');
@@ -120,8 +123,8 @@ CREATE TABLE IF NOT EXISTS lockerhub.bookings (
     booking_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
     locker_id UUID NOT NULL,
-    booking_start DATE NOT NULL,
-    booking_end DATE NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
     status lockerhub.booking_status NOT NULL DEFAULT 'upcoming',
     special_request_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -129,10 +132,14 @@ CREATE TABLE IF NOT EXISTS lockerhub.bookings (
     CONSTRAINT fk_bookings_user FOREIGN KEY (user_id) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_bookings_locker FOREIGN KEY (locker_id) REFERENCES lockerhub.lockers(locker_id) ON DELETE RESTRICT,
     CONSTRAINT fk_bookings_special_request FOREIGN KEY (special_request_id) REFERENCES lockerhub.requests(request_id) ON DELETE SET NULL,
-    CONSTRAINT chk_bookings_dates CHECK (booking_end >= booking_start)
+    CONSTRAINT chk_bookings_dates CHECK (end_date >= start_date),
+    CONSTRAINT no_overlapping_bookings EXCLUDE USING gist (
+        locker_id WITH =,
+        daterange(start_date, end_date, '[]') WITH &&
+    )
 );
 
-CREATE INDEX idx_bookings_floor_locker_dates ON lockerhub.bookings(locker_id, booking_start, booking_end);
+CREATE INDEX idx_bookings_floor_locker_dates ON lockerhub.bookings(locker_id, start_date, end_date);
 CREATE INDEX idx_bookings_user_id ON lockerhub.bookings(user_id);
 
 -- Add booking_id FK to requests now that bookings table exists
