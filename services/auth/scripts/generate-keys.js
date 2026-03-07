@@ -24,7 +24,6 @@ export function generateKeys(force = false) {
     mkdirSync(KEYS_DIR, { recursive: true })
   }
 
-  // Generate RSA key pair (2048 bits)
   const { publicKey, privateKey } = generateKeyPairSync('rsa', {
     modulusLength: 2048,
     publicKeyEncoding: {

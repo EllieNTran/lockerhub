@@ -232,8 +232,8 @@ const Home = () => {
                           <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <CalendarDays className="h-3 w-3" />
-                              {format(new Date(booking.booking_start), "MMM d")} —{" "}
-                              {format(new Date(booking.booking_end), "MMM d, yyyy")}
+                              {format(new Date(booking.start_date), "MMM d")} —{" "}
+                              {format(new Date(booking.end_date), "MMM d, yyyy")}
                             </span>
                             <span className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
