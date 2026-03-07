@@ -1,10 +1,10 @@
-import logger from './logger.js'
+import logger from './logger'
 
-const run = async () => {
+const run = async (): Promise<void> => {
   process.on('uncaughtExceptionMonitor', (error, origin) => {
     logger.error(error, 'Uncaught exception monitored', { origin })
   })
-  await import('./server/index.js')
+  await import('./server/index')
 }
 
 await run()

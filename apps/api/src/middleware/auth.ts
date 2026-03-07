@@ -1,12 +1,14 @@
-import { verifyTokenWithJWKS } from '../utils/verify-jwt.js'
-import logger from '../logger.js'
-import { AppError } from './error-handler.js'
+import { verifyTokenWithJWKS } from '../utils/verify-jwt'
+import logger from '../logger'
+import { AppError } from './error-handler'
+import type { Response, NextFunction, RequestHandler } from 'express'
+import type { AuthenticatedRequest } from '../types'
 
 /**
  * Authenticate requests using JWT verification with JWKS
  * Verifies JWT signature using cached public key from auth service
  */
-export const authenticate = async (req, res, next) => {
+export const authenticate = async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
   try {
     const authHeader = req.headers.authorization
 
@@ -33,7 +35,7 @@ export const authenticate = async (req, res, next) => {
 
       logger.debug({ userId: decoded.userId, role: decoded.role }, 'User authenticated')
       next()
-    } catch (jwtError) {
+    } catch (jwtError: any) {
       logger.warn({ error: jwtError.message }, 'JWT verification failed')
 
       if (jwtError.name === 'TokenExpiredError') {
@@ -49,11 +51,9 @@ export const authenticate = async (req, res, next) => {
 /**
  * Require specific role(s) to access endpoint
  * Must be used after authenticate middleware
- *
- * @param {...string} allowedRoles - Roles that are allowed to access
  */
-export const requireRole = (...allowedRoles) => {
-  return (req, res, next) => {
+export const requireRole = (...allowedRoles: string[]): RequestHandler => {
+  return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new AppError('Authentication required', 401, 'UNAUTHENTICATED'))
     }

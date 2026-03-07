@@ -1,10 +1,10 @@
-import { Router } from 'express'
-import { authenticate, requireRole } from '../../middleware/auth.js'
-import { proxyToService } from '../../connectors/services.js'
+import { Router, Request, Response } from 'express'
+import { authenticate, requireRole } from '../../middleware/auth'
+import { proxyToService } from '../../connectors/services'
 
 const router = Router()
 
-router.get('/health', (req, res) => {
+router.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),

@@ -1,20 +1,20 @@
-import express from 'express'
+import express, { Request, Response } from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
 import compression from 'compression'
 import rateLimit from 'express-rate-limit'
-import { requestLogger } from '../middleware/request-logger.js'
-import { errorHandler } from '../middleware/error-handler.js'
-import { notFoundHandler } from '../middleware/not-found.js'
-import { refreshPublicKey } from '../utils/verify-jwt.js'
-import apiRoutes from './routes/api.js'
-import logger from '../logger.js'
-import { fromEnv } from '../constants.js'
+import { requestLogger } from '../middleware/request-logger'
+import { errorHandler } from '../middleware/error-handler'
+import { notFoundHandler } from '../middleware/not-found'
+import { refreshPublicKey } from '../utils/verify-jwt'
+import apiRoutes from './routes/api'
+import logger from '../logger'
+import { fromEnv } from '../constants'
 
 const app = express()
 const PORT = fromEnv('PORT') || 80
 
-const initJWKS = async () => {
+const initJWKS = async (): Promise<void> => {
   try {
     await refreshPublicKey()
     logger.info('JWKS fetched and cached successfully')
@@ -24,11 +24,11 @@ const initJWKS = async () => {
       try {
         await refreshPublicKey()
         logger.info('JWKS refreshed')
-      } catch (error) {
+      } catch (error: any) {
         logger.error({ error }, 'Failed to refresh JWKS')
       }
     }, 60 * 60 * 1000) // 1 hour
-  } catch (error) {
+  } catch (error: any) {
     logger.error({ error }, 'Failed to initialize JWKS')
     throw error
   }
@@ -56,7 +56,7 @@ app.use(compression())
 
 app.use(requestLogger)
 
-app.get('/health', (req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -78,7 +78,7 @@ const startServer = async () => {
     })
 
     return server
-  } catch (error) {
+  } catch (error: any) {
     logger.error({ error }, 'Failed to start server')
     process.exit(1)
   }
@@ -86,7 +86,7 @@ const startServer = async () => {
 
 const server = await startServer()
 
-const shutdown = (signal) => {
+const shutdown = (signal: string) => {
   logger.info(`${signal} received, shutting down gracefully`)
   server.close(() => {
     logger.info('Server closed')

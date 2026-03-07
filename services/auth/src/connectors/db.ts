@@ -1,6 +1,7 @@
 import pg from 'pg'
-import { fromEnv } from '../constants.js'
-import logger from '../logger.js'
+import { fromEnv } from '../constants'
+import logger from '../logger'
+import type { QueryResult } from '../types'
 
 const { Pool } = pg
 
@@ -19,7 +20,7 @@ pool.on('connect', () => {
   logger.debug('Database connection established')
 })
 
-pool.on('error', (err) => {
+pool.on('error', (err: Error) => {
   logger.error({ err }, 'Unexpected database error')
 })
 
@@ -31,18 +32,15 @@ process.on('SIGTERM', async () => {
 
 /**
  * Execute a query
- * @param {string} text - SQL query
- * @param {Array} params - Query parameters
- * @returns {Promise<Object>} Query result
  */
-export const query = async (text, params) => {
+export const query = async <T = any>(text: string, params?: any[]): Promise<QueryResult<T>> => {
   const start = Date.now()
   try {
     const res = await pool.query(text, params)
     const duration = Date.now() - start
     logger.debug({ text, duration, rows: res.rowCount }, 'Executed query')
     return res
-  } catch (error) {
+  } catch (error: any) {
     logger.error({ error, text }, 'Query error')
     throw error
   }
@@ -50,26 +48,22 @@ export const query = async (text, params) => {
 
 /**
  * Get a client from the pool for transactions
- * @returns {Promise<Object>} Database client
  */
 export const getClient = async () => {
   const client = await pool.connect()
-  const query = client.query
-  const release = client.release
+  const query = client.query.bind(client)
+  const release = client.release.bind(client)
 
   const timeout = setTimeout(() => {
     logger.error('Client has been checked out for more than 5 seconds')
   }, 5000)
 
-  client.query = (...args) => {
-    return query.apply(client, args)
-  }
-
+  // Override release to cleanup timeout
   client.release = () => {
     clearTimeout(timeout)
     client.query = query
     client.release = release
-    return release.apply(client)
+    return release()
   }
 
   return client
