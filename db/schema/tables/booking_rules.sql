@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS lockerhub.booking_rules (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID NOT NULL,
     CONSTRAINT fk_booking_rules_created_by FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_booking_rules_updated_by FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
     CONSTRAINT chk_booking_rules_dates CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date)
 );

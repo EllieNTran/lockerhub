@@ -9,13 +9,14 @@ CREATE TYPE lockerhub.user_role AS ENUM ('admin', 'user');
 CREATE TYPE lockerhub.locker_status AS ENUM ('available', 'occupied', 'maintenance', 'reserved');
 CREATE TYPE lockerhub.key_status AS ENUM ('available', 'awaiting_handover', 'with_employee', 'awaiting_return', 'lost', 'awaiting_replacement');
 CREATE TYPE lockerhub.request_type AS ENUM ('normal', 'extension', 'special');
-CREATE TYPE lockerhub.request_status AS ENUM ('pending', 'queued', 'approved', 'rejected', 'cancelled');
+CREATE TYPE lockerhub.request_status AS ENUM ('pending', 'queued', 'approved', 'rejected', 'cancelled', 'active', 'completed');
 CREATE TYPE lockerhub.booking_status AS ENUM ('upcoming', 'active', 'completed', 'cancelled', 'expired');
 CREATE TYPE lockerhub.rule_type AS ENUM ('max_duration', 'max_extension', 'advance_booking_window', 'same_day_bookings');
 CREATE TYPE lockerhub.audit_action AS ENUM ('create', 'update', 'delete', 'login', 'logout', 'approve', 'reject', 'handover', 'return');
 CREATE TYPE lockerhub.entity_type AS ENUM ('booking', 'locker', 'key', 'request', 'floor', 'booking_rule');
 CREATE TYPE lockerhub.notification_type AS ENUM ('info', 'warning', 'error', 'success');
 CREATE TYPE lockerhub.notification_scope AS ENUM ('user', 'department', 'floor', 'global');
+CREATE TYPE lockerhub.floor_status AS ENUM ('open', 'closed');
 
 -- Create tables
 
@@ -56,7 +57,10 @@ CREATE TABLE IF NOT EXISTS lockerhub.lockers (
     locker_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     locker_number VARCHAR(11) NOT NULL UNIQUE,
     floor_id UUID NOT NULL,
+    location VARCHAR(20),
     status lockerhub.locker_status NOT NULL DEFAULT 'available',
+    x_coordinate INTEGER,
+    y_coordinate INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_lockers_floor FOREIGN KEY (floor_id) REFERENCES lockerhub.floors(floor_id) ON DELETE RESTRICT
@@ -158,7 +162,9 @@ CREATE TABLE IF NOT EXISTS lockerhub.booking_rules (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID NOT NULL,
     CONSTRAINT fk_booking_rules_created_by FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_booking_rules_updated_by FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
     CONSTRAINT chk_booking_rules_dates CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date)
 );
 
