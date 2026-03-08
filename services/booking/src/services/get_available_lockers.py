@@ -4,7 +4,17 @@ from src.logger import logger
 from src.connectors.db import db
 
 GET_AVAILABLE_LOCKERS_QUERY = """
-SELECT * FROM lockerhub.lockers
+SELECT 
+    locker_id,
+    locker_number,
+    floor_id,
+    location,
+    status,
+    x_coordinate,
+    y_coordinate,
+    created_at,
+    updated_at
+FROM lockerhub.lockers
 WHERE floor_id = $1
 AND locker_id NOT IN (
     SELECT locker_id FROM lockerhub.bookings

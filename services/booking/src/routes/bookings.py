@@ -54,7 +54,7 @@ async def get_user_bookings_endpoint(current_user: dict = Depends(get_current_us
     try:
         bookings = await get_user_bookings(current_user["user_id"])
         return BookingListResponse(bookings=bookings)
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve bookings")
 
 
@@ -128,7 +128,7 @@ async def get_available_lockers_endpoint(
     try:
         lockers = await get_available_lockers(floor_id, start_date, end_date)
         return AvailableLockersResponse(lockers=lockers)
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500, detail="Failed to retrieve available lockers"
         )
@@ -150,5 +150,5 @@ async def check_locker_availability_endpoint(
             end_date=end_date,
             available=is_available,
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to check availability")

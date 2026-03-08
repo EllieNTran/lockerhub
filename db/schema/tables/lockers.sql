@@ -2,7 +2,10 @@ CREATE TABLE IF NOT EXISTS lockerhub.lockers (
     locker_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     locker_number VARCHAR(11) NOT NULL UNIQUE,
     floor_id UUID NOT NULL,
+    location VARCHAR(20),
     status lockerhub.locker_status NOT NULL DEFAULT 'available',
+    x_coordinate INTEGER,
+    y_coordinate INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_lockers_floor FOREIGN KEY (floor_id) REFERENCES lockerhub.floors(floor_id) ON DELETE RESTRICT
