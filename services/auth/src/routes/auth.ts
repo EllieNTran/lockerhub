@@ -1,10 +1,20 @@
 import express, { Request, Response } from 'express'
-import { login, refresh, logout } from '../services/auth'
+import { signup, login, refresh, logout } from '../services/auth'
 import { getJWKS } from '../services/token'
 import { asyncHandler } from '../utils/async-handler'
-import type { LoginRequest, RefreshRequest, LogoutRequest } from '../types'
+import type { SignupRequest, LoginRequest, RefreshRequest, LogoutRequest } from '../types'
 
 const router = express.Router()
+
+/**
+ * POST /auth/signup
+ * Register a new user and return JWT tokens
+ */
+router.post('/signup', asyncHandler(async (req: Request, res: Response) => {
+  const { firstName, lastName, email, password, staffNumber, departmentId } = req.body as SignupRequest
+  const result = await signup(firstName, lastName, email, password, staffNumber, departmentId)
+  res.status(201).json(result)
+}))
 
 /**
  * POST /auth/login
