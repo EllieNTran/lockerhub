@@ -15,23 +15,23 @@ jobs:
       matrix:
         include:
           - service: api
-            context: .
-            dockerfile: apps/api/Dockerfile
+            context: apps/api
+            dockerfile: Dockerfile
           - service: webapp
-            context: .
-            dockerfile: apps/webapp/Dockerfile
+            context: apps/webapp
+            dockerfile: Dockerfile
           - service: auth
-            context: .
-            dockerfile: services/auth/Dockerfile
+            context: services/auth
+            dockerfile: Dockerfile
           - service: admin
-            context: .
-            dockerfile: services/admin/Dockerfile
+            context: services/admin
+            dockerfile: Dockerfile
           - service: booking
-            context: .
-            dockerfile: services/booking/Dockerfile
+            context: services/booking
+            dockerfile: Dockerfile
           - service: db
-            context: .
-            dockerfile: db/Dockerfile
+            context: db
+            dockerfile: Dockerfile
 
     steps:
       - name: Checkout code
