@@ -4,7 +4,7 @@ export class AppError extends Error {
   statusCode: number
   code: string | null
   isOperational: boolean
-  errors?: any[]
+  errors?: unknown[]
 
   constructor(message: string, statusCode = 500, code: string | null = null, isOperational = true) {
     super(message)
@@ -27,7 +27,7 @@ export const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, r
     method: req.method,
   }, 'Request error')
 
-  const response: any = {
+  const response: Record<string, unknown> = {
     status: 'error',
     statusCode,
     message,

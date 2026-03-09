@@ -106,9 +106,9 @@ export interface AppError extends Error {
 }
 
 // Database query result types
-export interface QueryResult<T = any> {
+export interface QueryResult<T = unknown> {
   rows: T[];
   rowCount: number | null;
   command: string;
-  fields: any[];
+  fields: unknown[];
 }

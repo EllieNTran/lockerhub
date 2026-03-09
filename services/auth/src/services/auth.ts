@@ -132,8 +132,9 @@ export const refresh = async (refreshToken: string): Promise<RefreshResponse> =>
   let decoded
   try {
     decoded = verifyToken(refreshToken)
-  } catch (error: any) {
-    logger.warn({ error: error.message }, 'Invalid refresh token')
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    logger.warn({ error: message }, 'Invalid refresh token')
     const err = new Error('Invalid or expired refresh token') as AppError
     err.status = 401
     throw err

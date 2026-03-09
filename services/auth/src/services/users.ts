@@ -7,7 +7,7 @@ import type { User } from '../types'
  */
 export const findUserByEmail = async (email: string): Promise<User | null> => {
   try {
-    const result = await query(
+    const result = await query<User>(
       `SELECT 
         user_id, 
         first_name, 
@@ -24,7 +24,7 @@ export const findUserByEmail = async (email: string): Promise<User | null> => {
     )
 
     return result.rows[0] || null
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ error, email }, 'Error finding user by email')
     throw error
   }
@@ -35,7 +35,7 @@ export const findUserByEmail = async (email: string): Promise<User | null> => {
  */
 export const findUserById = async (userId: string): Promise<User | null> => {
   try {
-    const result = await query(
+    const result = await query<User>(
       `SELECT 
         user_id, 
         first_name, 
@@ -51,7 +51,7 @@ export const findUserById = async (userId: string): Promise<User | null> => {
     )
 
     return result.rows[0] || null
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ error, userId }, 'Error finding user by ID')
     throw error
   }
@@ -80,7 +80,7 @@ export const createUser = async (userData: {
   } = userData
 
   try {
-    const result = await query(
+    const result = await query<User>(
       `INSERT INTO lockerhub.users 
         (first_name, last_name, email, password_hash, role, staff_number, department_id)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -97,7 +97,7 @@ export const createUser = async (userData: {
     )
 
     return result.rows[0]
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ error, email }, 'Error creating user')
     throw error
   }
@@ -116,7 +116,7 @@ export const updateUserPassword = async (userId: string, passwordHash: string): 
     )
 
     return (result.rowCount ?? 0) > 0
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ error, userId }, 'Error updating user password')
     throw error
   }

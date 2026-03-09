@@ -10,6 +10,6 @@ declare module 'node-jose' {
       get(kid: string): Key | null
     }
 
-    function asKeyStore(jwks: any): Promise<KeyStore>
+    function asKeyStore(jwks: { keys: unknown[] }): Promise<KeyStore>
   }
 }

@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+import { Router, Request, Response, RequestHandler } from 'express'
 import { authenticate, requireRole } from '../../middleware/auth'
 import { proxyToService, SERVICE_CONFIG } from '../../connectors/services'
 
@@ -11,7 +11,7 @@ const SERVICE_ROUTES = [
 ]
 
 SERVICE_ROUTES.forEach((route) => {
-  const middleware: any[] = []
+  const middleware: RequestHandler[] = []
   if (route.auth) middleware.push(authenticate)
   if ('role' in route && route.role) middleware.push(requireRole(route.role))
   middleware.push(proxyToService(route.service))

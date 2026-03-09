@@ -1,0 +1,51 @@
+name: Docker Build
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            context: .
+            dockerfile: apps/api/Dockerfile
+          - service: webapp
+            context: .
+            dockerfile: apps/webapp/Dockerfile
+          - service: auth
+            context: .
+            dockerfile: services/auth/Dockerfile
+          - service: admin
+            context: .
+            dockerfile: services/admin/Dockerfile
+          - service: booking
+            context: .
+            dockerfile: services/booking/Dockerfile
+          - service: db
+            context: .
+            dockerfile: db/Dockerfile
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          tags: lockerhub-${{ matrix.service }}:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

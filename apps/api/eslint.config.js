@@ -1,27 +1,29 @@
-export default [
+import js from '@eslint/js'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config(
+  { ignores: ['dist/', 'build/', 'node_modules/', 'coverage/'] },
   {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ['**/*.{ts,tsx,js}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
-        process: 'readonly',
-        console: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        Buffer: 'readonly',
-        setTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearTimeout: 'readonly',
-        clearInterval: 'readonly',
-        fetch: 'readonly',
+        ...globals.node,
       },
     },
     rules: {
       'no-console': 'off',
-      'no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
       'comma-dangle': ['error', 'always-multiline'],
       'semi': ['error', 'never'],
       'quotes': ['error', 'single', { avoidEscape: true }],
@@ -30,13 +32,4 @@ export default [
       'eol-last': ['error', 'always'],
     },
   },
-  {
-    ignores: [
-      'node_modules/',
-      'dist/',
-      'build/',
-      'coverage/',
-      '*.min.js',
-    ],
-  },
-]
+)
