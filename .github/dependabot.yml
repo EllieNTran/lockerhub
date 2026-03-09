@@ -1,0 +1,67 @@
+version: 2
+updates:
+  # API (Node.js)
+  - package-ecosystem: "npm"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Webapp (Node.js)
+  - package-ecosystem: "npm"
+    directory: "/apps/webapp"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Auth Service (Node.js)
+  - package-ecosystem: "npm"
+    directory: "/services/auth"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Admin Service (Python)
+  - package-ecosystem: "pip"
+    directory: "/services/admin"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Booking Service (Python)
+  - package-ecosystem: "pip"
+    directory: "/services/booking"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Docker images
+  - package-ecosystem: "docker"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/webapp"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/services/auth"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/services/admin"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/services/booking"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/db"
+    schedule:
+      interval: "weekly"

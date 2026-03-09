@@ -25,7 +25,7 @@ const fetchJWKS = async (): Promise<JWKS> => {
     logger.info('JWKS fetched successfully from auth service')
 
     return jwks
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ error, url: `${AUTH_SERVICE_URL}/auth/.well-known/jwks.json` }, 'Failed to fetch JWKS')
     throw error
   }
@@ -59,7 +59,7 @@ const getPublicKey = async (): Promise<string> => {
     logger.info({ kid: key.kid }, 'Public key cached successfully')
 
     return publicKeyCache
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ error }, 'Failed to get public key')
 
     if (publicKeyCache) {

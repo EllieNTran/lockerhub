@@ -35,10 +35,12 @@ export const authenticate = async (req: AuthenticatedRequest, _res: Response, ne
 
       logger.debug({ userId: decoded.userId, role: decoded.role }, 'User authenticated')
       next()
-    } catch (jwtError: any) {
-      logger.warn({ error: jwtError.message }, 'JWT verification failed')
+    } catch (jwtError: unknown) {
+      const message = jwtError instanceof Error ? jwtError.message : 'Unknown error'
+      const name = jwtError instanceof Error ? jwtError.name : undefined
+      logger.warn({ error: message }, 'JWT verification failed')
 
-      if (jwtError.name === 'TokenExpiredError') {
+      if (name === 'TokenExpiredError') {
         throw new AppError('Token expired', 401, 'TOKEN_EXPIRED')
       }
       throw new AppError('Invalid or expired token', 401, 'INVALID_TOKEN')

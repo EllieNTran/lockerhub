@@ -15,13 +15,12 @@ const KEY_ID = 'lockerhub-auth-key-1'
 
 let privateKey: string
 let publicKey: string
-let jwkKeystore: jose.JWK.KeyStore
 
 try {
   privateKey = fs.readFileSync(privateKeyPath, 'utf8')
   publicKey = fs.readFileSync(publicKeyPath, 'utf8')
   logger.info('RSA keys loaded successfully')
-} catch (error: any) {
+} catch {
   logger.info('RSA keys not found. Generating new key pair...')
   const result = generateKeys()
 
@@ -42,14 +41,13 @@ const initializeKeystore = async (): Promise<jose.JWK.KeyStore> => {
     })
     logger.info('JWK keystore initialized successfully')
     return keystore
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ error }, 'Failed to initialize JWK keystore')
     throw error
   }
 }
 
-const jwkKeystorePromise = initializeKeystore()
-jwkKeystore = await jwkKeystorePromise
+const jwkKeystore = await initializeKeystore()
 
 /**
  * Generate a JWT access token
@@ -113,7 +111,7 @@ export const generateRefreshToken = (payload: Pick<TokenPayload, 'userId'>): str
  */
 export const verifyToken = (token: string, options: { audience?: string | string[] } = {}): DecodedToken => {
   const defaultAudience = ['lockerhub-api', 'lockerhub-services'] as const
-  const audience = options.audience 
+  const audience = options.audience
     ? (Array.isArray(options.audience) ? options.audience[0] : options.audience)
     : defaultAudience[0]
 

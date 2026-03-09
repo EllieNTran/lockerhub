@@ -24,11 +24,11 @@ const initJWKS = async (): Promise<void> => {
       try {
         await refreshPublicKey()
         logger.info('JWKS refreshed')
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error({ error }, 'Failed to refresh JWKS')
       }
     }, 60 * 60 * 1000) // 1 hour
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ error }, 'Failed to initialize JWKS')
     throw error
   }
@@ -78,7 +78,7 @@ const startServer = async () => {
     })
 
     return server
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ error }, 'Failed to start server')
     process.exit(1)
   }

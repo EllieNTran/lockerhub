@@ -1,5 +1,5 @@
-import pino from 'pino';
-import { fromEnv } from './constants';
+import pino from 'pino'
+import { fromEnv } from './constants'
 
 const isDevelopment = fromEnv('NODE_ENV') !== 'production'
 

@@ -99,7 +99,9 @@ async def extend_booking(
             )
 
             if status == "approved":
-                await connection.execute(EXTEND_BOOKING_QUERY, new_end_date, request_id, booking_id)
+                await connection.execute(
+                    EXTEND_BOOKING_QUERY, new_end_date, request_id, booking_id
+                )
                 logger.info(
                     f"Extended booking {booking_id} to new end date {new_end_date} for request {request_id}"
                 )

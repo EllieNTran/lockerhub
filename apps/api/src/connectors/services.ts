@@ -1,4 +1,7 @@
 import { createProxyMiddleware } from 'http-proxy-middleware'
+import type { Request, Response } from 'express'
+import type { ClientRequest, IncomingMessage } from 'http'
+import type { Socket } from 'net'
 import logger from '../logger'
 import { fromEnv } from '../constants'
 import type { AuthenticatedRequest } from '../types'
@@ -35,7 +38,7 @@ export const proxyToService = (serviceName: keyof typeof SERVICE_CONFIG) => {
       return service.prefix + path
     },
     on: {
-      proxyReq: (proxyReq: any, req: AuthenticatedRequest, _res: any) => {
+      proxyReq: (proxyReq: ClientRequest, req: AuthenticatedRequest, _res: Response) => {
         if (req.headers.authorization) {
           proxyReq.setHeader('Authorization', req.headers.authorization)
         }
@@ -59,7 +62,7 @@ export const proxyToService = (serviceName: keyof typeof SERVICE_CONFIG) => {
           'Proxying request to service',
         )
       },
-      proxyRes: (proxyRes: any, req: any, _res: any) => {
+      proxyRes: (proxyRes: IncomingMessage, req: Request, _res: Response) => {
         logger.debug(
           {
             service: serviceName,
@@ -69,7 +72,7 @@ export const proxyToService = (serviceName: keyof typeof SERVICE_CONFIG) => {
           'Received response from service',
         )
       },
-      error: (err: any, req: any, res: any) => {
+      error: (err: Error, req: Request, res: Response | Socket) => {
         logger.error(
           {
             error: err,
@@ -79,12 +82,14 @@ export const proxyToService = (serviceName: keyof typeof SERVICE_CONFIG) => {
           'Proxy error',
         )
 
-        res.status(502).json({
-          status: 'error',
-          statusCode: 502,
-          message: `Service ${serviceName} unavailable`,
-          code: 'SERVICE_UNAVAILABLE',
-        })
+        if ('status' in res && typeof res.status === 'function') {
+          res.status(502).json({
+            status: 'error',
+            statusCode: 502,
+            message: `Service ${serviceName} unavailable`,
+            code: 'SERVICE_UNAVAILABLE',
+          })
+        }
       },
     },
   })
