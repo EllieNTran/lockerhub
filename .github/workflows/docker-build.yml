@@ -16,22 +16,22 @@ jobs:
         include:
           - service: api
             context: apps/api
-            dockerfile: Dockerfile
+            dockerfile: apps/api/Dockerfile
           - service: webapp
             context: apps/webapp
-            dockerfile: Dockerfile
+            dockerfile: apps/webapp/Dockerfile
           - service: auth
             context: services/auth
-            dockerfile: Dockerfile
+            dockerfile: services/auth/Dockerfile
           - service: admin
             context: services/admin
-            dockerfile: Dockerfile
+            dockerfile: services/admin/Dockerfile
           - service: booking
             context: services/booking
-            dockerfile: Dockerfile
+            dockerfile: services/booking/Dockerfile
           - service: db
             context: db
-            dockerfile: Dockerfile
+            dockerfile: db/Dockerfile
 
     steps:
       - name: Checkout code
