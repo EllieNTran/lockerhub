@@ -3,27 +3,36 @@ import logger from '../logger'
 import { fromEnv } from '../constants'
 import type { AuthenticatedRequest } from '../types'
 
-const SERVICE_URLS: Record<string, string> = {
-  admin: fromEnv('ADMIN_SERVICE_URL') || 'http://localhost:3004',
-  analytics: fromEnv('ANALYTICS_SERVICE_URL') || 'http://localhost:3005',
-  booking: fromEnv('BOOKING_SERVICE_URL') || 'http://localhost:3006',
-}
+export const SERVICE_CONFIG = {
+  booking: {
+    url: fromEnv('BOOKING_SERVICE_URL') || 'http://localhost:3004',
+    prefix: '/bookings',
+  },
+  admin: {
+    url: fromEnv('ADMIN_SERVICE_URL') || 'http://localhost:3005',
+    prefix: '/admin',
+  },
+  auth: {
+    url: fromEnv('AUTH_SERVICE_URL') || 'http://localhost:3003',
+    prefix: '/auth',
+  },
+} as const
 
 /**
  * Create a proxy middleware for a specific service
  */
-export const proxyToService = (serviceName: string) => {
-  const serviceUrl = SERVICE_URLS[serviceName]
+export const proxyToService = (serviceName: keyof typeof SERVICE_CONFIG) => {
+  const service = SERVICE_CONFIG[serviceName]
 
-  if (!serviceUrl) {
+  if (!service) {
     throw new Error(`Unknown service: ${serviceName}`)
   }
 
   return createProxyMiddleware({
-    target: serviceUrl,
+    target: service.url,
     changeOrigin: true,
-    pathRewrite: {
-      [`^/api/${serviceName}`]: '',
+    pathRewrite: (path) => {
+      return service.prefix + path
     },
     on: {
       proxyReq: (proxyReq: any, req: AuthenticatedRequest, _res: any) => {

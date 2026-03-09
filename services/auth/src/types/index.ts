@@ -42,7 +42,22 @@ export interface DecodedToken {
   iat: number;
 }
 
-// Auth request/response types
+// Auth types
+export interface SignupRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  staffNumber?: string;
+  departmentId?: string;
+}
+
+export interface SignupResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: UserResponse;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;

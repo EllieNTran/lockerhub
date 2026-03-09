@@ -1,11 +1,72 @@
 import bcrypt from 'bcryptjs'
 import { generateAccessToken, generateRefreshToken, verifyToken } from './token'
-import { findUserByEmail, findUserById } from './users'
+import { findUserByEmail, findUserById, createUser } from './users'
 import logger from '../logger'
-import type { LoginResponse, RefreshResponse, LogoutResponse, AppError } from '../types'
+import type { SignupResponse, LoginResponse, RefreshResponse, LogoutResponse, AppError } from '../types'
 
-/**
- * Authenticate user with email and password
+/** * Register a new user
+ */
+export const signup = async (
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string,
+  staffNumber?: string,
+  departmentId?: string,
+): Promise<SignupResponse> => {
+  if (!firstName || !lastName || !email || !password) {
+    const error = new Error('First name, last name, email, and password are required') as AppError
+    error.status = 400
+    throw error
+  }
+
+  const existingUser = await findUserByEmail(email)
+  if (existingUser) {
+    logger.warn({ email }, 'Signup attempt with existing email')
+    const error = new Error('User with this email already exists') as AppError
+    error.status = 409
+    throw error
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10)
+
+  const user = await createUser({
+    firstName,
+    lastName,
+    email,
+    passwordHash,
+    role: 'user',
+    staffNumber: staffNumber || null,
+    departmentId: departmentId || null,
+  })
+
+  const accessToken = generateAccessToken({
+    userId: user.user_id,
+    email: user.email,
+    role: user.role,
+    departmentId: user.department_id,
+  })
+
+  const refreshToken = generateRefreshToken({
+    userId: user.user_id,
+  })
+
+  logger.info({ userId: user.user_id, email: user.email }, 'User signed up successfully')
+
+  return {
+    accessToken,
+    refreshToken,
+    user: {
+      id: user.user_id,
+      email: user.email,
+      role: user.role,
+      firstName: user.first_name,
+      lastName: user.last_name,
+    },
+  }
+}
+
+/** * Authenticate user with email and password
  */
 export const login = async (email: string, password: string): Promise<LoginResponse> => {
   if (!email || !password) {
