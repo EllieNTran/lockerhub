@@ -1,8 +1,31 @@
-/**
- * Users Types
- */
-
 export type UserRole = 'admin' | 'user'
+
+export interface SignupResponse {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface LoginResponse {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface SignupRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  staffNumber?: string;
+  departmentId?: string;
+  office?: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
 
 export interface User {
   user_id: string

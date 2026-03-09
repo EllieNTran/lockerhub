@@ -40,7 +40,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <div className="px-4 py-4 border-b">
             <div className="flex items-center gap-2 text-primary">
               <ShieldCheck className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-semibold uppercase tracking-wider text-background">
                 Admin Panel
               </span>
             </div>
@@ -56,7 +56,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : "text-background hover:bg-muted hover:text-foreground"
                   )
                 }
               >
@@ -68,7 +68,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <div className="px-3 pb-4">
             <button
               onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+              className="flex items-center gap-2 text-xs text-background hover:text-foreground transition-colors px-3 py-2"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
               Back to User View

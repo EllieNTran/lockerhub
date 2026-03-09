@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "env-cmd -e perf node dist/app.js",
-    "dev": "env-cmd -e debug tsx watch src/app.ts",
+    "start": "env-cmd -e perf --use-shell \"node dist/app.js\"",
+    "dev": "env-cmd -e debug --use-shell \"tsx watch src/app.ts\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",

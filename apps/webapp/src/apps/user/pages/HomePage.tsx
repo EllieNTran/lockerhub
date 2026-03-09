@@ -18,7 +18,7 @@ import { mockBookings, mockNotifications, mockLockers, mockFloors } from "@/shar
 const statusColors: Record<string, string> = {
   active: "bg-success-foreground text-success border-success-outline",
   upcoming: "bg-secondary-muted text-secondary border-secondary-outline",
-  expired: "bg-muted text-muted-foreground border-border",
+  expired: "bg-muted text-background border-grey-outline",
 };
 
 const notificationIcons: Record<string, typeof Bell> = {
@@ -70,59 +70,59 @@ const Home = () => {
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <button
             onClick={() => navigate("/book")}
-            className="group flex items-center gap-4 rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary hover:shadow-md text-left"
+            className="group flex items-center gap-4 rounded-xl border border-grey-outline bg-card p-5 transition-colors hover:border-primary hover:shadow-md text-left"
           >
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-foreground transition-colors group-hover:bg-primary-foreground">
               <Plus className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">Book a Locker</p>
-              <p className="text-xs text-muted-foreground">Up to 3 days</p>
+              <p className="text-xs text-background">Up to 3 days</p>
             </div>
           </button>
 
           <button
             onClick={() => navigate("/special-request")}
-            className="group flex items-center gap-4 rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary hover:shadow-md text-left"
+            className="group flex items-center gap-4 rounded-xl border border-grey-outline bg-card p-5 transition-colors hover:border-primary hover:shadow-md text-left"
           >
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-foreground transition-colors group-hover:bg-primary-foreground">
               <FileText className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">Special Request</p>
-              <p className="text-xs text-muted-foreground">Extended / permanent booking</p>
+              <p className="text-xs text-background">Extended / permanent booking</p>
             </div>
           </button>
 
           <button
             onClick={() => navigate("/return-key")}
-            className="group flex items-center gap-4 rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary hover:shadow-md text-left"
+            className="group flex items-center gap-4 rounded-xl border border-grey-outline bg-card p-5 transition-colors hover:border-primary hover:shadow-md text-left"
           >
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-foreground transition-colors group-hover:bg-primary-foreground">
               <KeyRound className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">Return Key</p>
-              <p className="text-xs text-muted-foreground">View return instructions</p>
+              <p className="text-xs text-background">View return instructions</p>
             </div>
           </button>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Notifications */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-xl border border-grey-outline bg-card p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground">Notifications</h3>
               {notifications.filter((n) => !n.read).length > 0 && (
-                <Badge className="bg-destructive text-destructive-foreground text-xs">
+                <Badge className="bg-error text-white text-xs">
                   {notifications.filter((n) => !n.read).length} new
                 </Badge>
               )}
             </div>
             {notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Bell className="h-10 w-10 text-muted-foreground/40 mb-3" />
-                <p className="text-sm text-muted-foreground">No notifications</p>
+                <Bell className="h-10 w-10 text-background/40 mb-3" />
+                <p className="text-sm text-background">No notifications</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -133,7 +133,7 @@ const Home = () => {
                       key={notification.notification_id}
                       className={`flex gap-3 rounded-lg border p-3.5 transition-colors ${
                         notification.read
-                          ? "bg-background border-border"
+                          ? "bg-background border-grey-outline"
                           : "bg-primary-foreground border-primary-outline"
                       }`}
                     >
@@ -144,7 +144,7 @@ const Home = () => {
                       >
                         <Icon
                           className={`h-4 w-4 ${
-                            notification.read ? "text-muted-foreground" : "text-primary"
+                            notification.read ? "text-background" : "text-primary"
                           }`}
                         />
                       </div>
@@ -157,10 +157,10 @@ const Home = () => {
                             <span className="h-2 w-2 shrink-0 rounded-full bg-secondary" />
                           )}
                         </div>
-                        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+                        <p className="mt-0.5 text-xs text-background line-clamp-2">
                           {notification.caption}
                         </p>
-                        <p className="mt-1 text-xs text-muted-foreground/60">
+                        <p className="mt-1 text-xs text-background/60">
                           {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                         </p>
                       </div>
@@ -172,7 +172,7 @@ const Home = () => {
           </div>
 
           {/* Upcoming Bookings */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-xl border border-grey-outline bg-card p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground">Upcoming Bookings</h3>
               <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ const Home = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/my-bookings")}
-                  className="text-xs text-muted-foreground hover:text-foreground"
+                  className="text-xs text-background hover:text-foreground"
                 >
                   View All
                 </Button>
@@ -197,9 +197,9 @@ const Home = () => {
             </div>
             {bookings.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <CalendarDays className="h-10 w-10 text-muted-foreground/40 mb-3" />
-                <p className="text-sm text-muted-foreground">No upcoming bookings</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">
+                <CalendarDays className="h-10 w-10 text-background/40 mb-3" />
+                <p className="text-sm text-background">No upcoming bookings</p>
+                <p className="text-xs text-background/60 mt-1">
                   Book a locker to get started
                 </p>
               </div>
@@ -213,7 +213,7 @@ const Home = () => {
                   return (
                     <div
                       key={booking.booking_id}
-                      className="flex items-center justify-between rounded-lg border border-border bg-white p-3.5 transition-colors hover:bg-muted/30"
+                      className="flex items-center justify-between rounded-lg border border-grey-outline bg-white p-3.5 transition-colors hover:bg-muted/30"
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-foreground text-primary font-bold text-sm shrink-0">
@@ -229,7 +229,7 @@ const Home = () => {
                               {booking.status}
                             </Badge>
                           </div>
-                          <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                          <div className="mt-1 flex items-center gap-3 text-xs text-background">
                             <span className="flex items-center gap-1">
                               <CalendarDays className="h-3 w-3" />
                               {format(new Date(booking.start_date), "MMM d")} —{" "}

@@ -29,8 +29,6 @@ export const requestLogger = pinoHttp({
     req: (req: Request) => ({
       method: req.method,
       url: req.url,
-      userAgent: req.headers['user-agent'],
-      ip: req.ip,
     }),
     res: (res: Response) => ({
       statusCode: res.statusCode,

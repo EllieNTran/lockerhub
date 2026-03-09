@@ -56,7 +56,7 @@ const getPublicKey = async (): Promise<string> => {
     publicKeyCache = key.toPEM()
     lastFetchTime = now
 
-    logger.info({ kid: key.kid }, 'Public key cached successfully')
+    logger.info('Public key cached successfully')
 
     return publicKeyCache
   } catch (error: unknown) {

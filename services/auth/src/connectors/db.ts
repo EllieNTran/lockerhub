@@ -34,11 +34,8 @@ process.on('SIGTERM', async () => {
  * Execute a query
  */
 export const query = async <T = unknown>(text: string, params?: unknown[]): Promise<QueryResult<T>> => {
-  const start = Date.now()
   try {
     const res = await pool.query(text, params)
-    const duration = Date.now() - start
-    logger.debug({ text, duration, rows: res.rowCount }, 'Executed query')
     return res
   } catch (error: unknown) {
     logger.error({ error, text }, 'Query error')

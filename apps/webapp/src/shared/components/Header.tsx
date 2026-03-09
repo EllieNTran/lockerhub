@@ -6,7 +6,11 @@ import { Switch } from "@/components/ui/switch";
 import { useViewMode } from "../context/ViewModeContext";
 import { Badge } from "@/components/ui/badge";
 
-const Header = () => {
+type HeaderProps = {
+  showNav?: boolean;
+};
+
+const Header = ({ showNav = true }: HeaderProps) => {
   const { viewMode, setViewMode, isAdmin } = useViewMode();
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,7 +31,7 @@ const Header = () => {
     if (checked) {
       navigate("/admin");
     } else {
-      navigate("/");
+      navigate("/user");
     }
   };
 
@@ -54,10 +58,9 @@ const Header = () => {
               </p>
             </div>
           </div>
-          {/* Only show user nav when not in admin routes */}
-          {!isAdminRoute && (
+          {showNav && !isAdminRoute && (
             <nav className="flex items-center gap-4 ml-4">
-              <NavLink to="/" end className={linkClass}>Home</NavLink>
+              <NavLink to="/user" end className={linkClass}>Home</NavLink>
               <NavLink to="/book" className={linkClass}>Book a Locker</NavLink>
               <NavLink to="/my-bookings" className={linkClass}>My Bookings</NavLink>
               <NavLink to="/special-request" className={linkClass}>Special Request</NavLink>
@@ -66,27 +69,28 @@ const Header = () => {
           )}
         </div>
 
-        {/* Admin / User view toggle */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
-            <User className="h-3.5 w-3.5 text-primary-foreground/70" />
-            <span className="text-xs text-primary-foreground/70">User</span>
-            <Switch
-              checked={isAdmin}
-              onCheckedChange={handleToggle}
-              className="data-[state=checked]:bg-secondary data-[state=unchecked]:bg-white/20"
-            />
-            <ShieldCheck className={cn("h-3.5 w-3.5 transition-colors", isAdmin ? "text-primary-foreground" : "text-primary-foreground/40")} />
-            <span className={cn("text-xs transition-colors", isAdmin ? "text-primary-foreground font-medium" : "text-primary-foreground/40")}>
-              Admin
-            </span>
+        {showNav && (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
+              <User className="h-3.5 w-3.5 text-primary-foreground/70" />
+              <span className="text-xs text-primary-foreground/70">User</span>
+              <Switch
+                checked={isAdmin}
+                onCheckedChange={handleToggle}
+                className="data-[state=checked]:bg-secondary data-[state=unchecked]:bg-white/20"
+              />
+              <ShieldCheck className={cn("h-3.5 w-3.5 transition-colors", isAdmin ? "text-primary-foreground" : "text-primary-foreground/40")} />
+              <span className={cn("text-xs transition-colors", isAdmin ? "text-primary-foreground font-medium" : "text-primary-foreground/40")}>
+                Admin
+              </span>
+            </div>
+            {isAdmin && (
+              <Badge className="bg-secondary text-secondary-foreground text-xs px-2 py-0.5">
+                Admin View
+              </Badge>
+            )}
           </div>
-          {isAdmin && (
-            <Badge className="bg-secondary text-secondary-foreground text-xs px-2 py-0.5">
-              Admin View
-            </Badge>
-          )}
-        </div>
+        )}
       </div>
     </header>
   );
