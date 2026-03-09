@@ -5,7 +5,7 @@
 
 import type { Booking } from '@/features/bookings/types'
 import type { Locker } from '@/features/lockers/types'
-import type { User } from '@/features/users/types'
+import type { User } from '@/features/auth/types'
 import type { Key } from '@/features/keys/types'
 import type { Request } from '@/features/requests/types'
 import type { Notification } from '@/features/notifications/types'

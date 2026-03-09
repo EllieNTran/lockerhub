@@ -4,10 +4,13 @@ export interface User {
   first_name: string;
   last_name: string;
   email: string;
-  password_hash: string;
+  password_hash: string | null;
   role: string;
   staff_number: string | null;
   department_id: string | null;
+  office?: string | null;
+  is_pre_registered?: boolean;
+  account_activated?: boolean;
   created_at: Date;
 }
 
@@ -50,6 +53,7 @@ export interface SignupRequest {
   password: string;
   staffNumber?: string;
   departmentId?: string;
+  office?: string;
 }
 
 export interface SignupResponse {
@@ -103,6 +107,28 @@ export interface JWKS {
 export interface AppError extends Error {
   status?: number;
   statusCode?: number;
+}
+
+// Password Reset types
+export interface PasswordResetResponse {
+  message: string;
+  isPreRegistered?: boolean;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
+
+export interface UserWithResetToken {
+  user_id: string;
+  email: string;
+  is_pre_registered: boolean;
+  password_reset_token: string;
+  password_reset_expires: Date;
+}
+
+export interface ValidateTokenResult {
+  email: string;
 }
 
 // Database query result types

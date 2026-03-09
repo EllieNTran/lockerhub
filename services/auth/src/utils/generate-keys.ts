@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { generateKeyPairSync } from 'crypto'
 import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
@@ -11,11 +9,17 @@ const KEYS_DIR = join(__dirname, '..', 'keys')
 const PRIVATE_KEY_PATH = join(KEYS_DIR, 'private.pem')
 const PUBLIC_KEY_PATH = join(KEYS_DIR, 'public.pem')
 
+interface GenerateKeysResult {
+  existed?: boolean
+  privateKeyPath: string
+  publicKeyPath: string
+}
+
 /**
  * Generate RSA key pair for JWT signing
- * @param {boolean} force - Overwrite existing keys if true
+ * @param force - Overwrite existing keys if true
  */
-export function generateKeys(force = false) {
+export function generateKeys(force = false): GenerateKeysResult {
   if (!force && (existsSync(PRIVATE_KEY_PATH) || existsSync(PUBLIC_KEY_PATH))) {
     return { existed: true, privateKeyPath: PRIVATE_KEY_PATH, publicKeyPath: PUBLIC_KEY_PATH }
   }

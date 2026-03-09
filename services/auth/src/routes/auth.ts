@@ -11,8 +11,8 @@ const router = express.Router()
  * Register a new user and return JWT tokens
  */
 router.post('/signup', asyncHandler(async (req: Request, res: Response) => {
-  const { firstName, lastName, email, password, staffNumber, departmentId } = req.body as SignupRequest
-  const result = await signup(firstName, lastName, email, password, staffNumber, departmentId)
+  const { firstName, lastName, email, password, staffNumber, departmentId, office } = req.body as SignupRequest
+  const result = await signup(firstName, lastName, email, password, staffNumber, departmentId, office)
   res.status(201).json(result)
 }))
 

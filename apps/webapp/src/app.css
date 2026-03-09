@@ -24,6 +24,9 @@
   /* Dark Blue */
   --color-dark-blue: #0C233C;
 
+  /* White */
+  --color-white: #FFFFFF;
+
   /* Success Green */
   --color-success: #4DC089;
   --color-success-foreground: #DCF2E6;
@@ -56,24 +59,16 @@
   --color-background: #FAFAFA;
   --color-foreground: #0a0a0a;
 
-
-
-
-  /* Card */
-  --color-card: #ffffff;
-  --color-card-foreground: #0a0a0a;
+  /* Popover */
+  --color-popover: var(--color-white);
+  --color-popover-foreground: var(--color-foreground);
 
   /* Muted */
   --color-muted: #F4F6FD;
-  --color-muted-foreground: #85919D;
 
   /* Accent */
   --color-accent: #F4F6FD;
   --color-accent-foreground: #0a0a0a;
-
-  /* Destructive */
-  --color-destructive: #F10015;
-  --color-destructive-foreground: #ffffff;
 
   /* Borders & Inputs */
   --color-border: #E2E4EB;
@@ -85,7 +80,6 @@
 
 
 
-  
   /* Greys */
   --color-grey: #85919D;
   --color-grey-outline: #E2E4EB;
@@ -98,4 +92,14 @@
 html,
 body {
   @apply bg-background text-foreground;
+}
+
+/* Prevent autofill from changing input colors */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--color-background) inset !important;
+  -webkit-text-fill-color: var(--color-foreground) !important;
+  transition: background-color 5000s ease-in-out 0s;
 }

@@ -11,8 +11,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
-COPY scripts ./scripts
-COPY keys ./keys
 
 EXPOSE 80
 

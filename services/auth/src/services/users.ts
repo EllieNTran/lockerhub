@@ -17,6 +17,9 @@ export const findUserByEmail = async (email: string): Promise<User | null> => {
         role,
         staff_number,
         department_id,
+        office,
+        is_pre_registered,
+        account_activated,
         created_at
       FROM lockerhub.users 
       WHERE email = $1`,
@@ -68,6 +71,7 @@ export const createUser = async (userData: {
   role?: string;
   staffNumber?: string | null;
   departmentId?: string | null;
+  office?: string | null;
 }): Promise<User> => {
   const {
     firstName,
@@ -77,13 +81,14 @@ export const createUser = async (userData: {
     role = 'user',
     staffNumber = null,
     departmentId = null,
+    office = null,
   } = userData
 
   try {
     const result = await query<User>(
       `INSERT INTO lockerhub.users 
-        (first_name, last_name, email, password_hash, role, staff_number, department_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+        (first_name, last_name, email, password_hash, role, staff_number, department_id, office, account_activated)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE)
       RETURNING 
         user_id, 
         first_name, 
@@ -92,8 +97,11 @@ export const createUser = async (userData: {
         role,
         staff_number,
         department_id,
+        office,
+        is_pre_registered,
+        account_activated,
         created_at`,
-      [firstName, lastName, email, passwordHash, role, staffNumber, departmentId],
+      [firstName, lastName, email, passwordHash, role, staffNumber, departmentId, office],
     )
 
     return result.rows[0]

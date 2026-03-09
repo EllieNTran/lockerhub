@@ -4,10 +4,29 @@ import { proxyToService, SERVICE_CONFIG } from '../../connectors/services'
 
 const router = Router()
 
+// Public auth routes (no authentication required)
+const publicAuthRoutes = ['/signup', '/login', '/password-reset', '/metadata']
+const isPublicAuthRoute = (path: string) => {
+  return publicAuthRoutes.some((route) => path.includes(route))
+}
+
+// Auth routes with conditional authentication
+router.use(SERVICE_CONFIG.auth.prefix, (req, res, next) => {
+  if (isPublicAuthRoute(req.path)) {
+    // Skip authentication for public auth routes
+    return proxyToService('auth')(req, res, next)
+  }
+  // Require authentication for other auth routes
+  return authenticate(req, res, (err) => {
+    if (err) return next(err)
+    proxyToService('auth')(req, res, next)
+  })
+})
+
+// Other service routes with authentication
 const SERVICE_ROUTES = [
   { service: 'booking' as const, auth: true },
   { service: 'admin' as const, auth: true, role: 'admin' as const },
-  { service: 'auth' as const, auth: true },
 ]
 
 SERVICE_ROUTES.forEach((route) => {

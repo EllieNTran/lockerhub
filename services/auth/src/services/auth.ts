@@ -13,6 +13,7 @@ export const signup = async (
   password: string,
   staffNumber?: string,
   departmentId?: string,
+  office?: string,
 ): Promise<SignupResponse> => {
   if (!firstName || !lastName || !email || !password) {
     const error = new Error('First name, last name, email, and password are required') as AppError
@@ -21,10 +22,28 @@ export const signup = async (
   }
 
   const existingUser = await findUserByEmail(email)
+
   if (existingUser) {
+    // Check if this is a pre-registered user who hasn't activated their account
+    if (existingUser.is_pre_registered && !existingUser.account_activated) {
+      logger.warn({ email }, 'Signup attempt for pre-registered user')
+      const error = new Error(
+        'An account already exists with this email. Please use "Activate Account" or "Forgot Password" to set your password.',
+      ) as AppError
+      error.status = 409
+      throw error
+    }
+
     logger.warn({ email }, 'Signup attempt with existing email')
     const error = new Error('User with this email already exists') as AppError
     error.status = 409
+    throw error
+  }
+
+  // For new signups (not pre-registered), require staff number and department
+  if (!staffNumber || !departmentId || !office) {
+    const error = new Error('Staff number, department, and office are required for new signups') as AppError
+    error.status = 400
     throw error
   }
 
@@ -38,6 +57,7 @@ export const signup = async (
     role: 'user',
     staffNumber: staffNumber || null,
     departmentId: departmentId || null,
+    office: office || null,
   })
 
   const accessToken = generateAccessToken({
@@ -81,6 +101,24 @@ export const login = async (email: string, password: string): Promise<LoginRespo
     logger.warn({ email }, 'Failed login attempt - user not found')
     const error = new Error('Invalid email or password') as AppError
     error.status = 401
+    throw error
+  }
+
+  // Check if account is activated
+  if (user.is_pre_registered && !user.account_activated) {
+    logger.warn({ email, userId: user.user_id }, 'Login attempt for unactivated pre-registered account')
+    const error = new Error(
+      'Account not activated. Please use "Activate Account" or "Forgot Password" to set your password.',
+    ) as AppError
+    error.status = 403
+    throw error
+  }
+
+  // Check if password is set (shouldn't happen but extra safety)
+  if (!user.password_hash) {
+    logger.warn({ email, userId: user.user_id }, 'Login attempt for account without password')
+    const error = new Error('Account not activated. Please activate your account.') as AppError
+    error.status = 403
     throw error
   }
 
