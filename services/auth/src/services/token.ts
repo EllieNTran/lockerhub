@@ -4,7 +4,7 @@ import path from 'path'
 import jose from 'node-jose'
 import { fromEnv } from '../constants'
 import logger from '../logger'
-import { generateKeys } from '../../scripts/generate-keys'
+import { generateKeys } from '../utils/generate-keys'
 import type { TokenPayload, DecodedToken, JWKS } from '../types'
 
 const keysDir = fromEnv('KEYS_DIR') || path.join(process.cwd(), 'keys')

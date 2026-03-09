@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { generateKeyPairSync } from 'crypto'
 import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
