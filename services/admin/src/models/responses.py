@@ -225,12 +225,12 @@ class AllFloorsUtilizationResponse(BaseModel):
 class NotificationResponse(BaseModel):
     """Response model for a notification."""
 
-    notification_id: int
+    notification_id: UUID
     user_id: Optional[UUID]
+    user_name: Optional[str]
     title: str
     caption: Optional[str]
-    created_at: datetime
-    read: bool
+    time_ago: str
     type: str
 
     model_config = ConfigDict(from_attributes=True)

@@ -39,6 +39,13 @@ export const proxyToService = (serviceName: keyof typeof SERVICE_CONFIG) => {
     },
     on: {
       proxyReq: (proxyReq: ClientRequest, req: AuthenticatedRequest, _res: Response) => {
+        if (req.body && (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH')) {
+          const bodyData = JSON.stringify(req.body)
+          proxyReq.setHeader('Content-Type', 'application/json')
+          proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData))
+          proxyReq.write(bodyData)
+        }
+
         if (req.headers.authorization) {
           proxyReq.setHeader('Authorization', req.headers.authorization)
         }

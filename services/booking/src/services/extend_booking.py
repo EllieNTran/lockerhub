@@ -8,17 +8,24 @@ from src.services.check_locker_availability import check_locker_availability
 
 GET_BOOKING_QUERY = """
 SELECT 
-    booking_id,
-    user_id,
-    locker_id,
-    start_date,
-    end_date,
-    status,
-    special_request_id,
-    created_at,
-    updated_at
-FROM lockerhub.bookings
-WHERE booking_id = $1
+    b.booking_id,
+    b.user_id,
+    b.locker_id,
+    b.start_date,
+    b.end_date,
+    b.status,
+    b.special_request_id,
+    b.created_at,
+    b.updated_at,
+    u.email,
+    u.name,
+    l.locker_number,
+    f.floor_number
+FROM lockerhub.bookings b
+JOIN lockerhub.users u ON b.user_id = u.user_id
+JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
+JOIN lockerhub.floors f ON l.floor_id = f.floor_id
+WHERE b.booking_id = $1
 """
 
 CREATE_EXTENSION_REQUEST_QUERY = """

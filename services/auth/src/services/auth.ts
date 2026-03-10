@@ -2,7 +2,8 @@ import bcrypt from 'bcryptjs'
 import { generateAccessToken, generateRefreshToken, verifyToken } from './token'
 import { findUserByEmail, findUserById, createUser } from './users'
 import logger from '../logger'
-import type { SignupResponse, LoginResponse, RefreshResponse, LogoutResponse, AppError } from '../types'
+import type { AppError } from '../types'
+import type { SignupResponse, LoginResponse, RefreshResponse, LogoutResponse } from '../types'
 
 /** * Register a new user
  */
@@ -28,9 +29,10 @@ export const signup = async (
     if (existingUser.is_pre_registered && !existingUser.account_activated) {
       logger.warn({ email }, 'Signup attempt for pre-registered user')
       const error = new Error(
-        'An account already exists with this email. Please use "Activate Account" or "Forgot Password" to set your password.',
+        'An account already exists with this email. Please activate your account to set your password.',
       ) as AppError
       error.status = 409
+      error.code = 'ACCOUNT_NOT_ACTIVATED'
       throw error
     }
 
@@ -108,9 +110,10 @@ export const login = async (email: string, password: string): Promise<LoginRespo
   if (user.is_pre_registered && !user.account_activated) {
     logger.warn({ email, userId: user.user_id }, 'Login attempt for unactivated pre-registered account')
     const error = new Error(
-      'Account not activated. Please use "Activate Account" or "Forgot Password" to set your password.',
+      'Account not activated. Please activate your account to set your password.',
     ) as AppError
     error.status = 403
+    error.code = 'ACCOUNT_NOT_ACTIVATED'
     throw error
   }
 
@@ -119,6 +122,7 @@ export const login = async (email: string, password: string): Promise<LoginRespo
     logger.warn({ email, userId: user.user_id }, 'Login attempt for account without password')
     const error = new Error('Account not activated. Please activate your account.') as AppError
     error.status = 403
+    error.code = 'ACCOUNT_NOT_ACTIVATED'
     throw error
   }
 

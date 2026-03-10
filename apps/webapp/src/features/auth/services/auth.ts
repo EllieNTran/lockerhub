@@ -83,6 +83,64 @@ export async function logout(refreshToken: string): Promise<{ message: string }>
 }
 
 /**
+ * Request password reset
+ */
+export async function requestPasswordReset(email: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/password-reset/request`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Password reset request failed' }));
+    throw new Error(error.message || 'Password reset request failed');
+  }
+
+  return response.json();
+}
+
+/**
+ * Reset password with token
+ */
+export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/password-reset/reset`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token, password }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Password reset failed' }));
+    throw new Error(error.message || 'Password reset failed');
+  }
+
+  return response.json();
+}
+
+/**
+ * Validate password reset token
+ */
+export async function validateResetToken(token: string): Promise<{ valid: boolean; email?: string }> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/password-reset/validate/${token}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    return { valid: false };
+  }
+
+  return response.json();
+}
+
+/**
  * Store auth tokens in localStorage
  */
 export function storeTokens(accessToken: string, refreshToken: string): void {
@@ -144,11 +202,42 @@ export async function getOffices(): Promise<string[]> {
 /**
  * Validate staff number availability
  */
-export async function validateStaffNumber(staffNumber: string): Promise<{ available: boolean; message: string }> {
+export async function validateStaffNumber(staffNumber: string): Promise<{ 
+  available: boolean; 
+  message: string;
+  requiresActivation?: boolean;
+  email?: string;
+}> {
   const response = await fetch(`${API_BASE_URL}/api/auth/metadata/validate-staff-number/${staffNumber}`);
 
   if (!response.ok) {
     throw new Error('Failed to validate staff number');
+  }
+
+  return response.json();
+}
+
+/**
+ * Check if account exists and its status
+ */
+export async function checkAccount(email: string): Promise<{
+  exists: boolean;
+  requiresActivation?: boolean;
+  name?: string;
+  email?: string;
+  message: string;
+}> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/metadata/check-account`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to check account' }));
+    throw new Error(error.message || 'Failed to check account');
   }
 
   return response.json();

@@ -4,8 +4,14 @@ from src.logger import logger
 from src.connectors.db import db
 
 GET_BOOKING_QUERY = """
-SELECT user_id FROM lockerhub.bookings
-WHERE booking_id = $1
+SELECT 
+    b.user_id,
+    b.locker_id,
+    k.key_number,
+    k.status AS key_status
+FROM lockerhub.bookings b
+INNER JOIN lockerhub.keys k ON b.locker_id = k.locker_id
+WHERE b.booking_id = $1
 """
 
 DELETE_BOOKING_QUERY = """
@@ -15,8 +21,17 @@ RETURNING booking_id
 """
 
 
-async def delete_booking(user_id: str, booking_id: str) -> str:
-    """Delete an existing booking."""
+async def delete_booking(user_id: str, booking_id: str) -> dict:
+    """
+    Delete an existing booking and return key information.
+
+    Args:
+        user_id: ID of the user requesting the deletion (for authorization)
+        booking_id: ID of the booking to delete
+
+    Returns:
+        A dictionary containing the deleted booking ID, key number, and key status.
+    """
     try:
         async with db.transaction() as connection:
             booking = await connection.fetchrow(GET_BOOKING_QUERY, booking_id)
@@ -34,7 +49,11 @@ async def delete_booking(user_id: str, booking_id: str) -> str:
             deleted_id = await connection.fetchval(DELETE_BOOKING_QUERY, booking_id)
             logger.info(f"Deleted booking {booking_id} for user {user_id}")
 
-            return deleted_id
+            return {
+                "booking_id": deleted_id,
+                "key_number": booking["key_number"],
+                "key_status": booking["key_status"],
+            }
     except ValueError:
         raise
     except Exception as e:

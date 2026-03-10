@@ -12,7 +12,11 @@ class BookingResponse(BaseModel):
 
     booking_id: UUID
     user_id: UUID
+    first_name: str
+    email: str
     locker_id: UUID
+    locker_number: str
+    floor_number: int
     start_date: date
     end_date: date
     status: str
@@ -46,7 +50,8 @@ class DeleteBookingResponse(BaseModel):
     """Response model for deleting a booking."""
 
     booking_id: UUID
-    message: str = "Booking deleted"
+    key_number: str
+    key_status: str
 
 
 class ExtendBookingResponse(BaseModel):

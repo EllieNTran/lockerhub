@@ -57,7 +57,7 @@
 
   /* Base Colors */
   --color-background: #FAFAFA;
-  --color-foreground: #0a0a0a;
+  --color-foreground: #0C233C;
 
   /* Popover */
   --color-popover: var(--color-white);
@@ -68,7 +68,6 @@
 
   /* Accent */
   --color-accent: #F4F6FD;
-  --color-accent-foreground: #0a0a0a;
 
   /* Borders & Inputs */
   --color-border: #E2E4EB;
@@ -84,6 +83,7 @@
   --color-grey: #85919D;
   --color-grey-outline: #E2E4EB;
   --color-mid-grey: #AEB3BD;
+  --color-grey-foreground: #EFF2F7;
 
   /* Radius */
   --radius: 0.5rem;

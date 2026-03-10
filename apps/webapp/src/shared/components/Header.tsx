@@ -47,10 +47,10 @@ const Header = ({ showNav = true }: HeaderProps) => {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
-              <Lock className="h-5 w-5 text-secondary-foreground" />
+              <Lock className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold leading-tight text-primary-foreground">
+              <h1 className="text-lg font-semibold leading-tight text-white">
                 LockerHub
               </h1>
               <p className="text-xs text-primary-foreground/60">

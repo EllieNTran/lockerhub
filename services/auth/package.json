@@ -6,11 +6,11 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "env-cmd -e perf node dist/app.js",
-    "dev": "env-cmd -e debug tsx watch src/app.ts",
+    "start": "env-cmd -e perf -- node dist/app.js",
+    "dev": "env-cmd -e debug -- tsx watch src/app.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "env-cmd -e test node dist/app.js",
+    "test": "env-cmd -e test -- node dist/app.js",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
@@ -23,7 +23,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.5",
-    "env-cmd": "^10.1.0",
+    "env-cmd": "^11.0.0",
     "express": "^5.2.1",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",

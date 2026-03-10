@@ -56,7 +56,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary text-primary-foreground"
-                      : "text-background hover:bg-muted hover:text-foreground"
+                      : "text-background hover:bg-muted hover:text-dark-blue"
                   )
                 }
               >
@@ -68,7 +68,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <div className="px-3 pb-4">
             <button
               onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-xs text-background hover:text-foreground transition-colors px-3 py-2"
+              className="flex items-center gap-2 text-xs text-background hover:text-dark-blue transition-colors px-3 py-2"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
               Back to User View

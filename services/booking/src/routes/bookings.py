@@ -95,8 +95,8 @@ async def delete_booking_endpoint(
 ):
     """Delete a booking."""
     try:
-        deleted_id = await delete_booking(current_user["user_id"], booking_id)
-        return DeleteBookingResponse(booking_id=deleted_id)
+        result = await delete_booking(current_user["user_id"], booking_id)
+        return DeleteBookingResponse(**result)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

@@ -1,6 +1,5 @@
 import type { Request } from 'express'
 
-// User types
 export interface User {
   userId: string
   email: string
@@ -9,7 +8,6 @@ export interface User {
   scope: string
 }
 
-// JWT types
 export interface DecodedToken {
   userId: string
   email: string
@@ -25,7 +23,6 @@ export interface DecodedToken {
   iat: number
 }
 
-// JWKS types
 export interface JWK {
   kty: string
   kid: string
@@ -39,7 +36,6 @@ export interface JWKS {
   keys: JWK[]
 }
 
-// Error types
 export interface AppErrorOptions {
   message: string
   statusCode?: number
@@ -47,12 +43,10 @@ export interface AppErrorOptions {
   isOperational?: boolean
 }
 
-// Extended Express Request with user
 export interface AuthenticatedRequest extends Request {
   user?: User
 }
 
-// JWT verification options
 export interface JWTVerifyOptions {
   audience?: string | string[]
   issuer?: string
