@@ -16,6 +16,8 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetSuccess, setResetSuccess] = useState("");
+  const [showActivationPrompt, setShowActivationPrompt] = useState(false);
+  const [isRequestingActivation, setIsRequestingActivation] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +35,15 @@ const LoginPage = () => {
       navigate(response.user.role === "admin" ? "/admin" : "/user");
     } catch (err) {
       console.error('Login failed:', err);
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again.";
+      
+      // Check if this is a pre-registered user who needs activation
+      if (errorMessage.includes("not activated")) {
+        setShowActivationPrompt(true);
+        setError(errorMessage);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -46,8 +56,7 @@ const LoginPage = () => {
     setResetSuccess("");
     
     try {
-      // TODO: Implement password reset request
-      // await authService.requestPasswordReset(email);
+      await authService.requestPasswordReset(email);
       setResetSuccess("Password reset link has been sent to your email.");
     } catch (err) {
       console.error('Password reset failed:', err);
@@ -57,11 +66,29 @@ const LoginPage = () => {
     }
   };
 
+  const handleRequestActivation = async () => {
+    setIsRequestingActivation(true);
+    setError("");
+    setResetSuccess("");
+    
+    try {
+      await authService.requestPasswordReset(email);
+      setResetSuccess("Activation link has been sent to your email. Please check your inbox.");
+      setShowActivationPrompt(false);
+    } catch (err) {
+      console.error('Activation request failed:', err);
+      setError(err instanceof Error ? err.message : "Failed to send activation email.");
+    } finally {
+      setIsRequestingActivation(false);
+    }
+  };
+
   const toggleView = () => {
     setShowForgotPassword(!showForgotPassword);
     setError("");
     setResetSuccess("");
     setPassword("");
+    setShowActivationPrompt(false);
   };
 
   return (
@@ -72,23 +99,42 @@ const LoginPage = () => {
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
-                <Lock className="h-6 w-6 text-primary-foreground" />
+                <Lock className="h-6 w-6 text-white" />
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-center">
-              {showForgotPassword ? "Reset Password" : "Welcome back"}
+              {showForgotPassword ? "Reset Password" : "Login"}
             </CardTitle>
             <CardDescription className="text-center">
-              {showForgotPassword 
-                ? "Enter your email to receive a password reset link"
-                : "Enter your credentials to access your account"}
+              {showForgotPassword && "Enter your email to receive a password reset link"}
             </CardDescription>
+            {!showForgotPassword && (
+              <p className="text-sm text-center text-grey mt-2">
+                Pre-registered staff?{" "}
+                <Link to="/check-account" className="text-primary hover:underline font-medium">
+                  Check your account status
+                </Link>
+              </p>
+            )}
           </CardHeader>
           <form onSubmit={showForgotPassword ? handleForgotPassword : handleSubmit}>
             <CardContent className="space-y-4">
               {error && (
                 <div className="rounded-lg bg-error/15 p-3 text-sm text-error">
                   {error}
+                  {showActivationPrompt && (
+                    <div className="mt-3">
+                      <Button
+                        type="button"
+                        onClick={handleRequestActivation}
+                        disabled={isRequestingActivation}
+                        className="w-full"
+                        variant="outline"
+                      >
+                        {isRequestingActivation ? "Sending..." : "Send Activation Email"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
               {resetSuccess && (

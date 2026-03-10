@@ -129,13 +129,16 @@ const SignupPage = () => {
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
-                <Lock className="h-6 w-6 text-primary-foreground" />
+                <Lock className="h-6 w-6 text-white" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-            <CardDescription className="text-center">
-              Enter your information to get started
-            </CardDescription>
+            <CardTitle className="text-2xl font-bold text-center">Sign up</CardTitle>
+            <p className="text-sm text-center text-grey mt-2">
+              Already registered?{" "}
+              <Link to="/check-account" className="text-primary hover:underline font-medium">
+                Check your account status
+              </Link>
+            </p>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
@@ -285,7 +288,7 @@ const SignupPage = () => {
               <p className="text-sm text-center text-grey">
                 Already have an account?{" "}
                 <Link to="/login" className="text-primary hover:underline font-medium">
-                  Sign in
+                  Login
                 </Link>
               </p>
             </CardFooter>

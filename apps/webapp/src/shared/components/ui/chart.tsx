@@ -221,7 +221,7 @@ const ChartTooltipContent = React.forwardRef<
                         <span className="text-background">{itemConfig?.label || item.name}</span>
                       </div>
                       {item.value !== undefined && (
-                        <span className="font-mono font-medium tabular-nums text-foreground">
+                        <span className="font-mono font-medium tabular-nums text-dark-blue">
                           {String(item.value)}
                         </span>
                       )}

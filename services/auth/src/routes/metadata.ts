@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { query } from '../connectors/db'
+import { getDepartments, getOffices, checkAccountStatus, validateStaffNumber } from '../services/metadata'
 import logger from '../logger'
 
 const router = Router()
@@ -10,24 +10,13 @@ const router = Router()
  */
 router.get('/departments', async (_req, res, next) => {
   try {
-    const result = await query<{ department_id: string; name: string }>(
-      `SELECT department_id, name 
-       FROM lockerhub.departments 
-       ORDER BY name ASC`,
-    )
-
-    res.json({
-      departments: result.rows.map(row => ({
-        id: row.department_id,
-        name: row.name,
-      })),
-    })
+    const departments = await getDepartments()
+    res.json({ departments })
   } catch (error) {
     logger.error({ error }, 'Error fetching departments')
     next(error)
   }
 })
-
 
 /**
  * GET /auth/metadata/offices
@@ -35,22 +24,30 @@ router.get('/departments', async (_req, res, next) => {
  */
 router.get('/offices', async (_req, res, next) => {
   try {
-    const result = await query<{ enumlabel: string }>(
-      `SELECT enumlabel 
-       FROM pg_enum 
-       WHERE enumtypid = 'lockerhub.office'::regtype
-       ORDER BY enumsortorder`,
-    )
-
-    res.json({
-      offices: result.rows.map(row => row.enumlabel),
-    })
+    const offices = await getOffices()
+    res.json({ offices })
   } catch (error) {
     logger.error({ error }, 'Error fetching offices')
     next(error)
   }
 })
 
+/**
+ * POST /auth/metadata/check-account
+ * Check if account exists and its status
+ */
+router.post('/check-account', async (req, res, next) => {
+  try {
+    const { email } = req.body
+    logger.info({ email }, 'Checking account status')
+    const result = await checkAccountStatus(email)
+    logger.info({ email, exists: result.exists, requiresActivation: result.requiresActivation }, 'Account check completed')
+    res.json(result)
+  } catch (error) {
+    logger.error({ error }, 'Error checking account')
+    next(error)
+  }
+})
 
 /**
  * GET /auth/metadata/validate-staff-number/:staffNumber
@@ -59,29 +56,8 @@ router.get('/offices', async (_req, res, next) => {
 router.get('/validate-staff-number/:staffNumber', async (req, res, next) => {
   try {
     const { staffNumber } = req.params
-
-    if (!staffNumber || staffNumber.length !== 8) {
-      return res.json({
-        available: false,
-        message: 'Staff number must be exactly 8 characters',
-      })
-    }
-
-    const result = await query<{ user_id: string }>(
-      `SELECT user_id 
-       FROM lockerhub.users 
-       WHERE staff_number = $1`,
-      [staffNumber],
-    )
-
-    const isAvailable = result.rows.length === 0
-
-    res.json({
-      available: isAvailable,
-      message: isAvailable
-        ? 'Staff number is available'
-        : 'Staff number already in use',
-    })
+    const result = await validateStaffNumber(staffNumber)
+    res.json(result)
   } catch (error) {
     logger.error({ error }, 'Error validating staff number')
     next(error)

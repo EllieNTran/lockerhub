@@ -1,137 +1,16 @@
-// User types
-export interface User {
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  password_hash: string | null;
-  role: string;
-  staff_number: string | null;
-  department_id: string | null;
-  office?: string | null;
-  is_pre_registered?: boolean;
-  account_activated?: boolean;
-  created_at: Date;
-}
+export * from './auth'
+export * from './password-reset'
+export * from './token'
+export * from './user'
+export * from './notifications'
 
-export interface UserResponse {
-  id: string;
-  email: string;
-  role: string;
-  firstName: string;
-  lastName: string;
-}
-
-// Token types
-export interface TokenPayload {
-  userId: string;
-  email: string;
-  role: string;
-  departmentId?: string | null;
-}
-
-export interface DecodedToken {
-  userId: string;
-  email: string;
-  role: string;
-  departmentId?: string | null;
-  scope: string;
-  iss: string;
-  aud: string[];
-  jti: string;
-  sub: string;
-  nbf: number;
-  exp: number;
-  iat: number;
-}
-
-// Auth types
-export interface SignupRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  staffNumber?: string;
-  departmentId?: string;
-  office?: string;
-}
-
-export interface SignupResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: UserResponse;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: UserResponse;
-}
-
-export interface RefreshRequest {
-  refreshToken: string;
-}
-
-export interface RefreshResponse {
-  accessToken: string;
-}
-
-export interface LogoutRequest {
-  refreshToken: string;
-}
-
-export interface LogoutResponse {
-  message: string;
-}
-
-// JWKS types
-export interface JWK {
-  kty: string;
-  kid: string;
-  use: string;
-  alg: string;
-  n: string;
-  e: string;
-}
-
-export interface JWKS {
-  keys: JWK[];
-}
-
-// Error types
+// Common types
 export interface AppError extends Error {
   status?: number;
   statusCode?: number;
+  code?: string;
 }
 
-// Password Reset types
-export interface PasswordResetResponse {
-  message: string;
-  isPreRegistered?: boolean;
-}
-
-export interface ResetPasswordResponse {
-  message: string;
-}
-
-export interface UserWithResetToken {
-  user_id: string;
-  email: string;
-  is_pre_registered: boolean;
-  password_reset_token: string;
-  password_reset_expires: Date;
-}
-
-export interface ValidateTokenResult {
-  email: string;
-}
-
-// Database query result types
 export interface QueryResult<T = unknown> {
   rows: T[];
   rowCount: number | null;

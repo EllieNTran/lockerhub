@@ -2,9 +2,10 @@ import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import pool from '../connectors/db'
 import { findUserByEmail } from './users'
+import { sendPasswordResetEmail, sendActivationEmail } from './notifications'
 import logger from '../logger'
+import type { AppError } from '../types'
 import type {
-  AppError,
   PasswordResetResponse,
   ResetPasswordResponse,
   UserWithResetToken,
@@ -26,20 +27,18 @@ export const requestPasswordReset = async (email: string): Promise<PasswordReset
 
   if (!user) {
     logger.warn({ email }, 'Password reset requested for non-existent user')
-    // Don't reveal that user doesn't exist (security best practice)
+
     return {
       message: 'If an account exists with this email, a password reset link will be sent.',
     }
   }
 
-  // Generate secure random token
   const resetToken = crypto.randomBytes(32).toString('hex')
   const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex')
 
   // Token expires in 1 hour
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000)
 
-  // Save token to database
   await pool.query(
     `UPDATE lockerhub.users 
      SET password_reset_token = $1, 
@@ -49,9 +48,12 @@ export const requestPasswordReset = async (email: string): Promise<PasswordReset
     [resetTokenHash, expiresAt, user.user_id],
   )
 
-  // TODO: Send email with reset link containing the token
-  // const resetLink = `${process.env.APP_URL}/reset-password?token=${resetToken}`
-  // await sendPasswordResetEmail(user.email, resetLink, user.is_pre_registered)
+  const resetLink = `${process.env.APP_URL}/reset-password?token=${resetToken}`
+  if (user.is_pre_registered) {
+    await sendActivationEmail(user.email, user.first_name || 'User', resetLink)
+  } else {
+    await sendPasswordResetEmail(user.email, user.first_name || 'User', resetLink)
+  }
 
   logger.info({ userId: user.user_id, email: user.email },
     user.is_pre_registered ? 'Account activation email requested' : 'Password reset requested')
@@ -83,10 +85,8 @@ export const resetPassword = async (
     throw error
   }
 
-  // Hash the token to match database
   const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex')
 
-  // Find user with valid token
   const result = await pool.query<UserWithResetToken>(
     `SELECT 
        user_id, 
@@ -108,11 +108,8 @@ export const resetPassword = async (
   }
 
   const user = result.rows[0]
-
-  // Hash new password
   const passwordHash = await bcrypt.hash(newPassword, 10)
 
-  // Update password and clear reset token, mark account as activated
   await pool.query(
     `UPDATE lockerhub.users 
      SET password_hash = $1, 
