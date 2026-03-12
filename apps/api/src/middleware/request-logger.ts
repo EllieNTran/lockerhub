@@ -19,19 +19,4 @@ export const requestLogger = pinoHttp({
   customErrorMessage: (req: Request, res: Response, err: Error) => {
     return `${req.method} ${req.url} ${res.statusCode} - ${err.message}`
   },
-  customAttributeKeys: {
-    req: 'request',
-    res: 'response',
-    err: 'error',
-    responseTime: 'duration',
-  },
-  serializers: {
-    req: (req: Request) => ({
-      method: req.method,
-      url: req.url,
-    }),
-    res: (res: Response) => ({
-      statusCode: res.statusCode,
-    }),
-  },
 })
