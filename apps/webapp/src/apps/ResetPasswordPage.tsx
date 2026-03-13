@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router";
 import { Lock, KeyRound } from "lucide-react";
 import Header from "@/components/Header";
@@ -6,50 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import * as authService from "@/features/auth/services/auth";
+import { useValidateResetToken, useResetPassword } from "@/services/auth";
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams.get("token") || "";
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isValidating, setIsValidating] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [tokenValid, setTokenValid] = useState(false);
-  const [email, setEmail] = useState("");
 
-  useEffect(() => {
-    const validateToken = async () => {
-      if (!token) {
-        setError("Invalid reset link. Please request a new password reset.");
-        setIsValidating(false);
-        return;
-      }
+  const { data: validationResult, isLoading: isValidating } = useValidateResetToken(token);
+  const resetPasswordMutation = useResetPassword();
 
-      try {
-        const result = await authService.validateResetToken(token);
-        if (result.valid) {
-          setTokenValid(true);
-          if (result.email) {
-            setEmail(result.email);
-          }
-        } else {
-          setError("This reset link is invalid or has expired. Please request a new one.");
-        }
-      } catch (err) {
-        console.error('Token validation failed:', err);
-        setError("Unable to validate reset link. Please try again.");
-      } finally {
-        setIsValidating(false);
-      }
-    };
-
-    validateToken();
-  }, [token]);
+  const tokenValid = validationResult?.valid || false;
+  const email = validationResult?.email || "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,22 +43,20 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      const result = await authService.resetPassword(token, password);
-      setSuccess(true);
-      
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        navigate("/login");
-      }, 3000);
-    } catch (err) {
-      console.error('Password reset failed:', err);
-      setError(err instanceof Error ? err.message : "Failed to reset password. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    resetPasswordMutation.mutate(
+      { token, password },
+      {
+        onSuccess: () => {
+          setSuccess(true);
+          setTimeout(() => {
+            navigate("/login");
+          }, 3000);
+        },
+        onError: (err) => {
+          setError(err instanceof Error ? err.message : "Failed to reset password. Please try again.");
+        },
+      }
+    );
   };
 
   if (isValidating) {
@@ -106,7 +77,7 @@ const ResetPasswordPage = () => {
     );
   }
 
-  if (!tokenValid) {
+  if (!tokenValid && !isValidating) {
     return (
       <div className="min-h-screen bg-background">
         <Header showNav={false} />
@@ -122,7 +93,7 @@ const ResetPasswordPage = () => {
                 Invalid Reset Link
               </CardTitle>
               <CardDescription className="text-center">
-                {error}
+                This reset link is invalid or has expired. Please request a new one.
               </CardDescription>
             </CardHeader>
             <CardFooter className="flex flex-col space-y-4">
@@ -220,8 +191,8 @@ const ResetPasswordPage = () => {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Resetting Password..." : "Reset Password"}
+              <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending}>
+                {resetPasswordMutation.isPending ? "Resetting Password..." : "Reset Password"}
               </Button>
               <p className="text-sm text-center text-grey">
                 Remember your password?{" "}

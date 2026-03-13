@@ -3,7 +3,7 @@
  * Handles all HTTP requests to the Webapp API with automatic JWT authentication
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api'
 
 interface ApiError {
   status: string
@@ -104,7 +104,6 @@ class ApiClient {
           message: response.statusText || 'An error occurred',
         }
 
-      // Handle unauthorized - redirect to login
       if (response.status === 401) {
         this.removeToken()
         if (typeof window !== 'undefined') {
@@ -112,7 +111,6 @@ class ApiClient {
         }
       }
 
-      // Handle forbidden
       if (response.status === 403) {
         throw new Error(error.message || 'Access forbidden')
       }
@@ -124,7 +122,6 @@ class ApiClient {
       return response.json()
     }
 
-    // For non-JSON responses, return as unknown and let caller handle
     return response.text() as unknown as T
   }
 
@@ -211,7 +208,7 @@ class ApiClient {
   }
 
   /**
-   * Request without authentication (for login, etc.)
+   * Request without authentication
    */
   async publicRequest<T>(
     endpoint: string,
@@ -231,11 +228,6 @@ class ApiClient {
   }
 }
 
-// Create and export a singleton instance
 export const apiClient = new ApiClient(API_BASE_URL)
 
-// Export the class for testing or creating new instances
-export { ApiClient }
-
-// Type exports
 export type { ApiError, ApiResponse }

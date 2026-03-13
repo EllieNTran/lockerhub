@@ -27,6 +27,7 @@ class BookingDetailResponse(BaseModel):
     employee_name: str
     staff_number: str
     department_name: Optional[str]
+    email: str
     locker_number: str
     floor_number: str
     start_date: date
@@ -199,8 +200,12 @@ class DashboardStatsResponse(BaseModel):
 
     total_lockers: int
     available_lockers: int
+    occupied_lockers: int
+    maintenance_lockers: int
+    total_bookings: int
+    active_bookings: int
     pending_requests: int
-    bookings_ending_today: int
+    total_users: int
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -208,10 +213,13 @@ class DashboardStatsResponse(BaseModel):
 class FloorUtilizationResponse(BaseModel):
     """Response model for floor locker utilization."""
 
+    floor_id: UUID
     floor_number: str
     total_lockers: int
-    available_lockers: int
-    availability_percentage: float
+    available: int
+    occupied: int
+    maintenance: int
+    utilization_rate: Optional[float] = 0.0
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -228,6 +236,7 @@ class NotificationResponse(BaseModel):
     notification_id: UUID
     user_id: Optional[UUID]
     user_name: Optional[str]
+    entity_type: str
     title: str
     caption: Optional[str]
     time_ago: str

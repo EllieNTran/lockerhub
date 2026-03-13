@@ -5,14 +5,20 @@ from src.connectors.db import db
 
 GET_FLOOR_LOCKERS_UTIL_QUERY = """
 SELECT 
+    f.floor_id,
     f.number as floor_number,
     COUNT(l.locker_id) as total_lockers,
-    COUNT(l.locker_id) FILTER (WHERE l.status = 'available') as available_lockers,
-    ROUND(
-        (COUNT(l.locker_id) FILTER (WHERE l.status = 'available')::DECIMAL / 
-        NULLIF(COUNT(l.locker_id), 0) * 100), 
-        2
-    ) as availability_percentage
+    COUNT(l.locker_id) FILTER (WHERE l.status = 'available') as available,
+    COUNT(l.locker_id) FILTER (WHERE l.status = 'occupied') as occupied,
+    COUNT(l.locker_id) FILTER (WHERE l.status = 'maintenance') as maintenance,
+    COALESCE(
+        ROUND(
+            (COUNT(l.locker_id) FILTER (WHERE l.status = 'occupied')::DECIMAL / 
+            NULLIF(COUNT(l.locker_id), 0)), 
+            2
+        ),
+        0.0
+    ) as utilization_rate
 FROM lockerhub.floors f
 LEFT JOIN lockerhub.lockers l ON f.floor_id = l.floor_id
 GROUP BY f.floor_id, f.number
@@ -25,7 +31,7 @@ async def get_floor_lockers_util():
 
     Returns:
         A list of dictionaries with floor utilization stats including:
-        - floor_number, total_lockers, available_lockers, availability_percentage
+        - floor_id, floor_number, total_lockers, available, occupied, maintenance, utilization_rate
     """
     try:
         result = await db.fetch(GET_FLOOR_LOCKERS_UTIL_QUERY)

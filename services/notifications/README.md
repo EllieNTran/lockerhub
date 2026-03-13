@@ -49,12 +49,3 @@ npm run typecheck
 
 ### Health
 - `GET /notifications/health` - Health check
-
-## Environment Variables
-
-Configured in `.env-cmdrc.json`:
-- `RESEND_API_KEY` - Resend API key for sending emails
-- Database connection (host, port, user, password, name)
-- Server configuration (port, log level)
-
-Available environments: `debug`, `perf`, `test`

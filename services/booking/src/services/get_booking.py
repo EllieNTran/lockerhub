@@ -7,8 +7,6 @@ GET_BOOKING_QUERY = """
 SELECT 
     b.booking_id,
     b.user_id,
-    u.first_name,
-    u.email,
     b.locker_id,
     l.locker_number,
     f.floor_number,
@@ -19,7 +17,6 @@ SELECT
     b.created_at,
     b.updated_at
 FROM lockerhub.bookings b
-INNER JOIN lockerhub.users u ON b.user_id = u.user_id
 INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
 INNER JOIN lockerhub.floors f ON l.floor_id = f.floor_id
 WHERE b.booking_id = $1

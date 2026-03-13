@@ -12,11 +12,9 @@ class BookingResponse(BaseModel):
 
     booking_id: UUID
     user_id: UUID
-    first_name: str
-    email: str
     locker_id: UUID
     locker_number: str
-    floor_number: int
+    floor_number: str
     start_date: date
     end_date: date
     status: str

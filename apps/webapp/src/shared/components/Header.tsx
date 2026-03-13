@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { cn } from "@/shared/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { useViewMode } from "../context/ViewModeContext";
-import { Badge } from "@/components/ui/badge";
 
 type HeaderProps = {
   showNav?: boolean;
@@ -72,23 +71,20 @@ const Header = ({ showNav = true }: HeaderProps) => {
         {showNav && (
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
-              <User className="h-3.5 w-3.5 text-primary-foreground/70" />
-              <span className="text-xs text-primary-foreground/70">User</span>
+              <User className={cn("h-3.5 w-3.5 transition-colors", !isAdmin ? "text-white" : "text-primary-foreground/80")} />
+              <span className={cn("text-xs transition-colors", !isAdmin ? "text-white font-medium" : "text-primary-foreground/80")}>
+                User
+              </span>
               <Switch
                 checked={isAdmin}
                 onCheckedChange={handleToggle}
                 className="data-[state=checked]:bg-secondary data-[state=unchecked]:bg-white/20"
               />
-              <ShieldCheck className={cn("h-3.5 w-3.5 transition-colors", isAdmin ? "text-primary-foreground" : "text-primary-foreground/40")} />
-              <span className={cn("text-xs transition-colors", isAdmin ? "text-primary-foreground font-medium" : "text-primary-foreground/40")}>
+              <ShieldCheck className={cn("h-3.5 w-3.5 transition-colors", isAdmin ? "text-white" : "text-primary-foreground/80")} />
+              <span className={cn("text-xs transition-colors", isAdmin ? "text-white font-medium" : "text-primary-foreground/80")}>
                 Admin
               </span>
             </div>
-            {isAdmin && (
-              <Badge className="bg-secondary text-secondary-foreground text-xs px-2 py-0.5">
-                Admin View
-              </Badge>
-            )}
           </div>
         )}
       </div>

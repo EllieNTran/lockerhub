@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from src.logger import logger
 from src.middleware.auth import get_current_user
 from src.models.responses import (
     DashboardStatsResponse,
@@ -22,7 +23,7 @@ async def get_dashboard_stats_endpoint(_: dict = Depends(get_current_user)):
     """Get dashboard statistics."""
     try:
         stats = await get_dashboard_stats()
-        return DashboardStatsResponse(**stats)
+        return DashboardStatsResponse(**dict(stats))
     except Exception:
         raise HTTPException(
             status_code=500, detail="Failed to retrieve dashboard stats"
@@ -34,9 +35,8 @@ async def get_floors_utilization_endpoint(_: dict = Depends(get_current_user)):
     """Get locker utilization for all floors."""
     try:
         floors = await get_floor_lockers_util()
-        return AllFloorsUtilizationResponse(
-            floors=[FloorUtilizationResponse(**floor) for floor in floors]
-        )
+        floors_list = [FloorUtilizationResponse(**dict(floor)) for floor in floors]
+        return AllFloorsUtilizationResponse(floors=floors_list)
     except Exception:
         raise HTTPException(
             status_code=500, detail="Failed to retrieve floor utilization"
@@ -48,9 +48,10 @@ async def get_recent_activity_endpoint(_: dict = Depends(get_current_user)):
     """Get recent activity from notifications."""
     try:
         activities = await get_recent_activity()
-        return RecentActivityResponse(
-            activities=[NotificationResponse(**activity) for activity in activities]
-        )
+        activities_list = [
+            NotificationResponse(**dict(activity)) for activity in activities
+        ]
+        return RecentActivityResponse(activities=activities_list)
     except Exception:
         raise HTTPException(
             status_code=500, detail="Failed to retrieve recent activity"

@@ -3,29 +3,27 @@
  * Aligned with database schema types
  */
 
-import type { Booking } from '@/features/bookings/types'
-import type { Locker } from '@/features/lockers/types'
-import type { User } from '@/features/auth/types'
-import type { Key } from '@/features/keys/types'
-import type { Request } from '@/features/requests/types'
-import type { Notification } from '@/features/notifications/types'
-import type { Department } from '@/features/departments/types'
-import type { Floor } from '@/features/floors/types'
-import type { BookingRule } from '@/features/booking-rules/types'
+import type { Locker } from '@/shared/types/locker'
+import type { User } from '@/services/auth'
+import type { Key } from '@/shared/types/key'
+import type { Request } from '@/shared/types/request'
+import type { Department } from '@/shared/types/department'
+import type { Floor } from '@/shared/types/floor'
+import type { BookingRule } from '@/shared/types/booking-rule'
 
 /**
  * Floors
  */
 export const mockFloors: Floor[] = [
-  { floor_id: 'f1', number: 2 },
-  { floor_id: 'f2', number: 3 },
-  { floor_id: 'f3', number: 4 },
-  { floor_id: 'f4', number: 6 },
-  { floor_id: 'f5', number: 7 },
-  { floor_id: 'f6', number: 8 },
-  { floor_id: 'f7', number: 9 },
-  { floor_id: 'f8', number: 10 },
-  { floor_id: 'f9', number: 11 },
+  { floor_id: 'f1', number: '2' },
+  { floor_id: 'f2', number: '3' },
+  { floor_id: 'f3', number: '4' },
+  { floor_id: 'f4', number: '6' },
+  { floor_id: 'f5', number: '7' },
+  { floor_id: 'f6', number: '8' },
+  { floor_id: 'f7', number: '9' },
+  { floor_id: 'f8', number: '10' },
+  { floor_id: 'f9', number: '11' },
 ]
 
 /**
@@ -147,45 +145,6 @@ export const mockKeys: Key[] = [
 ]
 
 /**
- * Bookings
- */
-export const mockBookings: Booking[] = [
-  {
-    booking_id: 'b1',
-    user_id: 'u1',
-    locker_id: 'l1',
-    start_date: '2026-02-05',
-    end_date: '2026-02-08',
-    status: 'active',
-    special_request_id: null,
-    created_at: '2026-02-01T10:00:00Z',
-    updated_at: '2026-02-05T09:00:00Z',
-  },
-  {
-    booking_id: 'b2',
-    user_id: 'u1',
-    locker_id: 'l2',
-    start_date: '2026-02-15',
-    end_date: '2026-02-18',
-    status: 'upcoming',
-    special_request_id: null,
-    created_at: '2026-02-01T11:00:00Z',
-    updated_at: '2026-02-01T11:00:00Z',
-  },
-  {
-    booking_id: 'b3',
-    user_id: 'u3',
-    locker_id: 'l1',
-    start_date: '2026-01-10',
-    end_date: '2026-01-15',
-    status: 'completed',
-    special_request_id: null,
-    created_at: '2026-01-05T10:00:00Z',
-    updated_at: '2026-01-15T17:00:00Z',
-  },
-]
-
-/**
  * Requests
  */
 export const mockRequests: Request[] = [
@@ -233,52 +192,6 @@ export const mockRequests: Request[] = [
     created_at: '2026-02-06T10:00:00Z',
     reviewed_at: '2026-02-06T11:00:00Z',
     reviewed_by: 'u2',
-  },
-]
-
-/**
- * Notifications
- */
-export const mockNotifications: Notification[] = [
-  {
-    notification_id: 'n1',
-    user_id: 'u1',
-    title: 'Key Return Due Tomorrow',
-    caption: 'Your key for Locker DL07-01-03 (Floor 7) is due for return on Feb 8, 2026.',
-    created_at: '2026-02-07T09:00:00Z',
-    read: false,
-    type: 'warning',
-    scope: 'user',
-  },
-  {
-    notification_id: 'n2',
-    user_id: 'u3',
-    title: 'Special Request Under Review',
-    caption: 'Your medical locker request is being reviewed by the admin team.',
-    created_at: '2026-01-20T14:30:00Z',
-    read: false,
-    type: 'info',
-    scope: 'user',
-  },
-  {
-    notification_id: 'n3',
-    user_id: 'u1',
-    title: 'Booking Confirmed',
-    caption: 'Your booking for Locker DL03-02-05 (Floor 3) from Feb 15–18 has been confirmed.',
-    created_at: '2026-02-01T11:05:00Z',
-    read: true,
-    type: 'success',
-    scope: 'user',
-  },
-  {
-    notification_id: 'n4',
-    user_id: 'u1',
-    title: 'Maintenance Notice',
-    caption: 'Floor 11 lockers will be undergoing maintenance on Feb 20, 2026.',
-    created_at: '2026-02-04T08:00:00Z',
-    read: true,
-    type: 'info',
-    scope: 'floor',
   },
 ]
 

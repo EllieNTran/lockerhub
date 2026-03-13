@@ -19,6 +19,10 @@ export const SERVICE_CONFIG = {
     url: fromEnv('AUTH_SERVICE_URL') || 'http://localhost:3003',
     prefix: '/auth',
   },
+  notifications: {
+    url: fromEnv('NOTIFICATIONS_SERVICE_URL') || 'http://localhost:3006',
+    prefix: '/notifications',
+  },
 } as const
 
 /**

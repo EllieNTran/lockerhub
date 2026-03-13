@@ -6,81 +6,71 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import * as authService from "@/features/auth/services/auth";
+import { useLogin, useRequestPasswordReset, storeTokens } from "@/services/auth";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetSuccess, setResetSuccess] = useState("");
   const [showActivationPrompt, setShowActivationPrompt] = useState(false);
-  const [isRequestingActivation, setIsRequestingActivation] = useState(false);
+
+  const loginMutation = useLogin();
+  const requestPasswordResetMutation = useRequestPasswordReset();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
-    
-    try {
-      const response = await authService.login({ email, password });
-      
-      // Store tokens
-      authService.storeTokens(response.accessToken, response.refreshToken);
-      localStorage.setItem("userRole", response.user.role);
-      
-      // Redirect based on role
-      navigate(response.user.role === "admin" ? "/admin" : "/user");
-    } catch (err) {
-      console.error('Login failed:', err);
-      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again.";
-      
-      // Check if this is a pre-registered user who needs activation
-      if (errorMessage.includes("not activated")) {
-        setShowActivationPrompt(true);
-        setError(errorMessage);
-      } else {
-        setError(errorMessage);
+
+    loginMutation.mutate(
+      { email, password },
+      {
+        onSuccess: (response) => {
+          storeTokens(response.accessToken, response.refreshToken);
+          localStorage.setItem("userRole", response.user.role);
+          navigate(response.user.role === "admin" ? "/admin" : "/user");
+        },
+        onError: (err) => {
+          const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again.";
+          if (errorMessage.includes("not activated")) {
+            setShowActivationPrompt(true);
+          }
+          setError(errorMessage);
+        },
       }
-    } finally {
-      setIsLoading(false);
-    }
+    );
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
     setResetSuccess("");
-    
-    try {
-      await authService.requestPasswordReset(email);
-      setResetSuccess("Password reset link has been sent to your email.");
-    } catch (err) {
-      console.error('Password reset failed:', err);
-      setError(err instanceof Error ? err.message : "Failed to send reset email.");
-    } finally {
-      setIsLoading(false);
-    }
+
+    requestPasswordResetMutation.mutate(email, {
+      onSuccess: () => {
+        setResetSuccess("Password reset link has been sent to your email.");
+      },
+      onError: (err) => {
+        setError(err instanceof Error ? err.message : "Failed to send reset email.");
+      },
+    });
   };
 
   const handleRequestActivation = async () => {
-    setIsRequestingActivation(true);
     setError("");
     setResetSuccess("");
-    
-    try {
-      await authService.requestPasswordReset(email);
-      setResetSuccess("Activation link has been sent to your email. Please check your inbox.");
-      setShowActivationPrompt(false);
-    } catch (err) {
-      console.error('Activation request failed:', err);
-      setError(err instanceof Error ? err.message : "Failed to send activation email.");
-    } finally {
-      setIsRequestingActivation(false);
-    }
+
+    requestPasswordResetMutation.mutate(email, {
+      onSuccess: () => {
+        setResetSuccess("Activation link has been sent to your email. Please check your inbox.");
+        setShowActivationPrompt(false);
+      },
+      onError: (err) => {
+        setError(err instanceof Error ? err.message : "Failed to send activation email.");
+      },
+    });
   };
 
   const toggleView = () => {
@@ -127,11 +117,11 @@ const LoginPage = () => {
                       <Button
                         type="button"
                         onClick={handleRequestActivation}
-                        disabled={isRequestingActivation}
+                        disabled={requestPasswordResetMutation.isPending}
                         className="w-full"
                         variant="outline"
                       >
-                        {isRequestingActivation ? "Sending..." : "Send Activation Email"}
+                        {requestPasswordResetMutation.isPending ? "Sending..." : "Send Activation Email"}
                       </Button>
                     </div>
                   )}
@@ -180,8 +170,8 @@ const LoginPage = () => {
               )}
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading 
+              <Button type="submit" className="w-full" disabled={loginMutation.isPending || requestPasswordResetMutation.isPending}>
+                {loginMutation.isPending || requestPasswordResetMutation.isPending
                   ? (showForgotPassword ? "Sending..." : "Signing in...") 
                   : (showForgotPassword ? "Send Reset Link" : "Sign in")}
               </Button>

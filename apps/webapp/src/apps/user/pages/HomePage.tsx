@@ -1,158 +1,101 @@
 import { useNavigate } from "react-router";
-import { format, formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
   Bell,
   CalendarDays,
   FileText,
   KeyRound,
-  MapPin,
-  Plus,
-  Building2,
+  CalendarPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UserLayout from "../layout/UserLayout";
-import QuickActionCard from "@/components/QuickActionCard";
-import { mockBookings, mockNotifications, mockLockers, mockFloors } from "@/shared/data/mockData";
-
-const statusColors: Record<string, string> = {
-  active: "bg-success-foreground text-success border-success-outline",
-  upcoming: "bg-secondary-muted text-secondary border-secondary-outline",
-  expired: "bg-muted text-background border-grey-outline",
-};
-
-const notificationIcons: Record<string, typeof Bell> = {
-  key_return: KeyRound,
-  special_request: FileText,
-  booking: CalendarDays, 
-  info: Bell,
-};
-
-const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good Morning!";
-  if (hour < 18) return "Good Afternoon!";
-  return "Good Evening!";
-};
+import QuickActionCard from "@/apps/user/components/QuickActionCard";
+import NotificationCard from "@/apps/user/components/NotificationCard";
+import BookingCard from "@/apps/user/components/BookingCard";
+import HeroBanner from "@/shared/components/HeroBanner";
+import { useUserNotifications, type Notification } from "@/services/notifications";
+import { getUserIdFromToken } from "@/services/auth";
+import { useUserBookings } from "@/services/bookings";
 
 const Home = () => {
   const navigate = useNavigate();
-  const bookings = mockBookings.filter(
-    (b) => b.user_id === 'u1' && (b.status === 'upcoming' || b.status === 'active')
-  );
-  const notifications = mockNotifications.filter((n) => n.user_id === 'u1');
+  const userId = getUserIdFromToken() || '';
+  
+  const { data: notificationsData, isLoading: isLoadingNotifications } = useUserNotifications(userId);
+  const notifications = notificationsData?.notifications || [];
+  const unreadCount = notificationsData?.unread || 0;
+  
+  const { data: bookingsData, isLoading: isLoadingBookings } = useUserBookings();
+  const upcomingBookings = bookingsData?.filter(
+    (b) => b.status === 'active' || b.status === 'upcoming'
+  ) || [];
 
   return (
     <UserLayout>
       <div className="w-full">
-        {/* Hero Banner */}
-        <div className="mb-8 rounded-2xl bg-gradient-to-br from-primary via-primary to-secondary p-8 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-secondary/20" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold">{getGreeting()}</h2>
-              <p className="mt-2 text-white/80 text-sm">
-                Easily book, view, and manage all your locker bookings
-              </p>
-              <div className="mt-4 flex items-center gap-2 text-white/70 text-sm">
-                <Building2 className="h-4 w-4" />
-                <span>Canary Wharf, London Office</span>
-              </div>
-            </div>
-            <div className="flex h-24 w-28 flex-col items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
-              <span className="text-3xl font-bold">{bookings.length}</span>
-              <span className="text-sm text-white/90">Bookings</span>
-            </div>
-          </div>
-        </div>
+        <HeroBanner
+          subtitle="Easily book, view, and manage all your locker bookings"
+          statLabel="Bookings"
+          statValue={upcomingBookings.length}
+        />
 
-        {/* Quick Links — Book, Special Request, Return Key */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <QuickActionCard
-            icon={Plus}
+            icon={CalendarPlus}
             title="Book a Locker"
             subtitle="Up to 3 days"
+            color="purple"
             onClick={() => navigate("/book")}
           />
           <QuickActionCard
             icon={FileText}
             title="Special Request"
             subtitle="Extended / permanent booking"
+            color="pink"
             onClick={() => navigate("/special-request")}
           />
           <QuickActionCard
             icon={KeyRound}
             title="Return Key"
             subtitle="View return instructions"
+            color="secondary"
             onClick={() => navigate("/return-key")}
           />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">{/* Notifications */}
-          <div className="rounded-xl border border-grey-outline bg-white p-6">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-xl border border-grey-outline bg-white p-6 flex flex-col shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-dark-blue">Notifications</h3>
-              {notifications.filter((n) => !n.read).length > 0 && (
-                <Badge className="bg-error text-white text-xs">
-                  {notifications.filter((n) => !n.read).length} new
+              {unreadCount > 0 && (
+                <Badge className="bg-error text-white text-xs hover:bg-error">
+                  {unreadCount} new
                 </Badge>
               )}
             </div>
-            {notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
+            {isLoadingNotifications ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center flex-1">
+                <p className="text-sm text-grey">Loading notifications...</p>
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center flex-1">
                 <Bell className="h-10 w-10 text-grey/40 mb-3" />
                 <p className="text-sm text-grey">No notifications</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {notifications.map((notification) => {
-                  const Icon = notificationIcons[notification.type] || Bell;
-                  return (
-                    <div
-                      key={notification.notification_id}
-                      className={`flex gap-3 rounded-lg border p-3.5 transition-colors ${
-                        notification.read
-                          ? "bg-background border-grey-outline"
-                          : "bg-primary-foreground border-primary-outline"
-                      }`}
-                    >
-                      <div
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                          notification.read ? "bg-grey-foreground" : "bg-white"
-                        }`}
-                      >
-                        <Icon
-                          className={`h-4 w-4 ${
-                            notification.read ? "text-grey" : "text-primary"
-                          }`}
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-dark-blue truncate">
-                            {notification.title}
-                          </p>
-                          {!notification.read && (
-                            <span className="h-2 w-2 shrink-0 rounded-full bg-secondary" />
-                          )}
-                        </div>
-                        <p className="mt-0.5 text-xs text-grey line-clamp-2">
-                          {notification.caption}
-                        </p>
-                        <p className="mt-1 text-xs text-mid-grey">
-                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+                {notifications.map((notification: Notification) => (
+                  <NotificationCard
+                    key={notification.notification_id}
+                    notification={notification}
+                  />
+                ))}
               </div>
             )}
           </div>
 
-          {/* Upcoming Bookings */}
-          <div className="rounded-xl border border-grey-outline bg-white p-6">
+          <div className="rounded-xl border border-grey-outline bg-white p-6 flex flex-col shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-dark-blue">Upcoming Bookings</h3>
               <div className="flex items-center gap-2">
@@ -175,8 +118,12 @@ const Home = () => {
                 </Button>
               </div>
             </div>
-            {bookings.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
+            {isLoadingBookings ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center flex-1">
+                <p className="text-sm text-grey">Loading bookings...</p>
+              </div>
+            ) : upcomingBookings.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center flex-1">
                 <CalendarDays className="h-10 w-10 text-grey/40 mb-3" />
                 <p className="text-sm text-grey">No upcoming bookings</p>
                 <p className="text-xs text-grey/60 mt-1">
@@ -185,46 +132,9 @@ const Home = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {bookings.map((booking) => {
-                  // Get locker details from mockLockers
-                  const locker = mockLockers.find((l) => l.locker_id === booking.locker_id);
-                  const floor = mockFloors.find((f) => f.floor_id === locker?.floor_id);
-                  
-                  return (
-                    <div
-                      key={booking.booking_id}
-                      className="flex items-center justify-between rounded-lg border border-grey-outline bg-white p-3.5 transition-colors hover:bg-muted/30"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-foreground text-primary font-bold text-sm shrink-0">
-                          {locker?.locker_number.split('-')[2] || '?'}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">Floor {floor?.number || '?'}</span>
-                            <Badge
-                              variant="outline"
-                              className={statusColors[booking.status]}
-                            >
-                              {booking.status}
-                            </Badge>
-                          </div>
-                          <div className="mt-1 flex items-center gap-3 text-xs text-grey">
-                            <span className="flex items-center gap-1">
-                              <CalendarDays className="h-3 w-3" />
-                              {format(new Date(booking.start_date), "MMM d")} —{" "}
-                              {format(new Date(booking.end_date), "MMM d, yyyy")}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {locker?.locker_number || 'Unknown'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {upcomingBookings.map((booking) => (
+                  <BookingCard key={booking.booking_id} booking={booking} />
+                ))}
               </div>
             )}
           </div>

@@ -3,11 +3,16 @@ import { useNavigate, Link } from "react-router";
 import { Lock, Mail, Hash } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import * as authService from "@/features/auth/services/auth";
+import { 
+  useDepartments, 
+  useOffices, 
+  useSignup, 
+  useValidateStaffNumber 
+} from "@/services/auth";
 
 
 const SignupPage = () => {
@@ -22,45 +27,31 @@ const SignupPage = () => {
     departmentId: "",
     office: "",
   });
-  const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
-  const [offices, setOffices] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
   const [error, setError] = useState("");
   const [staffNumberError, setStaffNumberError] = useState("");
 
-  useEffect(() => {
-    const fetchMetadata = async () => {
-      try {
-        const [depts, offs] = await Promise.all([
-          authService.getDepartments(),
-          authService.getOffices(),
-        ]);
-        setDepartments(depts);
-        setOffices(offs);
-      } catch {
-        setError("Failed to load form data. Please refresh the page.");
-      } finally {
-        setIsLoadingMetadata(false);
-      }
-    };
+  const { data: departments = [], isLoading: isLoadingDepartments } = useDepartments();
+  const { data: offices = [], isLoading: isLoadingOffices } = useOffices();
+  const signupMutation = useSignup();
+  const validateStaffNumberMutation = useValidateStaffNumber();
 
-    fetchMetadata();
-  }, []);
+  const isLoadingMetadata = isLoadingDepartments || isLoadingOffices;
 
   useEffect(() => {
     const validateStaffNum = async () => {
       if (formData.staffNumber.length === 8) {
-        try {
-          const result = await authService.validateStaffNumber(formData.staffNumber);
-          if (!result.available) {
-            setStaffNumberError(result.message);
-          } else {
-            setStaffNumberError("");
-          }
-        } catch {
-          // Ignore validation errors silently
-        }
+        validateStaffNumberMutation.mutate(formData.staffNumber, {
+          onSuccess: (result) => {
+            if (!result.available) {
+              setStaffNumberError(result.message);
+            } else {
+              setStaffNumberError("");
+            }
+          },
+          onError: () => {
+            // Ignore validation errors silently
+          },
+        });
       } else {
         setStaffNumberError("");
       }
@@ -68,7 +59,7 @@ const SignupPage = () => {
 
     const timeoutId = setTimeout(validateStaffNum, 500);
     return () => clearTimeout(timeoutId);
-  }, [formData.staffNumber]);
+  }, [formData.staffNumber, validateStaffNumberMutation]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -100,10 +91,8 @@ const SignupPage = () => {
       }
     }
 
-    setIsLoading(true);
-    
-    try {
-      await authService.signup({
+    signupMutation.mutate(
+      {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -111,14 +100,16 @@ const SignupPage = () => {
         staffNumber: formData.staffNumber,
         departmentId: formData.departmentId,
         office: formData.office,
-      });
-
-      navigate("/login");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+      },
+      {
+        onSuccess: () => {
+          navigate("/login");
+        },
+        onError: (err) => {
+          setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
+        },
+      }
+    );
   };
 
   return (
@@ -282,8 +273,8 @@ const SignupPage = () => {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" disabled={isLoading || isLoadingMetadata || !!staffNumberError}>
-                {isLoading ? "Creating account..." : "Create account"}
+              <Button type="submit" className="w-full" disabled={signupMutation.isPending || isLoadingMetadata || !!staffNumberError}>
+                {signupMutation.isPending ? "Creating account..." : "Create account"}
               </Button>
               <p className="text-sm text-center text-grey">
                 Already have an account?{" "}

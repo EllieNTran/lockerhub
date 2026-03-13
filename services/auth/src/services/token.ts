@@ -74,7 +74,6 @@ export const generateAccessToken = (payload: TokenPayload): string => {
       audience: ['lockerhub-api', 'lockerhub-services'], // Multiple audiences for gateway and services
       jwtid: tokenId, // Unique token identifier
       subject: payload.userId.toString(), // Subject claim
-      notBefore: Math.floor(Date.now() / 1000), // Not valid before current time
       keyid: KEY_ID, // Key ID for JWKS key rotation support
     } as jwt.SignOptions,
   )
@@ -101,7 +100,7 @@ export const generateRefreshToken = (payload: Pick<TokenPayload, 'userId'>): str
       audience: ['lockerhub-api', 'lockerhub-services'],
       jwtid: tokenId,
       subject: payload.userId.toString(),
-      keyid: KEY_ID, // Key ID for JWKS key rotation support
+      keyid: KEY_ID,
     } as jwt.SignOptions,
   )
 }
@@ -124,12 +123,6 @@ export const verifyToken = (token: string, options: { audience?: string | string
 
 /**
  * Get public key in JWK format for JWKS endpoint
- *
- * Microservices usage pattern:
- * 1. Fetch this endpoint once at startup (or cache with periodic refresh)
- * 2. Extract the public key from the JWKS response
- * 3. Use the public key to verify JWT signatures locally
- * 4. No need to call auth service for each request verification
  */
 export const getJWKS = (): JWKS => {
   return jwkKeystore.toJSON() as JWKS

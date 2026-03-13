@@ -7,6 +7,7 @@ from src.utils.time_ago import time_ago
 GET_RECENT_ACTIVITY_QUERY = """
 SELECT 
     n.notification_id,
+    n.entity_type,
     n.created_by AS user_id,
     CASE 
         WHEN n.created_by IS NOT NULL 

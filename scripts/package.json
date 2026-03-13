@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "import-staff": "tsx import-staff.ts"
+    "import-staff": "tsx import-staff.ts",
+    "import-lockers": "tsx import-lockers.ts"
   },
   "dependencies": {
     "csv-parse": "^5.6.0",

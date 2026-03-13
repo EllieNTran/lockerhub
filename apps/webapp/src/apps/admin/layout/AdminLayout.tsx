@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router";
 import {
   LayoutDashboard,
   Lock,
@@ -35,12 +35,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <div className="flex flex-1">
-        {/* Sidebar */}
-        <aside className="w-60 shrink-0 border-r bg-card flex flex-col">
-          <div className="px-4 py-4 border-b">
+
+        <aside className="w-60 shrink-0 border-r border-grey/30 bg-card flex flex-col">
+          <div className="px-4 py-4 border-b border-grey/30">
             <div className="flex items-center gap-2 text-primary">
               <ShieldCheck className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-background">
+              <span className="text-xs font-semibold uppercase tracking-wider text-grey">
                 Admin Panel
               </span>
             </div>
@@ -55,8 +55,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-background hover:bg-muted hover:text-dark-blue"
+                      ? "bg-primary text-white"
+                      : "text-grey hover:bg-muted hover:text-dark-blue"
                   )
                 }
               >
@@ -68,7 +68,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <div className="px-3 pb-4">
             <button
               onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-xs text-background hover:text-dark-blue transition-colors px-3 py-2"
+              className="flex items-center gap-2 text-xs text-grey hover:text-dark-blue transition-colors px-3 py-2"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
               Back to User View
@@ -76,9 +76,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
         </aside>
 
-        {/* Page content */}
         <main className="flex-1 overflow-auto">
-          <div className="w-full max-w-[3000px] mx-auto px-6 py-10">
+          <div className="w-full max-w-[3000px] mx-auto px-14 py-10">
             {children}
           </div>
         </main>

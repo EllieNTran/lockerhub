@@ -55,3 +55,56 @@ Pre-registered users will need to:
 3. Receive an email with activation link
 4. Set their password
 5. Login with their credentials
+
+---
+
+## Locker Import
+
+Import lockers and keys from CSV files for each floor into the database.
+
+### CSV Format
+
+The CSV files should be named `floor{number}.csv` (e.g., `floor2.csv`, `floor10.csv`, `floor10east.csv`) and placed in the `data/` directory.
+
+Required columns:
+- `Floor` - Location identifier (e.g., "2W", "3E")
+- `Locker number` or `Locker number ` - Unique locker identifier (e.g., "L2W-01-01")
+- `Key Number` - Unique key identifier (e.g., "AA712")
+
+Optional columns (for reference):
+- `Staff number`, `Name`, `Email Address`, `Function`, `Start Date`, `End Date`, `Notes`
+
+### Prerequisites
+
+**IMPORTANT**: At least one admin user must exist in the database (floors will be created automatically by the admin user).
+
+### Usage
+
+1. Place CSV files in `scripts/data/` directory (e.g., `floor2.csv`, `floor3.csv`, etc.)
+
+2. Set environment variables (or use .env file):
+```bash
+export DB_HOST=localhost
+export DB_PORT=3000
+export DB_NAME=postgres
+export DB_USER=postgres
+export DB_PASSWORD=postgres
+```
+
+3. Run the import:
+```bash
+npm run import-lockers
+```
+
+### What happens during import?
+
+1. ✅ Automatically processes all `floor*.csv` files in the `data/` directory
+2. ✅ Extracts floor number from filename (e.g., floor2.csv → Floor 2)
+3. ✅ Creates floor if it doesn't exist (using first admin user)
+4. ✅ Creates lockers with unique locker numbers
+5. ✅ Creates keys associated with each locker
+6. ✅ Skips FREE/placeholder entries (where Key Number is "FREE" or "#N/A")
+7. ✅ Skips duplicate lockers and keys
+8. ✅ Sets location from the Floor column
+9. ✅ Sets initial status to 'available'
+10. ✅ Provides detailed summary for each floor

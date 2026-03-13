@@ -7,8 +7,7 @@ services:
     environment:
       - PORT=80
       - LOCALHOST_MODE=true
-      - VITE_API_URL=http://api
-      - VITE_AUTH_URL=http://auth
+      - VITE_API_URL=http://api/api
     depends_on:
       api:
         condition: service_started
@@ -24,6 +23,9 @@ services:
       - PORT=80
       - LOCALHOST_MODE=true
       - AUTH_SERVICE_URL=http://auth
+      - BOOKING_SERVICE_URL=http://booking
+      - ADMIN_SERVICE_URL=http://admin
+      - NOTIFICATIONS_SERVICE_URL=http://notifications
     depends_on:
       auth:
         condition: service_started
