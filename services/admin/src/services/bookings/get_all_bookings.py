@@ -9,6 +9,7 @@ SELECT
     CONCAT(u.first_name, ' ', u.last_name) as employee_name,
     u.staff_number,
     d.name as department_name,
+    u.email,
     l.locker_number,
     f.number as floor_number,
     b.start_date,
@@ -38,7 +39,7 @@ async def get_all_bookings():
 
     Returns:
         A list of dictionaries containing:
-        - booking_id, employee_name, staff_number, department_name, locker_number, floor_number
+        - booking_id, employee_name, staff_number, department_name, email, locker_number, floor_number
         - start_date, end_date, booking_status, key_status
         Ordered by status priority (expired, upcoming, active, cancelled, completed)
     """

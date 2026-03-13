@@ -12,9 +12,9 @@ import type {
 } from '../types'
 
 const CREATE_NOTIFICATION_QUERY = `
-  INSERT INTO lockerhub.notifications (title, admin_title, caption, type, scope, target_department_id, target_floor_id, created_by)
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-  RETURNING notification_id, title, admin_title, caption, type, scope, target_department_id, target_floor_id, created_at, created_by
+  INSERT INTO lockerhub.notifications (title, admin_title, caption, type, entity_type, scope, target_department_id, target_floor_id, created_by)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  RETURNING notification_id, title, admin_title, caption, type, entity_type, scope, target_department_id, target_floor_id, created_at, created_by
 `
 
 const MARK_AS_READ_QUERY = `
@@ -31,10 +31,12 @@ const MARK_AS_READ_QUERY = `
 const GET_USER_NOTIFICATIONS_QUERY = `
   SELECT DISTINCT
     n.notification_id,
+    $1 as user_id,
     n.title,
     n.admin_title,
     n.caption,
     n.type,
+    n.entity_type,
     n.scope,
     n.target_department_id,
     n.target_floor_id,
@@ -125,6 +127,7 @@ export const createNotification = async (
         request.adminTitle || null,
         request.caption || null,
         request.type || 'info',
+        request.entityType || null,
         request.scope,
         targetDepartmentId,
         targetFloorId,

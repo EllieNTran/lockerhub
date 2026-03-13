@@ -10,7 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { ViewModeProvider } from "./shared/context/ViewModeContext";
+import { ViewModeProvider } from "@/shared/context/ViewModeContext";
 
 // Create a client
 const queryClient = new QueryClient({

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { Mail, Search, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
-import * as authService from "@/features/auth/services/auth";
+import { useCheckAccount, useRequestPasswordReset } from "@/services/auth";
 
 type AccountStatus = {
   exists: boolean;
@@ -18,40 +18,37 @@ type AccountStatus = {
 };
 
 const CheckAccountPage = () => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [isChecking, setIsChecking] = useState(false);
-  const [isRequestingActivation, setIsRequestingActivation] = useState(false);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const [error, setError] = useState("");
 
+  const checkAccountMutation = useCheckAccount();
+  const requestPasswordResetMutation = useRequestPasswordReset();
+
   const handleCheck = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsChecking(true);
     setError("");
     setAccountStatus(null);
 
-    try {
-      const result = await authService.checkAccount(email);
-      setAccountStatus(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to check account status.");
-    } finally {
-      setIsChecking(false);
-    }
+    checkAccountMutation.mutate(email, {
+      onSuccess: (result) => {
+        setAccountStatus(result);
+      },
+      onError: (err) => {
+        setError(err instanceof Error ? err.message : "Failed to check account status.");
+      },
+    });
   };
 
   const handleRequestActivation = async () => {
-    setIsRequestingActivation(true);
-
-    try {
-      await authService.requestPasswordReset(email);
-      toast.success("Activation link has been sent to your email. Please check your inbox.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send activation email.");
-    } finally {
-      setIsRequestingActivation(false);
-    }
+    requestPasswordResetMutation.mutate(email, {
+      onSuccess: () => {
+        toast.success("Activation link has been sent to your email. Please check your inbox.");
+      },
+      onError: (err) => {
+        toast.error(err instanceof Error ? err.message : "Failed to send activation email.");
+      },
+    });
   };
 
   const renderStatusCard = () => {
@@ -95,10 +92,10 @@ const CheckAccountPage = () => {
           </div>
           <Button
             onClick={handleRequestActivation}
-            disabled={isRequestingActivation}
+            disabled={requestPasswordResetMutation.isPending}
             className="w-full"
           >
-            {isRequestingActivation ? "Sending..." : "Send Activation Email"}
+            {requestPasswordResetMutation.isPending ? "Sending..." : "Send Activation Email"}
           </Button>
         </div>
       );
@@ -164,8 +161,8 @@ const CheckAccountPage = () => {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               {!accountStatus && (
-                <Button type="submit" className="w-full" disabled={isChecking}>
-                  {isChecking ? "Checking..." : "Check Account Status"}
+                <Button type="submit" className="w-full" disabled={checkAccountMutation.isPending}>
+                  {checkAccountMutation.isPending ? "Checking..." : "Check Account Status"}
                 </Button>
               )}
               {accountStatus && (

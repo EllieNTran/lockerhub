@@ -55,16 +55,6 @@ npm test
 3. Other services fetch JWKS endpoint to verify tokens
 4. Access token expires → use refresh token to get new one
 
-## Environment Variables
-
-Configured in `.env-cmdrc.json`:
-- Database connection (host, port, user, password)
-- Token expiry settings
-- Server configuration (port, log level)
-- Keys directory path
-
-Available environments: `debug`, `perf`, `test`
-
 ## Key Management
 
 RS256 keypair stored in `keys/` directory:

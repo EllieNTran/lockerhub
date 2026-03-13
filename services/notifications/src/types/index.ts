@@ -96,12 +96,15 @@ export interface QueryResult<T = unknown> {
 // Notification database types
 export type NotificationType = 'info' | 'warning' | 'error' | 'success'
 export type NotificationScope = 'user' | 'department' | 'floor' | 'global'
+export type EntityType = 'booking' | 'locker' | 'key' | 'request' | 'floor' | 'booking_rule'
 
 export interface Notification {
   notification_id: string
+  title: string
   admin_title: string
   caption: string | null
   type: NotificationType
+  entity_type: EntityType | null
   scope: NotificationScope
   target_department_id: string | null
   target_floor_id: string | null
@@ -118,6 +121,7 @@ export interface UserNotification {
 }
 
 export interface NotificationWithReadStatus extends Notification {
+  user_id: string
   read: boolean
   read_at: Date | null
   user_notification_created_at: Date
@@ -129,6 +133,7 @@ export interface CreateNotificationRequest {
   adminTitle?: string
   caption?: string
   type?: NotificationType
+  entityType?: EntityType
   scope: NotificationScope
   createdBy?: string
   userIds?: string[]

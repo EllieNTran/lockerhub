@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS lockerhub.floors (
     floor_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    number INTEGER NOT NULL UNIQUE,
+    floor_number VARCHAR(10) NOT NULL UNIQUE,
     status lockerhub.floor_status NOT NULL DEFAULT 'open',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID NOT NULL,

@@ -10,16 +10,30 @@ const isPublicAuthRoute = (path: string) => {
   return publicAuthRoutes.some((route) => path.includes(route))
 }
 
+// Public notification routes (no authentication required)
+const publicNotificationRoutes = ['/password-reset', '/activation', '/health']
+const isPublicNotificationRoute = (path: string) => {
+  return publicNotificationRoutes.some((route) => path.includes(route))
+}
+
 // Auth routes with conditional authentication
 router.use(SERVICE_CONFIG.auth.prefix, (req, res, next) => {
   if (isPublicAuthRoute(req.path)) {
-    // Skip authentication for public auth routes
     return proxyToService('auth')(req, res, next)
   }
-  // Require authentication for other auth routes
   return authenticate(req, res, (err) => {
     if (err) return next(err)
     proxyToService('auth')(req, res, next)
+  })
+})
+
+router.use(SERVICE_CONFIG.notifications.prefix, (req, res, next) => {
+  if (isPublicNotificationRoute(req.path)) {
+    return proxyToService('notifications')(req, res, next)
+  }
+  return authenticate(req, res, (err) => {
+    if (err) return next(err)
+    proxyToService('notifications')(req, res, next)
   })
 })
 

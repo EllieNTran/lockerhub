@@ -5,18 +5,22 @@ from src.connectors.db import db
 
 GET_USER_BOOKINGS_QUERY = """
 SELECT 
-    booking_id,
-    user_id,
-    locker_id,
-    start_date,
-    end_date,
-    status,
-    special_request_id,
-    created_at,
-    updated_at
-FROM lockerhub.bookings
-WHERE user_id = $1
-ORDER BY start_date DESC
+    b.booking_id,
+    b.user_id,
+    b.locker_id,
+    l.locker_number,
+    f.floor_number,
+    b.start_date,
+    b.end_date,
+    b.status,
+    b.special_request_id,
+    b.created_at,
+    b.updated_at
+FROM lockerhub.bookings b
+INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
+INNER JOIN lockerhub.floors f ON l.floor_id = f.floor_id
+WHERE b.user_id = $1
+ORDER BY b.start_date DESC
 """
 
 

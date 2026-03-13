@@ -6,7 +6,7 @@ const ADMIN_EMAIL = 'fm@lockerhub.com'
 interface BookingEmailData {
   name: string
   lockerNumber: string
-  floorNumber: number
+  floorNumber: string
   startDate?: string
   endDate: string
 }
@@ -50,13 +50,14 @@ export const notifyBookingConfirmation = async (
   email: string,
   name: string,
   lockerNumber: string,
-  floorNumber: number,
+  floorNumber: string,
   startDate: string,
   endDate: string,
   userBookingsLink: string,
   adminBookingsLink: string,
 ): Promise<void> => {
   await createNotification({
+    entityType: 'booking',
     title: 'Booking Confirmed',
     adminTitle: `Booking created for Locker ${lockerNumber}`,
     caption: `Your booking for Locker ${lockerNumber} on Floor ${floorNumber} from ${startDate} to ${endDate} has been confirmed.`,
@@ -82,13 +83,14 @@ export const notifyBookingCancellation = async (
   email: string,
   name: string,
   lockerNumber: string,
-  floorNumber: number,
+  floorNumber: string,
   startDate: string,
   endDate: string,
   keyStatus: string,
   keyNumber: string,
 ): Promise<void> => {
   await createNotification({
+    entityType: 'booking',
     title: 'Booking Cancelled',
     adminTitle: `Booking cancelled for Locker ${lockerNumber}`,
     caption: `Your booking for Locker ${lockerNumber} on Floor ${floorNumber} from ${startDate} to ${endDate} has been cancelled.`,
@@ -123,13 +125,14 @@ export const notifyBookingExtension = async (
   email: string,
   name: string,
   lockerNumber: string,
-  floorNumber: number,
+  floorNumber: string,
   originalEndDate: string,
   newEndDate: string,
   userBookingsLink: string,
   adminBookingsLink: string,
 ): Promise<void> => {
   await createNotification({
+    entityType: 'booking',
     title: 'Booking Extended',
     adminTitle: `Booking extended for Locker ${lockerNumber}`,
     caption: `Your booking for Locker ${lockerNumber} has been extended until ${newEndDate}.`,

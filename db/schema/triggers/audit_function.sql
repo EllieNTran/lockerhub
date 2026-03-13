@@ -5,23 +5,42 @@ DECLARE
     v_user_id UUID;
     v_entity_id UUID;
     v_reference TEXT;
-    v_locker_number VARCHAR(11);
+    v_locker_number VARCHAR(20);
     v_staff_number CHAR(8);
     v_request_type_label TEXT;
 BEGIN
-    -- Determine user_id based on operation
+    -- Determine user_id and entity_id based on operation and entity type
     IF TG_OP = 'DELETE' THEN
         v_user_id := OLD.updated_by;
-        v_entity_id := CASE TG_ARGV[0]
-            WHEN 'request' THEN OLD.request_id::TEXT::UUID
-            ELSE COALESCE(OLD.booking_rule_id, OLD.booking_id, OLD.locker_id, OLD.key_id)
-        END;
+        IF TG_ARGV[0] = 'request' THEN
+            v_entity_id := OLD.request_id::TEXT::UUID;
+        ELSIF TG_ARGV[0] = 'booking_rule' THEN
+            v_entity_id := OLD.booking_rule_id;
+        ELSIF TG_ARGV[0] = 'booking' THEN
+            v_entity_id := OLD.booking_id;
+        ELSIF TG_ARGV[0] = 'locker' THEN
+            v_entity_id := OLD.locker_id;
+        ELSIF TG_ARGV[0] = 'key' THEN
+            v_entity_id := OLD.key_id;
+        END IF;
     ELSE
-        v_user_id := COALESCE(NEW.updated_by, NEW.created_by, NEW.reviewed_by, NEW.user_id);
-        v_entity_id := CASE TG_ARGV[0]
-            WHEN 'request' THEN NEW.request_id::TEXT::UUID
-            ELSE COALESCE(NEW.booking_rule_id, NEW.booking_id, NEW.locker_id, NEW.key_id)
-        END;
+        -- For requests, use reviewed_by; for others, use created_by/updated_by
+        IF TG_ARGV[0] = 'request' THEN
+            v_user_id := COALESCE(NEW.reviewed_by, NEW.user_id);
+            v_entity_id := NEW.request_id::TEXT::UUID;
+        ELSIF TG_ARGV[0] = 'booking_rule' THEN
+            v_user_id := COALESCE(NEW.updated_by, NEW.created_by);
+            v_entity_id := NEW.booking_rule_id;
+        ELSIF TG_ARGV[0] = 'booking' THEN
+            v_user_id := COALESCE(NEW.updated_by, NEW.created_by);
+            v_entity_id := NEW.booking_id;
+        ELSIF TG_ARGV[0] = 'locker' THEN
+            v_user_id := COALESCE(NEW.updated_by, NEW.created_by);
+            v_entity_id := NEW.locker_id;
+        ELSIF TG_ARGV[0] = 'key' THEN
+            v_user_id := COALESCE(NEW.updated_by, NEW.created_by);
+            v_entity_id := NEW.key_id;
+        END IF;
     END IF;
 
     -- Generate reference based on entity type

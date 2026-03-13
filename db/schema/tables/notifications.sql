@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.notifications (
     admin_title VARCHAR(255) NOT NULL,
     caption VARCHAR(500),
     type lockerhub.notification_type NOT NULL DEFAULT 'info',
+    entity_type lockerhub.entity_type,
     scope lockerhub.notification_scope NOT NULL DEFAULT 'user',
     target_department_id UUID,
     target_floor_id UUID,

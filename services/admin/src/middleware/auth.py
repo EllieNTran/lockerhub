@@ -62,7 +62,11 @@ async def get_current_user(
         public_key = jwt.algorithms.RSAAlgorithm.from_jwk(jwk)
 
         payload = jwt.decode(
-            token, public_key, algorithms=["RS256"], options={"verify_signature": True}
+            token,
+            public_key,
+            algorithms=["RS256"],
+            audience="lockerhub-services",
+            options={"verify_signature": True},
         )
 
         role = payload.get("role")
