@@ -9,7 +9,7 @@ SELECT
     l.locker_number,
     l.floor_id,
     l.location,
-    f.number as floor_number,
+    f.floor_number,
     l.status as locker_status,
     k.key_number,
     k.status as key_status,

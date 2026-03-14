@@ -6,7 +6,7 @@ from src.connectors.db import db
 GET_FLOOR_LOCKERS_UTIL_QUERY = """
 SELECT 
     f.floor_id,
-    f.number as floor_number,
+    f.floor_number,
     COUNT(l.locker_id) as total_lockers,
     COUNT(l.locker_id) FILTER (WHERE l.status = 'available') as available,
     COUNT(l.locker_id) FILTER (WHERE l.status = 'occupied') as occupied,
@@ -21,8 +21,10 @@ SELECT
     ) as utilization_rate
 FROM lockerhub.floors f
 LEFT JOIN lockerhub.lockers l ON f.floor_id = l.floor_id
-GROUP BY f.floor_id, f.number
-ORDER BY f.number;
+GROUP BY f.floor_id, f.floor_number
+ORDER BY 
+    (REGEXP_REPLACE(f.floor_number, '[^0-9].*', ''))::INTEGER,
+    f.floor_number;
 """
 
 
