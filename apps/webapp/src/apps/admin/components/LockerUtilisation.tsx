@@ -15,7 +15,7 @@ interface LockerUtilisationProps {
 
 const LockerUtilisation = ({ floorStats, totalLockers }: LockerUtilisationProps) => {
   return (
-    <div className="rounded-xl border border-grey-outline bg-card p-6 shadow-sm">
+    <div className={`rounded-xl border border-grey-outline bg-card p-6 shadow-sm ${floorStats.length === 0 ? 'flex flex-col min-h-[380px]' : ''}`}>
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-base font-semibold text-dark-blue flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
@@ -23,9 +23,9 @@ const LockerUtilisation = ({ floorStats, totalLockers }: LockerUtilisationProps)
         </h3>
         <span className="text-xs text-grey">{totalLockers} total</span>
       </div>
-      <div className="space-y-3">
+      <div className={floorStats.length === 0 ? "flex-1 flex items-center justify-center mb-10" : "space-y-3"}>
         {floorStats.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="flex flex-col items-center justify-center text-center">
             <TrendingUp className="h-8 w-8 text-grey/40 mb-2" />
             <p className="text-sm text-grey">No floor data available</p>
           </div>

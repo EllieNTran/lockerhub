@@ -11,7 +11,7 @@ SELECT
     u.staff_number,
     d.name as department_name,
     r.floor_id,
-    f.number as floor_number,
+    f.floor_number,
     r.locker_id,
     r.booking_id,
     r.start_date,

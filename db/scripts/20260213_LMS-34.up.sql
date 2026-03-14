@@ -19,3 +19,17 @@ ADD CONSTRAINT fk_notifications_target_floor
 
 CREATE INDEX idx_notifications_target_department ON lockerhub.notifications(target_department_id);
 CREATE INDEX idx_notifications_target_floor ON lockerhub.notifications(target_floor_id);
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_schema = 'lockerhub' 
+        AND table_name = 'floors' 
+        AND column_name = 'number'
+    ) THEN
+        ALTER TABLE lockerhub.floors 
+        RENAME COLUMN number TO floor_number;
+    END IF;
+END $$;

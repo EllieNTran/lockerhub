@@ -11,7 +11,7 @@ SELECT
     d.name as department_name,
     u.email,
     l.locker_number,
-    f.number as floor_number,
+    f.floor_number,
     b.start_date,
     b.end_date,
     b.status as booking_status,
