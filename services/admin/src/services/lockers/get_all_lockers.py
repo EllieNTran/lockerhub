@@ -11,6 +11,8 @@ SELECT
     l.location,
     f.floor_number,
     l.status as locker_status,
+    l.x_coordinate,
+    l.y_coordinate,
     k.key_number,
     k.status as key_status,
     l.created_at,

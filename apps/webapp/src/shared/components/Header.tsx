@@ -1,7 +1,7 @@
 import { Lock, ShieldCheck, User } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router";
 import { useEffect } from "react";
-import { cn } from "@/shared/lib/utils";
+import { cn } from "@/shared/utils/cn";
 import { Switch } from "@/components/ui/switch";
 import { useViewMode } from "../context/ViewModeContext";
 
@@ -60,10 +60,10 @@ const Header = ({ showNav = true }: HeaderProps) => {
           {showNav && !isAdminRoute && (
             <nav className="flex items-center gap-4 ml-4">
               <NavLink to="/user" end className={linkClass}>Home</NavLink>
-              <NavLink to="/book" className={linkClass}>Book a Locker</NavLink>
-              <NavLink to="/my-bookings" className={linkClass}>My Bookings</NavLink>
-              <NavLink to="/special-request" className={linkClass}>Special Request</NavLink>
-              <NavLink to="/return-key" className={linkClass}>Return Key</NavLink>
+              <NavLink to="/user/book" className={linkClass}>Book a Locker</NavLink>
+              <NavLink to="/user/my-bookings" className={linkClass}>My Bookings</NavLink>
+              <NavLink to="/user/special-request" className={linkClass}>Special Request</NavLink>
+              <NavLink to="/user/return-key" className={linkClass}>Return Key</NavLink>
             </nav>
           )}
         </div>

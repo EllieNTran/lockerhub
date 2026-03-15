@@ -1,5 +1,6 @@
 """Create a new booking for a user (admin)."""
 
+from datetime import date
 from asyncpg.exceptions import ExclusionViolationError
 
 from src.logger import logger
@@ -18,10 +19,14 @@ RETURNING booking_id
 
 
 async def create_booking(
-    user_id: str, locker_id: str, start_date: str, end_date: str
+    user_id: str, locker_id: str, start_date: date, end_date: date
 ) -> str:
     """
-    Create a new booking for a user.
+    Create a new booking for a user (admin override).
+
+    Admin can create bookings without restrictions. This bypasses the normal user
+    restriction of one active booking at a time, allowing admins to create multiple
+    overlapping bookings for a user if needed.
 
     Note: Locker status remains 'available' until start_date arrives.
     A scheduled job will update locker to 'reserved' and key to 'awaiting_handover' on start_date.
@@ -29,11 +34,14 @@ async def create_booking(
     Args:
         user_id: ID of the user to create booking for
         locker_id: ID of the locker to book
-        start_date: Start date of the booking (ISO format)
-        end_date: End date of the booking (ISO format)
+        start_date: Start date of the booking
+        end_date: End date of the booking
 
     Returns:
         The ID of the created booking
+
+    Raises:
+        ValueError: If there's a locker booking conflict (locker already booked for this period)
     """
     try:
         booking_id = await db.fetchval(
@@ -47,7 +55,7 @@ async def create_booking(
         logger.warning(
             f"Booking conflict for locker {locker_id} between {start_date} and {end_date}"
         )
-        raise ValueError("Booking conflict: locker already booked for this period")
+        raise ValueError("Booking conflict")
     except Exception as e:
         logger.error(
             f"Error creating booking for user {user_id} and locker {locker_id}: {e}"

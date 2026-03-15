@@ -29,7 +29,7 @@ async def get_booking_rules_endpoint(_: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Failed to retrieve booking rules")
 
 
-@router.put("/", response_model=UpdateBookingRulesResponse)
+@router.put("", response_model=UpdateBookingRulesResponse)
 async def update_booking_rules_endpoint(
     request: UpdateBookingRulesRequest,
     current_user: dict = Depends(get_current_user),

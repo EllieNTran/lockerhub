@@ -5,18 +5,22 @@ CREATE SCHEMA IF NOT EXISTS lockerhub;
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 -- Create all ENUM types
-CREATE TYPE lockerhub.user_role AS ENUM ('admin', 'user');
-CREATE TYPE lockerhub.locker_status AS ENUM ('available', 'occupied', 'maintenance', 'reserved');
-CREATE TYPE lockerhub.key_status AS ENUM ('available', 'awaiting_handover', 'with_employee', 'awaiting_return', 'lost', 'awaiting_replacement');
-CREATE TYPE lockerhub.request_type AS ENUM ('normal', 'extension', 'special');
-CREATE TYPE lockerhub.request_status AS ENUM ('pending', 'queued', 'approved', 'rejected', 'cancelled', 'active', 'completed');
-CREATE TYPE lockerhub.booking_status AS ENUM ('upcoming', 'active', 'completed', 'cancelled', 'expired');
-CREATE TYPE lockerhub.rule_type AS ENUM ('max_duration', 'max_extension', 'advance_booking_window', 'same_day_bookings');
-CREATE TYPE lockerhub.audit_action AS ENUM ('create', 'update', 'delete', 'login', 'logout', 'approve', 'reject', 'handover', 'return');
-CREATE TYPE lockerhub.entity_type AS ENUM ('booking', 'locker', 'key', 'request', 'floor', 'booking_rule');
-CREATE TYPE lockerhub.notification_type AS ENUM ('info', 'warning', 'error', 'success');
-CREATE TYPE lockerhub.notification_scope AS ENUM ('user', 'department', 'floor', 'global');
-CREATE TYPE lockerhub.floor_status AS ENUM ('open', 'closed');
+DO $$ BEGIN
+    CREATE TYPE lockerhub.user_role AS ENUM ('admin', 'user');
+    CREATE TYPE lockerhub.locker_status AS ENUM ('available', 'occupied', 'maintenance', 'reserved');
+    CREATE TYPE lockerhub.key_status AS ENUM ('available', 'awaiting_handover', 'with_employee', 'awaiting_return', 'lost', 'awaiting_replacement');
+    CREATE TYPE lockerhub.request_type AS ENUM ('normal', 'extension', 'special');
+    CREATE TYPE lockerhub.request_status AS ENUM ('pending', 'queued', 'approved', 'rejected', 'cancelled', 'active', 'completed');
+    CREATE TYPE lockerhub.booking_status AS ENUM ('upcoming', 'active', 'completed', 'cancelled', 'expired');
+    CREATE TYPE lockerhub.rule_type AS ENUM ('max_duration', 'max_extension', 'advance_booking_window', 'same_day_bookings');
+    CREATE TYPE lockerhub.audit_action AS ENUM ('create', 'update', 'delete', 'login', 'logout', 'approve', 'reject', 'handover', 'return');
+    CREATE TYPE lockerhub.entity_type AS ENUM ('booking', 'locker', 'key', 'request', 'floor', 'booking_rule');
+    CREATE TYPE lockerhub.notification_type AS ENUM ('info', 'warning', 'error', 'success');
+    CREATE TYPE lockerhub.notification_scope AS ENUM ('user', 'department', 'floor', 'global');
+    CREATE TYPE lockerhub.floor_status AS ENUM ('open', 'closed');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create tables
 
@@ -34,8 +38,8 @@ CREATE TABLE IF NOT EXISTS lockerhub.departments (
     CONSTRAINT fk_departments_floor FOREIGN KEY (floor_id) REFERENCES lockerhub.floors(floor_id) ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_departments_floor_id ON lockerhub.departments(floor_id);
-CREATE INDEX idx_departments_name ON lockerhub.departments(name);
+CREATE INDEX IF NOT EXISTS idx_departments_floor_id ON lockerhub.departments(floor_id);
+CREATE INDEX IF NOT EXISTS idx_departments_name ON lockerhub.departments(name);
 
 -- Create users table
 CREATE TABLE IF NOT EXISTS lockerhub.users (
@@ -66,8 +70,8 @@ CREATE TABLE IF NOT EXISTS lockerhub.lockers (
     CONSTRAINT fk_lockers_floor FOREIGN KEY (floor_id) REFERENCES lockerhub.floors(floor_id) ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_lockers_floor_id ON lockerhub.lockers(floor_id);
-CREATE INDEX idx_lockers_status ON lockerhub.lockers(status);
+CREATE INDEX IF NOT EXISTS idx_lockers_floor_id ON lockerhub.lockers(floor_id);
+CREATE INDEX IF NOT EXISTS idx_lockers_status ON lockerhub.lockers(status);
 
 -- Create keys table
 CREATE TABLE IF NOT EXISTS lockerhub.keys (
@@ -120,7 +124,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.requests (
     )
 );
 
-CREATE INDEX idx_requests_type_status ON lockerhub.requests(request_type, status);
+CREATE INDEX IF NOT EXISTS idx_requests_type_status ON lockerhub.requests(request_type, status);
 
 -- Create bookings table
 CREATE TABLE IF NOT EXISTS lockerhub.bookings (
@@ -143,12 +147,16 @@ CREATE TABLE IF NOT EXISTS lockerhub.bookings (
     )
 );
 
-CREATE INDEX idx_bookings_floor_locker_dates ON lockerhub.bookings(locker_id, start_date, end_date);
-CREATE INDEX idx_bookings_user_id ON lockerhub.bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_floor_locker_dates ON lockerhub.bookings(locker_id, start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON lockerhub.bookings(user_id);
 
 -- Add booking_id FK to requests now that bookings table exists
-ALTER TABLE lockerhub.requests
-ADD CONSTRAINT fk_requests_booking FOREIGN KEY (booking_id) REFERENCES lockerhub.bookings(booking_id) ON DELETE SET NULL;
+DO $$ BEGIN
+    ALTER TABLE lockerhub.requests
+    ADD CONSTRAINT fk_requests_booking FOREIGN KEY (booking_id) REFERENCES lockerhub.bookings(booking_id) ON DELETE SET NULL;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create booking_rules table
 CREATE TABLE IF NOT EXISTS lockerhub.booking_rules (
@@ -178,7 +186,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.floor_queues (
     CONSTRAINT fk_floor_queues_request FOREIGN KEY (request_id) REFERENCES lockerhub.requests(request_id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_floor_queue_fcfs ON lockerhub.floor_queues (floor_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_floor_queue_fcfs ON lockerhub.floor_queues (floor_id, created_at);
 
 -- Create audit_logs table
 CREATE TABLE IF NOT EXISTS lockerhub.audit_logs (
@@ -194,11 +202,11 @@ CREATE TABLE IF NOT EXISTS lockerhub.audit_logs (
     CONSTRAINT fk_audit_logs_user FOREIGN KEY (user_id) REFERENCES lockerhub.users(user_id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_audit_logs_user_id ON lockerhub.audit_logs(user_id);
-CREATE INDEX idx_audit_logs_action ON lockerhub.audit_logs(action);
-CREATE INDEX idx_audit_logs_entity_type ON lockerhub.audit_logs(entity_type);
-CREATE INDEX idx_audit_logs_entity_id ON lockerhub.audit_logs(entity_id);
-CREATE INDEX idx_audit_logs_audit_date ON lockerhub.audit_logs(audit_date);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON lockerhub.audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON lockerhub.audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_type ON lockerhub.audit_logs(entity_type);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_id ON lockerhub.audit_logs(entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_audit_date ON lockerhub.audit_logs(audit_date);
 
 -- Create notifications table
 CREATE TABLE IF NOT EXISTS lockerhub.notifications (
@@ -213,8 +221,8 @@ CREATE TABLE IF NOT EXISTS lockerhub.notifications (
     CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_notifications_user_id ON lockerhub.notifications(user_id);
-CREATE INDEX idx_notifications_read ON lockerhub.notifications(read);
-CREATE INDEX idx_notifications_created_at ON lockerhub.notifications(created_at);
-CREATE INDEX idx_notifications_user_read ON lockerhub.notifications(user_id, read);
-CREATE INDEX idx_notifications_user_read_created ON lockerhub.notifications(user_id, read, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON lockerhub.notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_read ON lockerhub.notifications(read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON lockerhub.notifications(created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON lockerhub.notifications(user_id, read);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read_created ON lockerhub.notifications(user_id, read, created_at DESC);

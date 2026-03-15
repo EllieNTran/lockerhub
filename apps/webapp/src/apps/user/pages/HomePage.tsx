@@ -13,10 +13,11 @@ import UserLayout from "../layout/UserLayout";
 import QuickActionCard from "@/apps/user/components/QuickActionCard";
 import NotificationCard from "@/apps/user/components/NotificationCard";
 import BookingCard from "@/apps/user/components/BookingCard";
-import HeroBanner from "@/shared/components/HeroBanner";
-import { useUserNotifications, type Notification } from "@/services/notifications";
+import HeroBanner from "@/components/HeroBanner";
+import { useUserNotifications } from "@/services/notifications";
 import { getUserIdFromToken } from "@/services/auth";
 import { useUserBookings } from "@/services/bookings";
+import type { Notification } from "@/types/notification";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -46,21 +47,21 @@ const Home = () => {
             title="Book a Locker"
             subtitle="Up to 3 days"
             color="purple"
-            onClick={() => navigate("/book")}
+            onClick={() => navigate("/user/book")}
           />
           <QuickActionCard
             icon={FileText}
             title="Special Request"
             subtitle="Extended / permanent booking"
             color="pink"
-            onClick={() => navigate("/special-request")}
+            onClick={() => navigate("/user/special-request")}
           />
           <QuickActionCard
             icon={KeyRound}
             title="Return Key"
             subtitle="View return instructions"
             color="secondary"
-            onClick={() => navigate("/return-key")}
+            onClick={() => navigate("/user/return-key")}
           />
         </div>
 
@@ -102,7 +103,7 @@ const Home = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate("/my-bookings")}
+                  onClick={() => navigate("/user/my-bookings")}
                   className="text-xs text-grey hover:text-dark-blue"
                 >
                   View All
@@ -110,7 +111,7 @@ const Home = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate("/book")}
+                  onClick={() => navigate("/user/book")}
                   className="text-xs text-secondary hover:bg-secondary hover:text-white"
                 >
                   New Booking

@@ -1,1 +1,1 @@
-# Add staff and locker CSV files in this directory
+# Add CSV files in this directory

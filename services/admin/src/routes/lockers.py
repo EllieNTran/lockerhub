@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.middleware.auth import get_current_user
+from src.models.requests import UpdateLockerCoordinatesRequest
 from src.models.responses import (
     AllLockersResponse,
     LockerStatsResponse,
@@ -15,11 +16,12 @@ from src.services.lockers.get_locker_availability_stats import (
 )
 from src.services.lockers.mark_locker_maintenance import mark_locker_maintenance
 from src.services.lockers.mark_locker_available import mark_locker_available
+from src.services.lockers.update_locker_coordinates import update_locker_coordinates
 
 router = APIRouter(prefix="/lockers", tags=["admin-lockers"])
 
 
-@router.get("/", response_model=AllLockersResponse)
+@router.get("", response_model=AllLockersResponse)
 async def get_all_lockers_endpoint(_: dict = Depends(get_current_user)):
     """Get all lockers with details."""
     try:
@@ -72,4 +74,24 @@ async def mark_locker_available_endpoint(
     except Exception:
         raise HTTPException(
             status_code=500, detail="Failed to mark locker as available"
+        )
+
+
+@router.patch("/{locker_id}/coordinates")
+async def update_locker_coordinates_endpoint(
+    locker_id: str,
+    request: UpdateLockerCoordinatesRequest,
+    _: dict = Depends(get_current_user),
+):
+    """Update locker coordinates (zone-relative position)."""
+    try:
+        result = await update_locker_coordinates(
+            locker_id, request.x_coordinate, request.y_coordinate
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Failed to update locker coordinates"
         )

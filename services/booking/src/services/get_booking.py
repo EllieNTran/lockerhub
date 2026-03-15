@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import BookingResponse
 
 GET_BOOKING_QUERY = """
 SELECT 
@@ -23,7 +24,7 @@ WHERE b.booking_id = $1
 """
 
 
-async def get_booking(user_id: str, booking_id: str) -> dict:
+async def get_booking(user_id: str, booking_id: str) -> BookingResponse:
     """
     Get a specific booking for a user.
 
@@ -32,7 +33,7 @@ async def get_booking(user_id: str, booking_id: str) -> dict:
         booking_id: ID of the booking to retrieve
 
     Returns:
-        The booking details as a dictionary
+        The booking details
     """
     try:
         booking = await db.fetchrow(GET_BOOKING_QUERY, booking_id)
@@ -47,7 +48,7 @@ async def get_booking(user_id: str, booking_id: str) -> dict:
             raise ValueError("Unauthorized")
 
         logger.info(f"Retrieved booking {booking_id} for user {user_id}")
-        return booking
+        return BookingResponse(**dict(booking))
     except Exception as e:
         logger.error(f"Error retrieving booking {booking_id} for user {user_id}: {e}")
         raise

@@ -1,58 +1,156 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker } from "react-day-picker";
+import { cn } from "@/shared/utils/cn";
 
-import { cn } from "@/shared/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+export type CalendarProps = {
+  selected?: Date;
+  onSelect?: (date: Date | undefined) => void;
+  disabled?: (date: Date) => boolean;
+  className?: string;
+  initialFocus?: boolean;
+};
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+function Calendar({ 
+  selected,
+  onSelect,
+  disabled = () => false,
+  className,
+}: CalendarProps) {
+  const [currentMonth, setCurrentMonth] = React.useState(() => selected || new Date());
 
-function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+  const daysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const firstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+  const previousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+  };
+
+  const handleDateClick = (day: number) => {
+    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    if (!disabled(date) && onSelect) {
+      onSelect(date);
+    }
+  };
+
+  const isSelected = (day: number) => {
+    if (!selected) return false;
+    return (
+      selected.getDate() === day &&
+      selected.getMonth() === currentMonth.getMonth() &&
+      selected.getFullYear() === currentMonth.getFullYear()
+    );
+  };
+
+  const isToday = (day: number) => {
+    const today = new Date();
+    return (
+      today.getDate() === day &&
+      today.getMonth() === currentMonth.getMonth() &&
+      today.getFullYear() === currentMonth.getFullYear()
+    );
+  };
+
+  const days = [];
+  const totalDays = daysInMonth(currentMonth);
+  const startDay = firstDayOfMonth(currentMonth);
+
+  // Add empty cells for days before the first day of the month
+  for (let i = 0; i < startDay; i++) {
+    days.push(<div key={`empty-${i}`} className="w-9 h-9" />);
+  }
+
+  // Add cells for each day of the month
+  for (let day = 1; day <= totalDays; day++) {
+    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    const isDisabled = disabled(date);
+    const selected = isSelected(day);
+    const today = isToday(day);
+
+    days.push(
+      <button
+        key={day}
+        type="button"
+        onClick={() => handleDateClick(day)}
+        disabled={isDisabled}
+        className={cn(
+          "w-9 h-9 p-0 font-normal text-sm inline-flex items-center justify-center rounded-md transition-colors",
+          "hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
+          selected && "bg-secondary text-white hover:bg-secondary/90 font-medium",
+          !selected && today && "bg-accent text-dark-blue font-medium",
+          isDisabled && "text-grey/30 cursor-not-allowed hover:bg-transparent opacity-50"
+        )}
+      >
+        {day}
+      </button>
+    );
+  }
+
   return (
-    <DayPicker
-      showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
-      classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
-        nav: "space-x-1 flex items-center",
-        nav_button: cn(
-          buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-        ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
-        table: "w-full border-collapse space-y-1",
-        head_row: "flex",
-        head_cell: "text-background rounded-md w-9 font-normal text-[0.8rem]",
-        row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-        day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100"),
-        day_range_end: "day-range-end",
-        day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        day_today: "bg-accent text-dark-blue",
-        day_outside:
-          "day-outside text-background opacity-50 aria-selected:bg-accent/50 aria-selected:text-background aria-selected:opacity-30",
-        day_disabled: "text-background opacity-50",
-        day_range_middle: "aria-selected:bg-accent aria-selected:text-dark-blue",
-        day_hidden: "invisible",
-        ...classNames,
-      }}
-      components={{
-        Chevron: ({ orientation }) => {
-          if (orientation === "left") {
-            return <ChevronLeft className="h-4 w-4" />;
-          }
-          return <ChevronRight className="h-4 w-4" />;
-        },
-      }}
-      {...props}
-    />
+    <div className={cn("p-4", className)}>
+      <div className="space-y-3">
+        {/* Header with month/year and navigation */}
+        <div className="flex justify-center relative items-center mb-3">
+          <button
+            type="button"
+            onClick={previousMonth}
+            className="absolute left-1 h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-md border border-grey-outline hover:bg-accent"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          
+          <div className="text-sm font-semibold text-dark-blue">
+            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+          </div>
+          
+          <button
+            type="button"
+            onClick={nextMonth}
+            className="absolute right-1 h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-md border border-grey-outline hover:bg-accent"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Calendar grid */}
+        <div>
+          {/* Day names header */}
+          <div className="grid grid-cols-7 mb-2">
+            {dayNames.map((day) => (
+              <div
+                key={day}
+                className="w-9 h-9 flex items-center justify-center text-xs font-medium text-grey uppercase"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Days grid */}
+          <div className="grid grid-cols-7 gap-0">
+            {days}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
+
 Calendar.displayName = "Calendar";
 
 export { Calendar };

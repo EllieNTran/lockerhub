@@ -16,7 +16,7 @@ class BookingResponse(BaseModel):
     locker_number: str
     floor_number: str
     start_date: date
-    end_date: date
+    end_date: Optional[date] = None
     status: str
     special_request_id: Optional[UUID] = None
     created_at: datetime
@@ -72,10 +72,28 @@ class LockerResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AvailableLockerResponse(BaseModel):
+    """Response model for a locker with availability status."""
+
+    locker_id: UUID
+    locker_number: str
+    floor_id: UUID
+    location: Optional[str] = None
+    status: str
+    x_coordinate: Optional[int] = None
+    y_coordinate: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
+    is_available: bool
+    is_permanently_allocated: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class AvailableLockersResponse(BaseModel):
     """Response model for available lockers."""
 
-    lockers: List[LockerResponse]
+    lockers: List[AvailableLockerResponse]
 
 
 class AvailabilityResponse(BaseModel):
@@ -85,3 +103,19 @@ class AvailabilityResponse(BaseModel):
     start_date: str
     end_date: str
     available: bool
+
+
+class FloorResponse(BaseModel):
+    """Response model for a floor."""
+
+    floor_id: UUID
+    floor_number: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class FloorsResponse(BaseModel):
+    """Response model for list of floors."""
+
+    floors: List[FloorResponse]

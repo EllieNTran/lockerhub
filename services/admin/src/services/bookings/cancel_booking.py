@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import CancelBookingResponse
 
 CANCEL_BOOKING_QUERY = """
 UPDATE lockerhub.bookings
@@ -12,14 +13,14 @@ RETURNING booking_id, status
 """
 
 
-async def cancel_booking(booking_id: str) -> dict:
+async def cancel_booking(booking_id: str) -> CancelBookingResponse:
     """Cancel a booking by setting its status to 'cancelled'.
 
     Args:
         booking_id: ID of the booking to cancel
 
     Returns:
-        A dictionary containing the updated booking details
+        The cancelled booking response
     """
     try:
         result = await db.fetchrow(CANCEL_BOOKING_QUERY, booking_id)
@@ -27,7 +28,7 @@ async def cancel_booking(booking_id: str) -> dict:
             logger.warning(f"Booking {booking_id} not found for cancellation")
             raise ValueError("Booking not found")
         logger.info(f"Cancelled booking {booking_id} successfully")
-        return {"booking_id": result["booking_id"], "status": result["status"]}
+        return CancelBookingResponse(booking_id=result["booking_id"])
     except Exception as e:
         logger.error(f"Error cancelling booking {booking_id}: {e}")
         raise

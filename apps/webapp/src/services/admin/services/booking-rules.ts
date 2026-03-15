@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { BookingRule } from '@/shared/types/booking-rule';
+import type { BookingRule } from '@/types/booking-rule';
 
 export interface UpdateBookingRuleData {
   rule_id: string;

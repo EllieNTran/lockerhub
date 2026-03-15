@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "import-staff": "tsx import-staff.ts",
-    "import-lockers": "tsx import-lockers.ts"
+    "import-lockers": "tsx import-lockers.ts",
+    "auto-layout": "tsx auto-layout-lockers.ts"
   },
   "dependencies": {
     "csv-parse": "^5.6.0",

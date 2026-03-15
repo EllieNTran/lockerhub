@@ -70,7 +70,7 @@ const CheckAccountPage = () => {
             <Link to="/" className="flex-1">
               <Button className="w-full">Create Account</Button>
             </Link>
-            <Link to="/login" className="flex-1">
+            <Link to="/" className="flex-1">
               <Button variant="outline" className="w-full">Login Instead</Button>
             </Link>
           </div>
@@ -112,7 +112,7 @@ const CheckAccountPage = () => {
             <p className="text-sm text-grey mt-1">{accountStatus.message}</p>
           </div>
         </div>
-        <Link to="/login">
+        <Link to="/">
           <Button className="w-full">Go to Login</Button>
         </Link>
       </div>
@@ -181,7 +181,7 @@ const CheckAccountPage = () => {
               )}
               <p className="text-sm text-center text-grey">
                 Want to create a new account?{" "}
-                <Link to="/" className="text-primary hover:underline font-medium">
+                <Link to="/signup" className="text-primary hover:underline font-medium">
                   Sign up
                 </Link>
               </p>

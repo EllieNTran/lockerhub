@@ -11,20 +11,25 @@ DECLARE
 BEGIN
     -- Determine user_id and entity_id based on operation and entity type
     IF TG_OP = 'DELETE' THEN
-        v_user_id := OLD.updated_by;
-        IF TG_ARGV[0] = 'request' THEN
+        -- For bookings, use user_id; for others, use updated_by
+        IF TG_ARGV[0] = 'booking' THEN
+            v_user_id := OLD.user_id;
+            v_entity_id := OLD.booking_id;
+        ELSIF TG_ARGV[0] = 'request' THEN
+            v_user_id := OLD.updated_by;
             v_entity_id := OLD.request_id::TEXT::UUID;
         ELSIF TG_ARGV[0] = 'booking_rule' THEN
+            v_user_id := OLD.updated_by;
             v_entity_id := OLD.booking_rule_id;
-        ELSIF TG_ARGV[0] = 'booking' THEN
-            v_entity_id := OLD.booking_id;
         ELSIF TG_ARGV[0] = 'locker' THEN
+            v_user_id := OLD.updated_by;
             v_entity_id := OLD.locker_id;
         ELSIF TG_ARGV[0] = 'key' THEN
+            v_user_id := OLD.updated_by;
             v_entity_id := OLD.key_id;
         END IF;
     ELSE
-        -- For requests, use reviewed_by; for others, use created_by/updated_by
+        -- For requests, use reviewed_by; for bookings, use user_id; for others, use created_by/updated_by
         IF TG_ARGV[0] = 'request' THEN
             v_user_id := COALESCE(NEW.reviewed_by, NEW.user_id);
             v_entity_id := NEW.request_id::TEXT::UUID;
@@ -32,7 +37,7 @@ BEGIN
             v_user_id := COALESCE(NEW.updated_by, NEW.created_by);
             v_entity_id := NEW.booking_rule_id;
         ELSIF TG_ARGV[0] = 'booking' THEN
-            v_user_id := COALESCE(NEW.updated_by, NEW.created_by);
+            v_user_id := NEW.user_id;
             v_entity_id := NEW.booking_id;
         ELSIF TG_ARGV[0] = 'locker' THEN
             v_user_id := COALESCE(NEW.updated_by, NEW.created_by);

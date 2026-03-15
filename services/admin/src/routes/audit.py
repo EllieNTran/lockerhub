@@ -9,7 +9,7 @@ from src.services.audit.get_audit_logs import get_audit_logs
 router = APIRouter(prefix="/audit-logs", tags=["admin-audit"])
 
 
-@router.get("/", response_model=AuditLogsResponse)
+@router.get("", response_model=AuditLogsResponse)
 async def get_audit_logs_endpoint(
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     limit: int = Query(12, ge=1, le=100, description="Records per page"),

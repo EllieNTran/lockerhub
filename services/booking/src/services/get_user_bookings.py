@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import BookingResponse
 
 GET_USER_BOOKINGS_QUERY = """
 SELECT 
@@ -24,7 +25,7 @@ ORDER BY b.start_date DESC
 """
 
 
-async def get_user_bookings(user_id: str) -> list:
+async def get_user_bookings(user_id: str) -> list[BookingResponse]:
     """
     Get all bookings for a user.
 
@@ -35,9 +36,9 @@ async def get_user_bookings(user_id: str) -> list:
         A list of bookings for the user
     """
     try:
-        bookings = await db.fetch(GET_USER_BOOKINGS_QUERY, user_id)
-        logger.info(f"Retrieved {len(bookings)} bookings for user {user_id}")
-        return bookings
+        rows = await db.fetch(GET_USER_BOOKINGS_QUERY, user_id)
+        logger.info(f"Retrieved {len(rows)} bookings for user {user_id}")
+        return [BookingResponse(**dict(row)) for row in rows]
     except Exception as e:
         logger.error(f"Error retrieving bookings for user {user_id}: {e}")
         raise

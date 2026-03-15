@@ -96,26 +96,25 @@ class ApiClient {
     const isJson = contentType?.includes('application/json')
 
     if (!response.ok) {
-      const error: ApiError = isJson
-        ? await response.json()
-        : {
-          status: 'error',
-          statusCode: response.status,
-          message: response.statusText || 'An error occurred',
-        }
+      let errorMessage = response.statusText || 'An error occurred'
+      
+      if (isJson) {
+        const errorData = await response.json()
+        errorMessage = errorData.detail || errorData.message || errorMessage
+      }
 
       if (response.status === 401) {
         this.removeToken()
         if (typeof window !== 'undefined') {
-          window.location.href = '/login'
+          window.location.href = '/'
         }
       }
 
       if (response.status === 403) {
-        throw new Error(error.message || 'Access forbidden')
+        throw new Error(errorMessage)
       }
 
-      throw new Error(error.message || 'Request failed')
+      throw new Error(errorMessage)
     }
 
     if (isJson) {

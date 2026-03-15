@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { Request } from '@/shared/types/request';
+import type { Request } from '@/types/request';
 
 export interface ReviewRequestData {
   status: 'approved' | 'rejected';

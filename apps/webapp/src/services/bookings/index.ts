@@ -1,3 +1,4 @@
 export * from './hooks';
 export * from './services/user-bookings';
-export * from '@/shared/types/booking';
+export * from './services/available-lockers';
+export * from './services/floors';

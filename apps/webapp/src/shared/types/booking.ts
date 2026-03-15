@@ -7,7 +7,7 @@ export interface Booking {
   locker_number: string
   floor_number: string
   start_date: string
-  end_date: string
+  end_date: string | null
   status: BookingStatus
   special_request_id: number | null
   created_at: string

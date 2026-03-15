@@ -69,3 +69,10 @@ class UpdateBookingRulesRequest(BaseModel):
     allow_same_day_bookings: Optional[bool] = Field(
         None, description="Whether same-day bookings are allowed"
     )
+
+
+class UpdateLockerCoordinatesRequest(BaseModel):
+    """Request model for updating locker coordinates."""
+
+    x_coordinate: int = Field(..., description="X coordinate relative to zone", ge=0)
+    y_coordinate: int = Field(..., description="Y coordinate relative to zone", ge=0)

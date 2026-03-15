@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from src.logger import logger
 from src.middleware.auth import get_current_user
 from src.models.requests import (
     CreateBookingRequest,
@@ -17,6 +18,7 @@ from src.models.responses import (
     ExtendBookingResponse,
     AvailableLockersResponse,
     AvailabilityResponse,
+    FloorsResponse,
 )
 from src.services.create_booking import create_booking
 from src.services.delete_booking import delete_booking
@@ -26,11 +28,12 @@ from src.services.get_booking import get_booking
 from src.services.get_user_bookings import get_user_bookings
 from src.services.get_available_lockers import get_available_lockers
 from src.services.check_locker_availability import check_locker_availability
+from src.services.get_floors import get_floors
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
 
-@router.post("/", response_model=CreateBookingResponse)
+@router.post("", response_model=CreateBookingResponse)
 async def create_booking_endpoint(
     request: CreateBookingRequest,
     current_user: dict = Depends(get_current_user),
@@ -40,15 +43,15 @@ async def create_booking_endpoint(
         booking_id = await create_booking(
             current_user["user_id"],
             str(request.locker_id),
-            str(request.start_date),
-            str(request.end_date),
+            request.start_date,
+            request.end_date,
         )
         return CreateBookingResponse(booking_id=booking_id)
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
 
-@router.get("/", response_model=BookingListResponse)
+@router.get("", response_model=BookingListResponse)
 async def get_user_bookings_endpoint(current_user: dict = Depends(get_current_user)):
     """Get all bookings for the current user."""
     try:
@@ -56,6 +59,18 @@ async def get_user_bookings_endpoint(current_user: dict = Depends(get_current_us
         return BookingListResponse(bookings=bookings)
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve bookings")
+
+
+@router.get("/floors", response_model=FloorsResponse)
+async def get_floors_endpoint(_: dict = Depends(get_current_user)):
+    """Get all open floors with their IDs and numbers."""
+    try:
+        floors = await get_floors()
+        logger.info(f"Floors fetched: {len(floors)}")
+        return FloorsResponse(floors=floors)
+    except Exception as e:
+        logger.error(f"Error in get_floors_endpoint: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve floors")
 
 
 @router.get("/{booking_id}", response_model=BookingResponse)
@@ -124,7 +139,7 @@ async def get_available_lockers_endpoint(
     end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
     _: dict = Depends(get_current_user),
 ):
-    """Get available lockers for a floor and date range."""
+    """Get all lockers for a given floor with availability status for a date range."""
     try:
         lockers = await get_available_lockers(floor_id, start_date, end_date)
         return AvailableLockersResponse(lockers=lockers)

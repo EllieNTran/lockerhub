@@ -103,7 +103,7 @@ const SignupPage = () => {
       },
       {
         onSuccess: () => {
-          navigate("/login");
+          navigate("/");
         },
         onError: (err) => {
           setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
@@ -278,7 +278,7 @@ const SignupPage = () => {
               </Button>
               <p className="text-sm text-center text-grey">
                 Already have an account?{" "}
-                <Link to="/login" className="text-primary hover:underline font-medium">
+                <Link to="/" className="text-primary hover:underline font-medium">
                   Login
                 </Link>
               </p>

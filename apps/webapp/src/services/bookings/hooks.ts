@@ -7,7 +7,10 @@ import {
   deleteBooking,
   getBookingById,
 } from './services/user-bookings'
+import { getFloors } from './services/floors'
 import type { UpdateBookingData } from './services/user-bookings'
+import { getAvailableLockers } from './services/available-lockers'
+import type { GetAvailableLockersParams } from './services/available-lockers'
 
 /**
  * Fetch user's bookings
@@ -87,3 +90,22 @@ export const useDeleteBooking = () => {
     },
   })
 }
+
+/**
+ * Fetch available lockers for a floor and date range
+ */
+export const useAvailableLockers = (params: GetAvailableLockersParams) =>
+  useQuery({
+    queryKey: ['availableLockers', params.floor_id, params.start_date, params.end_date],
+    queryFn: () => getAvailableLockers(params),
+    enabled: !!params.floor_id && !!params.start_date && !!params.end_date,
+  })
+
+/**
+ * Fetch all open floors
+ */
+export const useFloors = () =>
+  useQuery({
+    queryKey: ['floors'],
+    queryFn: getFloors,
+  })

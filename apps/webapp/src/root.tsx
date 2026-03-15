@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Route } from "./+types/root";
 import "./app.css";
 import { ViewModeProvider } from "@/shared/context/ViewModeContext";
+import { Toaster } from "@/components/ui/sonner";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -46,6 +47,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster />
         <ScrollRestoration />
         <Scripts />
       </body>

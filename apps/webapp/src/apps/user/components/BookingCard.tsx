@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { CalendarDays, MapPin } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
-import type { BookingStatus } from "@/services/bookings";
+import type { BookingStatus } from "@/types/booking";
 
 interface BookingCardProps {
   booking: {
@@ -9,7 +9,7 @@ interface BookingCardProps {
     locker_number: string;
     floor_number: string;
     start_date: string;
-    end_date: string;
+    end_date: string | null;
     status: BookingStatus;
   };
 }
@@ -43,7 +43,9 @@ const BookingCard = ({ booking }: BookingCardProps) => {
             <span className="flex items-center gap-1">
               <CalendarDays className="h-3 w-3" />
               {format(new Date(booking.start_date), "MMM d")} —{" "}
-              {format(new Date(booking.end_date), "MMM d, yyyy")}
+              {booking.end_date 
+                ? format(new Date(booking.end_date), "MMM d, yyyy")
+                : "Permanent"}
             </span>
             <span className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />

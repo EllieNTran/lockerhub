@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import DeleteBookingResponse
 
 GET_BOOKING_QUERY = """
 SELECT 
@@ -21,7 +22,7 @@ RETURNING booking_id
 """
 
 
-async def delete_booking(user_id: str, booking_id: str) -> dict:
+async def delete_booking(user_id: str, booking_id: str) -> DeleteBookingResponse:
     """
     Delete an existing booking and return key information.
 
@@ -30,7 +31,7 @@ async def delete_booking(user_id: str, booking_id: str) -> dict:
         booking_id: ID of the booking to delete
 
     Returns:
-        A dictionary containing the deleted booking ID, key number, and key status.
+        The deleted booking details with key information
     """
     try:
         async with db.transaction() as connection:
@@ -49,11 +50,11 @@ async def delete_booking(user_id: str, booking_id: str) -> dict:
             deleted_id = await connection.fetchval(DELETE_BOOKING_QUERY, booking_id)
             logger.info(f"Deleted booking {booking_id} for user {user_id}")
 
-            return {
-                "booking_id": deleted_id,
-                "key_number": booking["key_number"],
-                "key_status": booking["key_status"],
-            }
+            return DeleteBookingResponse(
+                booking_id=deleted_id,
+                key_number=booking["key_number"],
+                key_status=booking["key_status"],
+            )
     except ValueError:
         raise
     except Exception as e:

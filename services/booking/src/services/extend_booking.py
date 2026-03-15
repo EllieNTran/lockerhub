@@ -5,6 +5,7 @@ from datetime import timedelta
 from src.logger import logger
 from src.connectors.db import db
 from src.services.check_locker_availability import check_locker_availability
+from src.models.responses import ExtendBookingResponse
 
 GET_BOOKING_QUERY = """
 SELECT 
@@ -52,7 +53,7 @@ async def extend_booking(
     booking_id: str,
     new_end_date: str,
     user_id: str,
-):
+) -> ExtendBookingResponse:
     """
     Extend an existing booking if availability allows.
 
@@ -62,7 +63,7 @@ async def extend_booking(
         user_id: ID of the user requesting the extension (for authorization)
 
     Returns:
-        A dict containing the extension request ID and its status (approved/rejected)
+        The extension request details with status
     """
     try:
         async with db.transaction() as connection:
@@ -113,7 +114,7 @@ async def extend_booking(
                     f"Extended booking {booking_id} to new end date {new_end_date} for request {request_id}"
                 )
 
-            return {"request_id": request_id, "status": status}
+            return ExtendBookingResponse(request_id=request_id, status=status)
     except Exception as e:
         logger.error(f"Error processing extension for booking {booking_id}: {e}")
         raise

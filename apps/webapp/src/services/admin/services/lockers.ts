@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { Locker } from '@/shared/types/locker';
+import type { Locker } from '@/types/locker';
 
 export interface LockerStats {
   total: number;
@@ -20,7 +20,8 @@ export interface LockerStats {
  * Get all lockers
  */
 export async function getAllLockers(): Promise<Locker[]> {
-  return apiClient.get<Locker[]>('/admin/lockers');
+  const response = await apiClient.get<{ lockers: Locker[] }>('/admin/lockers');
+  return response.lockers;
 }
 
 /**
@@ -42,4 +43,18 @@ export async function markLockerMaintenance(lockerId: string): Promise<Locker> {
  */
 export async function markLockerAvailable(lockerId: string): Promise<Locker> {
   return apiClient.put<Locker>(`/admin/lockers/${lockerId}/available`);
+}
+
+/**
+ * Update locker coordinates (zone-relative)
+ */
+export async function updateLockerCoordinates(
+  lockerId: string,
+  x_coordinate: number,
+  y_coordinate: number
+): Promise<{ locker_id: string; locker_number: string; x_coordinate: number; y_coordinate: number }> {
+  return apiClient.patch(`/admin/lockers/${lockerId}/coordinates`, {
+    x_coordinate,
+    y_coordinate,
+  });
 }

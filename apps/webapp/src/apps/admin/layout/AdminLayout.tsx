@@ -10,8 +10,9 @@ import {
   ChevronLeft,
   ShieldCheck,
   BarChart3,
+  MapPinPen,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/utils/cn";
 import Header from "@/components/Header";
 
 const navItems = [
@@ -20,8 +21,9 @@ const navItems = [
   { label: "Manage Lockers", to: "/admin/lockers", icon: Lock },
   { label: "Active Bookings", to: "/admin/bookings", icon: CalendarCheck },
   { label: "Special Requests", to: "/admin/special-requests", icon: FileText },
-  { label: "Booking Rules", to: "/admin/rules", icon: Settings },
   { label: "Audit Logs", to: "/admin/audit", icon: ClipboardList },
+  { label: "Booking Rules", to: "/admin/rules", icon: Settings },
+  { label: "Locker Configuration", to: "/admin/locker-configuration", icon: MapPinPen },
 ];
 
 interface AdminLayoutProps {
