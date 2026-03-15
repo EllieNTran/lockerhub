@@ -29,14 +29,10 @@ async def check_locker_availability(
             CHECK_AVAILABILITY_QUERY, locker_id, start_date, end_date
         )
         if conflict:
-            logger.info(
-                f"Locker {locker_id} is not available from {start_date} to {end_date}"
-            )
+            logger.info("Locker is not available")
             return False
-        logger.info(f"Locker {locker_id} is available from {start_date} to {end_date}")
+        logger.info("Locker is available")
         return True
-    except Exception as e:
-        logger.error(
-            f"Error checking availability for locker {locker_id} from {start_date} to {end_date}: {e}"
-        )
+    except Exception:
+        logger.error("Error checking availability for locker")
         raise

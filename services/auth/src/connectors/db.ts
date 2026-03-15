@@ -20,8 +20,8 @@ pool.on('connect', () => {
   logger.debug('Database connection established')
 })
 
-pool.on('error', (err: Error) => {
-  logger.error({ err }, 'Unexpected database error')
+pool.on('error', () => {
+  logger.error('Unexpected database error')
 })
 
 // Graceful shutdown
@@ -38,7 +38,7 @@ export const query = async <T = unknown>(text: string, params?: unknown[]): Prom
     const res = await pool.query(text, params)
     return res
   } catch (error: unknown) {
-    logger.error({ error, text }, 'Query error')
+    logger.error('Query error')
     throw error
   }
 }

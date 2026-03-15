@@ -38,7 +38,7 @@ async def delete_booking(user_id: str, booking_id: str) -> DeleteBookingResponse
             booking = await connection.fetchrow(GET_BOOKING_QUERY, booking_id)
 
             if not booking:
-                logger.warning(f"Booking {booking_id} not found for deletion")
+                logger.warning("Booking not found for deletion")
                 raise ValueError("Booking not found")
 
             if booking["user_id"] != user_id:
@@ -48,7 +48,7 @@ async def delete_booking(user_id: str, booking_id: str) -> DeleteBookingResponse
                 raise ValueError("Unauthorized")
 
             deleted_id = await connection.fetchval(DELETE_BOOKING_QUERY, booking_id)
-            logger.info(f"Deleted booking {booking_id} for user {user_id}")
+            logger.info("Deleted booking")
 
             return DeleteBookingResponse(
                 booking_id=deleted_id,
@@ -57,6 +57,6 @@ async def delete_booking(user_id: str, booking_id: str) -> DeleteBookingResponse
             )
     except ValueError:
         raise
-    except Exception as e:
+    except Exception:
         logger.error(f"Error deleting booking {booking_id}: {e}")
         raise

@@ -45,6 +45,6 @@ async def get_dashboard_stats():
         result = await db.fetchrow(GET_DASHBOARD_STATS_QUERY)
         logger.info("Retrieved dashboard statistics successfully")
         return result
-    except Exception as e:
-        logger.error(f"Error fetching dashboard statistics: {e}")
+    except Exception:
+        logger.error("Error fetching dashboard statistics")
         raise

@@ -51,7 +51,7 @@ async def get_audit_logs(page: int = 1, limit: int = 12) -> dict:
         logs = await db.fetch(GET_AUDIT_LOGS_QUERY, limit, offset)
         total_pages = (total + limit - 1) // limit
 
-        logger.info(f"Retrieved {len(logs)} audit logs (page {page}/{total_pages})")
+        logger.info("Retrieved audit logs")
 
         return {
             "logs": logs,
@@ -61,6 +61,6 @@ async def get_audit_logs(page: int = 1, limit: int = 12) -> dict:
             "limit": limit,
         }
 
-    except Exception as e:
-        logger.error(f"Error fetching audit logs: {e}")
+    except Exception:
+        logger.error("Error fetching audit logs")
         raise

@@ -23,6 +23,6 @@ async def review_special_request(status, reviewed_by, request_id):
         )
         logger.info("Reviewed special request")
         return result
-    except Exception as e:
-        logger.error(f"Error reviewing special request: {e}")
+    except Exception:
+        logger.error("Error reviewing special request")
         raise

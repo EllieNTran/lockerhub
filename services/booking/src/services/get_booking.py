@@ -49,6 +49,6 @@ async def get_booking(user_id: str, booking_id: str) -> BookingResponse:
 
         logger.info(f"Retrieved booking {booking_id} for user {user_id}")
         return BookingResponse(**dict(booking))
-    except Exception as e:
+    except Exception:
         logger.error(f"Error retrieving booking {booking_id} for user {user_id}: {e}")
         raise

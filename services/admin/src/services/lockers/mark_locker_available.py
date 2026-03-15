@@ -32,7 +32,7 @@ async def mark_locker_available(locker_id: str) -> dict:
         async with db.transaction() as connection:
             locker = await connection.fetchrow(GET_LOCKER_QUERY, locker_id)
             if not locker:
-                logger.warning(f"Locker {locker_id} not found")
+                logger.warning("Locker not found")
                 raise ValueError("Locker not found")
 
             if locker["status"] != "maintenance":
@@ -57,6 +57,6 @@ async def mark_locker_available(locker_id: str) -> dict:
                 "status": updated_locker["status"],
             }
 
-    except Exception as e:
-        logger.error(f"Error marking locker {locker_id} as available: {e}")
+    except Exception:
+        logger.error("Error marking locker as available")
         raise

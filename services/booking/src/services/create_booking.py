@@ -59,26 +59,21 @@ async def create_booking(
 
         if existing_booking:
             logger.warning(
-                f"User {user_id} already has an existing booking that overlaps with requested dates."
+                "User already has an existing booking that overlaps with requested dates."
             )
             raise ValueError("Existing overlapping booking exists for this user")
 
         booking_id = await db.fetchval(
             CREATE_BOOKING_QUERY, user_id, locker_id, start_date, end_date
         )
-        logger.info(
-            f"Created booking {booking_id} for user {user_id} and locker {locker_id}"
-        )
+        logger.info("Created booking")
+
         return booking_id
     except ValueError:
         raise
     except ExclusionViolationError:
-        logger.warning(
-            f"Booking conflict for locker {locker_id} between {start_date} and {end_date}"
-        )
+        logger.warning("Booking conflict")
         raise ValueError("Booking conflict")
-    except Exception as e:
-        logger.error(
-            f"Error creating booking for user {user_id} and locker {locker_id}: {e}"
-        )
+    except Exception:
+        logger.error("Error creating booking")
         raise

@@ -42,8 +42,8 @@ async def get_recent_activity():
             for row in result
         ]
 
-        logger.info(f"Retrieved {len(activities)} recent activities")
+        logger.info("Retrieved recent activities")
         return activities
-    except Exception as e:
-        logger.error(f"Error fetching recent activity: {e}")
+    except Exception:
+        logger.error("Error fetching recent activity")
         raise

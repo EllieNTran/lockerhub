@@ -65,6 +65,6 @@ async def update_booking_rules(
             )
             return {"updated_rules": updated_rules}
 
-    except Exception as e:
+    except Exception:
         logger.error(f"Error updating booking rules: {e}")
         raise

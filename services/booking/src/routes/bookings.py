@@ -66,10 +66,10 @@ async def get_floors_endpoint(_: dict = Depends(get_current_user)):
     """Get all open floors with their IDs and numbers."""
     try:
         floors = await get_floors()
-        logger.info(f"Floors fetched: {len(floors)}")
+        logger.info("Floors fetched")
         return FloorsResponse(floors=floors)
-    except Exception as e:
-        logger.error(f"Error in get_floors_endpoint: {e}")
+    except Exception:
+        logger.error("Error in get_floors_endpoint")
         raise HTTPException(status_code=500, detail="Failed to retrieve floors")
 
 

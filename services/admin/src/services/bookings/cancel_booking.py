@@ -25,10 +25,10 @@ async def cancel_booking(booking_id: str) -> CancelBookingResponse:
     try:
         result = await db.fetchrow(CANCEL_BOOKING_QUERY, booking_id)
         if not result:
-            logger.warning(f"Booking {booking_id} not found for cancellation")
+            logger.warning("Booking not found for cancellation")
             raise ValueError("Booking not found")
-        logger.info(f"Cancelled booking {booking_id} successfully")
+        logger.info("Cancelled booking successfully")
         return CancelBookingResponse(booking_id=result["booking_id"])
-    except Exception as e:
-        logger.error(f"Error cancelling booking {booking_id}: {e}")
+    except Exception:
+        logger.error("Error cancelling booking")
         raise

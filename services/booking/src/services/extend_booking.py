@@ -115,6 +115,6 @@ async def extend_booking(
                 )
 
             return ExtendBookingResponse(request_id=request_id, status=status)
-    except Exception as e:
+    except Exception:
         logger.error(f"Error processing extension for booking {booking_id}: {e}")
         raise

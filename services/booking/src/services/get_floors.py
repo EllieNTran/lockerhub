@@ -32,8 +32,8 @@ async def get_floors() -> list[FloorResponse]:
     """
     try:
         floors = await db.fetch(GET_FLOORS_QUERY)
-        logger.info(f"Retrieved {len(floors)} floors")
+        logger.info("Retrieved floors")
         return [FloorResponse(**dict(floor)) for floor in floors]
-    except Exception as e:
-        logger.error(f"Error retrieving floors: {e}")
+    except Exception:
+        logger.error("Error retrieving floors")
         raise

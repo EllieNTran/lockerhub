@@ -37,8 +37,8 @@ async def get_floor_lockers_util():
     """
     try:
         result = await db.fetch(GET_FLOOR_LOCKERS_UTIL_QUERY)
-        logger.info(f"Retrieved locker utilization for {len(result)} floors")
+        logger.info("Retrieved locker utilization for floors")
         return result
-    except Exception as e:
-        logger.error(f"Error fetching floor locker utilization: {e}")
+    except Exception:
+        logger.error("Error fetching floor locker utilization")
         raise

@@ -41,7 +41,7 @@ async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
         async with db.transaction() as connection:
             booking = await connection.fetchrow(GET_BOOKING_QUERY, booking_id)
             if not booking:
-                logger.warning(f"Booking {booking_id} not found")
+                logger.warning("Booking not found")
                 raise ValueError("Booking not found")
 
             if booking["status"] != "upcoming":
@@ -56,7 +56,7 @@ async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
                 UPDATE_KEY_STATUS_QUERY, booking["locker_id"]
             )
             if not key:
-                logger.warning(f"Key not found for locker {booking['locker_id']}")
+                logger.warning("Key not found for locker")
                 raise ValueError("Key not found for this locker")
 
             updated_booking = await connection.fetchrow(
@@ -72,6 +72,6 @@ async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
                 key_number=key["key_number"],
             )
 
-    except Exception as e:
-        logger.error(f"Error confirming handover for booking {booking_id}: {e}")
+    except Exception:
+        logger.error("Error confirming handover for booking")
         raise

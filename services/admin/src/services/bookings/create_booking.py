@@ -56,7 +56,7 @@ async def create_booking(
             f"Booking conflict for locker {locker_id} between {start_date} and {end_date}"
         )
         raise ValueError("Booking conflict")
-    except Exception as e:
+    except Exception:
         logger.error(
             f"Error creating booking for user {user_id} and locker {locker_id}: {e}"
         )
