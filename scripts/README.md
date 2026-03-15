@@ -47,14 +47,56 @@ npx ts-node import-staff.ts path/to/staff.csv
 7. ✅ Skips users that already exist (by email or staff_number)
 8. ✅ Provides detailed import summary
 
-### After Import
+---
 
-Pre-registered users will need to:
-1. Visit the login page
-2. Click "Forgot Password" to activate their account
-3. Receive an email with activation link
-4. Set their password
-5. Login with their credentials
+## Auto-Layout Lockers
+
+Automatically calculate and save positions for all lockers based on their floor and zone layout.
+
+### What it does
+
+1. ✅ Fetches all lockers from the database
+2. ✅ Groups lockers by floor and zone
+3. ✅ Calculates optimal grid positions within each zone
+4. ✅ Saves x_coordinate and y_coordinate to the database
+5. ✅ Positions lockers with proper spacing (8px) and zone label clearance (40px)
+
+### Usage
+
+1. Make sure environment variables are set (same as staff import)
+
+2. Run the auto-layout script:
+```bash
+npm run auto-layout
+```
+
+or
+
+```bash
+npx tsx auto-layout-lockers.ts
+```
+
+### When to run
+
+- **Once** after initial locker import to set default positions
+- After adding new lockers to the database
+- To reset all locker positions to default layout
+
+### Floor Layouts
+
+Currently configured for:
+- **Floor 2**: 10 zones with varying capacities
+- **Floor 3**: 3 zones (10 lockers each)
+- **Floor 4**: 3 zones (10 lockers each)
+- **Floor 11**: 16 zones (10 lockers each)
+- **Floor 11 East**: 5 zones (10 lockers each)
+
+### After Running
+
+Once positions are saved:
+- Admins can use the Locker Configuration page to fine-tune positions
+- Drag and drop to adjust individual locker placements
+- Changes are saved as zone-relative coordinates
 
 ---
 

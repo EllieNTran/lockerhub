@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { User } from '@/shared/types/auth';
+import type { User } from '@/types/auth';
 
 export interface SignupRequest {
   firstName: string;

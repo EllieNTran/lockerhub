@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import BookingDetailResponse
 
 GET_ALL_BOOKINGS_QUERY = """
 SELECT 
@@ -34,19 +35,16 @@ ORDER BY
 """
 
 
-async def get_all_bookings():
+async def get_all_bookings() -> list[BookingDetailResponse]:
     """Get all bookings with employee name, locker details, and key status.
 
     Returns:
-        A list of dictionaries containing:
-        - booking_id, employee_name, staff_number, department_name, email, locker_number, floor_number
-        - start_date, end_date, booking_status, key_status
-        Ordered by status priority (expired, upcoming, active, cancelled, completed)
+        A list of booking details ordered by status priority
     """
     try:
         result = await db.fetch(GET_ALL_BOOKINGS_QUERY)
-        logger.info(f"Retrieved {len(result)} bookings successfully")
-        return result
-    except Exception as e:
-        logger.error(f"Error fetching all bookings: {e}")
+        logger.info("Retrieved bookings successfully")
+        return [BookingDetailResponse(**dict(row)) for row in result]
+    except Exception:
+        logger.error("Error fetching all bookings")
         raise

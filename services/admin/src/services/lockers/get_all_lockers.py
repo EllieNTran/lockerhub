@@ -11,6 +11,8 @@ SELECT
     l.location,
     f.floor_number,
     l.status as locker_status,
+    l.x_coordinate,
+    l.y_coordinate,
     k.key_number,
     k.status as key_status,
     l.created_at,
@@ -32,6 +34,6 @@ async def get_all_lockers():
         result = await db.fetch(GET_ALL_LOCKERS_QUERY)
         logger.info("Retrieved all lockers successfully")
         return result
-    except Exception as e:
-        logger.error(f"Error fetching all lockers: {e}")
+    except Exception:
+        logger.error("Error fetching all lockers")
         raise

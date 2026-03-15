@@ -12,6 +12,7 @@ import {
   getLockerStats,
   markLockerMaintenance,
   markLockerAvailable,
+  updateLockerCoordinates,
   getAllSpecialRequests,
   reviewSpecialRequest,
   getBookingRules,
@@ -145,6 +146,18 @@ export const useMarkLockerAvailable = () => {
       queryClient.invalidateQueries({ queryKey: ['adminLockers'] });
       queryClient.invalidateQueries({ queryKey: ['lockerStats'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+    },
+  });
+};
+
+export const useUpdateLockerCoordinates = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ lockerId, x_coordinate, y_coordinate }: { lockerId: string; x_coordinate: number; y_coordinate: number }) =>
+      updateLockerCoordinates(lockerId, x_coordinate, y_coordinate),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminLockers'] });
     },
   });
 };

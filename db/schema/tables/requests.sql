@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.requests (
     locker_id UUID,
     booking_id UUID,
     start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    end_date DATE,
     request_type lockerhub.request_type NOT NULL,
     justification TEXT,
     status lockerhub.request_status NOT NULL DEFAULT 'pending',
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.requests (
     CONSTRAINT fk_requests_locker FOREIGN KEY (locker_id) REFERENCES lockerhub.lockers(locker_id) ON DELETE SET NULL,
     CONSTRAINT fk_requests_booking FOREIGN KEY (booking_id) REFERENCES lockerhub.bookings(booking_id) ON DELETE SET NULL,
     CONSTRAINT fk_requests_reviewed_by FOREIGN KEY (reviewed_by) REFERENCES lockerhub.users(user_id) ON DELETE SET NULL,
-    CONSTRAINT chk_requests_dates CHECK (end_date >= start_date),
+    CONSTRAINT chk_requests_dates CHECK (end_date IS NULL OR end_date >= start_date),
     CONSTRAINT chk_extension_booking CHECK (
         request_type != 'extension'
         OR booking_id IS NOT NULL

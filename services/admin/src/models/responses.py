@@ -31,7 +31,7 @@ class BookingDetailResponse(BaseModel):
     locker_number: str
     floor_number: str
     start_date: date
-    end_date: date
+    end_date: Optional[date] = None
     booking_status: str
     key_status: Optional[str]
 
@@ -53,6 +53,8 @@ class LockerResponse(BaseModel):
     location: Optional[str] = None
     floor_number: str
     locker_status: str
+    x_coordinate: Optional[int] = None
+    y_coordinate: Optional[int] = None
     key_number: Optional[str] = None
     key_status: Optional[str] = None
     created_at: datetime

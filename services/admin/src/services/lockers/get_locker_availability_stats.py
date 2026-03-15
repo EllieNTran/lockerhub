@@ -29,9 +29,9 @@ async def get_locker_availability_statistics():
             "total_maintenance": result["total_maintenance"],
         }
 
-        logger.info(f"Locker availability statistics retrieved: {stats}")
+        logger.info("Locker availability statistics retrieved")
         return stats
 
-    except Exception as e:
-        logger.error(f"Error fetching locker availability statistics: {e}")
+    except Exception:
+        logger.error("Error fetching locker availability statistics")
         raise

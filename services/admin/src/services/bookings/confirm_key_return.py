@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import KeyReturnResponse
 
 GET_BOOKING_QUERY = """
 SELECT 
@@ -34,20 +35,20 @@ WHERE request_id = $1
 """
 
 
-async def confirm_key_return(booking_id: str) -> dict:
-    """Confirm that a key has been handed over to a user.
+async def confirm_key_return(booking_id: str) -> KeyReturnResponse:
+    """Confirm that a key has been returned by a user.
 
     Args:
         booking_id: ID of the booking to confirm return for
 
     Returns:
-        A dictionary containing the updated booking and key details
+        The key return confirmation response
     """
     try:
         async with db.transaction() as connection:
             booking = await connection.fetchrow(GET_BOOKING_QUERY, booking_id)
             if not booking:
-                logger.warning(f"Booking {booking_id} not found")
+                logger.warning("Booking not found")
                 raise ValueError("Booking not found")
 
             if booking["status"] != "active":
@@ -62,7 +63,8 @@ async def confirm_key_return(booking_id: str) -> dict:
                 UPDATE_KEY_STATUS_QUERY, booking["locker_id"]
             )
             if not key:
-                logger.warning(f"Key not found for locker {booking['locker_id']}")
+                logger.warning("Key not found for locker")
+                raise ValueError("Key not found for this locker")
 
             if booking["special_request_id"]:
                 await connection.execute(
@@ -72,8 +74,6 @@ async def confirm_key_return(booking_id: str) -> dict:
                     f"Marked special request {booking['special_request_id']} as completed"
                 )
 
-                raise ValueError("Key not found for this locker")
-
             updated_booking = await connection.fetchrow(
                 UPDATE_BOOKING_STATUS_QUERY, booking_id
             )
@@ -82,14 +82,11 @@ async def confirm_key_return(booking_id: str) -> dict:
                 f"Confirmed key return for booking {booking_id}, key {key['key_number']}"
             )
 
-            return {
-                "booking_id": updated_booking["booking_id"],
-                "booking_status": updated_booking["status"],
-                "key_id": key["key_id"],
-                "key_number": key["key_number"],
-                "key_status": key["status"],
-            }
+            return KeyReturnResponse(
+                booking_id=updated_booking["booking_id"],
+                key_number=key["key_number"],
+            )
 
-    except Exception as e:
-        logger.error(f"Error confirming return for booking {booking_id}: {e}")
+    except Exception:
+        logger.error("Error confirming return for booking")
         raise

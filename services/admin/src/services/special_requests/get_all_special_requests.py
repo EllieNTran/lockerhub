@@ -47,8 +47,8 @@ async def get_all_special_requests():
     """
     try:
         result = await db.fetch(GET_ALL_SPECIAL_REQUESTS_QUERY)
-        logger.info(f"Retrieved {len(result)} special requests")
+        logger.info("Retrieved special requests")
         return result
-    except Exception as e:
-        logger.error(f"Error fetching special requests: {e}")
+    except Exception:
+        logger.error("Error fetching special requests")
         raise

@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { Booking } from '@/shared/types/booking';
+import type { Booking } from '@/types/booking';
 import type { CreateBookingData } from '@/services/bookings/services/user-bookings';
 
 export interface CreateAdminBookingData extends CreateBookingData {

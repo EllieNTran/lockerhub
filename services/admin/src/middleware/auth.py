@@ -25,8 +25,8 @@ async def fetch_jwks():
             jwks_cache = response.json()
             logger.info("JWKS fetched successfully")
             return jwks_cache
-    except Exception as e:
-        logger.error(f"Failed to fetch JWKS: {e}")
+    except Exception:
+        logger.error("Failed to fetch JWKS")
         raise
 
 
@@ -79,8 +79,8 @@ async def get_current_user(
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError as e:
-        logger.warning(f"Invalid token: {e}")
+        logger.warning("Invalid token")
         raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        logger.error(f"Token verification error: {e}")
+    except Exception:
+        logger.error("Token verification error")
         raise HTTPException(status_code=401, detail="Authentication failed")

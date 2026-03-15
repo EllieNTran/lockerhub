@@ -39,22 +39,29 @@ export const proxyToService = (serviceName: keyof typeof SERVICE_CONFIG) => {
     target: service.url,
     changeOrigin: true,
     pathRewrite: (path) => {
-      return service.prefix + path
+      const rewrittenPath = service.prefix + path
+      return rewrittenPath.length > 1 && rewrittenPath.endsWith('/')
+        ? rewrittenPath.slice(0, -1)
+        : rewrittenPath
     },
     on: {
       proxyReq: (proxyReq: ClientRequest, req: AuthenticatedRequest, _res: Response) => {
-        if (req.body && (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH')) {
+        if (req.body && Object.keys(req.body).length > 0 && (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH')) {
           const bodyData = JSON.stringify(req.body)
-          proxyReq.setHeader('Content-Type', 'application/json')
-          proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData))
-          proxyReq.write(bodyData)
+
+          if (!proxyReq.headersSent) {
+            proxyReq.setHeader('Content-Type', 'application/json')
+            proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData))
+          }
+
+          proxyReq.end(bodyData)
         }
 
-        if (req.headers.authorization) {
+        if (req.headers.authorization && !proxyReq.headersSent) {
           proxyReq.setHeader('Authorization', req.headers.authorization)
         }
 
-        if (req.user) {
+        if (req.user && !proxyReq.headersSent) {
           proxyReq.setHeader('X-User-Id', req.user.userId)
           proxyReq.setHeader('X-User-Email', req.user.email)
           proxyReq.setHeader('X-User-Role', req.user.role)

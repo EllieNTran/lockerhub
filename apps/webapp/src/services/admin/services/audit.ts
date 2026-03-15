@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { AuditLog, AuditLogFilters } from '@/shared/types/audit';
+import type { AuditLog, AuditLogFilters } from '@/types/audit';
 
 export interface PaginatedAuditLogs {
   logs: AuditLog[];

@@ -14,7 +14,11 @@ ALTER TABLE lockerhub.keys
 ALTER COLUMN key_number TYPE VARCHAR(6);
 
 -- Update floors table to include status and audit fields
-CREATE TYPE lockerhub.floor_status AS ENUM ('open', 'closed');
+DO $$ BEGIN
+    CREATE TYPE lockerhub.floor_status AS ENUM ('open', 'closed');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 ALTER TABLE lockerhub.floors 
 ADD COLUMN IF NOT EXISTS status lockerhub.floor_status NOT NULL DEFAULT 'open',
@@ -29,13 +33,21 @@ SET
   updated_by = (SELECT user_id FROM lockerhub.users WHERE role = 'admin' LIMIT 1)
 WHERE created_by IS NULL OR updated_by IS NULL;
 
-ALTER TABLE lockerhub.floors
-ALTER COLUMN created_by SET NOT NULL,
-ALTER COLUMN updated_by SET NOT NULL;
+DO $$ BEGIN
+    ALTER TABLE lockerhub.floors
+    ALTER COLUMN created_by SET NOT NULL,
+    ALTER COLUMN updated_by SET NOT NULL;
+EXCEPTION
+    WHEN others THEN null;
+END $$;
 
-ALTER TABLE lockerhub.floors
-ADD CONSTRAINT fk_floors_created_by FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
-ADD CONSTRAINT fk_floors_updated_by FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE lockerhub.floors
+    ADD CONSTRAINT fk_floors_created_by FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_floors_updated_by FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Add audit columns to lockers table
 ALTER TABLE lockerhub.lockers
@@ -48,13 +60,21 @@ SET
   updated_by = (SELECT user_id FROM lockerhub.users WHERE role = 'admin' LIMIT 1)
 WHERE created_by IS NULL OR updated_by IS NULL;
 
-ALTER TABLE lockerhub.lockers
-ALTER COLUMN created_by SET NOT NULL,
-ALTER COLUMN updated_by SET NOT NULL;
+DO $$ BEGIN
+    ALTER TABLE lockerhub.lockers
+    ALTER COLUMN created_by SET NOT NULL,
+    ALTER COLUMN updated_by SET NOT NULL;
+EXCEPTION
+    WHEN others THEN null;
+END $$;
 
-ALTER TABLE lockerhub.lockers
-ADD CONSTRAINT fk_lockers_created_by FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
-ADD CONSTRAINT fk_lockers_updated_by FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE lockerhub.lockers
+    ADD CONSTRAINT fk_lockers_created_by FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_lockers_updated_by FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Add audit columns to keys table
 ALTER TABLE lockerhub.keys
@@ -67,18 +87,50 @@ SET
   updated_by = (SELECT user_id FROM lockerhub.users WHERE role = 'admin' LIMIT 1)
 WHERE created_by IS NULL OR updated_by IS NULL;
 
-ALTER TABLE lockerhub.keys
-ALTER COLUMN created_by SET NOT NULL,
-ALTER COLUMN updated_by SET NOT NULL;
+DO $$ BEGIN
+    ALTER TABLE lockerhub.keys
+    ALTER COLUMN created_by SET NOT NULL,
+    ALTER COLUMN updated_by SET NOT NULL;
+EXCEPTION
+    WHEN others THEN null;
+END $$;
 
-ALTER TABLE lockerhub.keys
-ADD CONSTRAINT fk_keys_created_by FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
-ADD CONSTRAINT fk_keys_updated_by FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE lockerhub.keys
+    ADD CONSTRAINT fk_keys_created_by FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_keys_updated_by FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Change floor number from INTEGER to VARCHAR(10)
-ALTER TABLE lockerhub.floors 
-  ALTER COLUMN number TYPE VARCHAR(10);
+-- Note: This column may have already been renamed to floor_number in 20260213_LMS-34.up.sql
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_schema = 'lockerhub' 
+        AND table_name = 'floors' 
+        AND column_name = 'number'
+        AND data_type != 'character varying'
+    ) THEN
+        ALTER TABLE lockerhub.floors 
+          ALTER COLUMN number TYPE VARCHAR(10);
+    END IF;
+END $$;
 
-UPDATE lockerhub.floors 
-  SET number = number::VARCHAR(10) 
-  WHERE number IS NOT NULL;
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_schema = 'lockerhub' 
+        AND table_name = 'floors' 
+        AND column_name = 'floor_number'
+        AND data_type != 'character varying'
+    ) THEN
+        ALTER TABLE lockerhub.floors 
+          ALTER COLUMN floor_number TYPE VARCHAR(10);
+    END IF;
+END $$;

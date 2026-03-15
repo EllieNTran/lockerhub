@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.bookings (
     user_id UUID NOT NULL,
     locker_id UUID NOT NULL,
     start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    end_date DATE,
     status lockerhub.booking_status NOT NULL DEFAULT 'upcoming',
     special_request_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS lockerhub.bookings (
     CONSTRAINT fk_bookings_user FOREIGN KEY (user_id) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_bookings_locker FOREIGN KEY (locker_id) REFERENCES lockerhub.lockers(locker_id) ON DELETE RESTRICT,
     CONSTRAINT fk_bookings_special_request FOREIGN KEY (special_request_id) REFERENCES lockerhub.requests(request_id) ON DELETE SET NULL,
-    CONSTRAINT chk_bookings_dates CHECK (end_date >= start_date),
+    CONSTRAINT chk_bookings_dates CHECK (end_date IS NULL OR end_date >= start_date),
     CONSTRAINT no_overlapping_bookings EXCLUDE USING gist (
         locker_id WITH =,
-        daterange(start_date, end_date, '[]') WITH &&
+        daterange(start_date, COALESCE(end_date, 'infinity'::date), '[]') WITH &&
     )
 );
 

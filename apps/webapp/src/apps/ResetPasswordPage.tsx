@@ -49,7 +49,7 @@ const ResetPasswordPage = () => {
         onSuccess: () => {
           setSuccess(true);
           setTimeout(() => {
-            navigate("/login");
+            navigate("/");
           }, 3000);
         },
         onError: (err) => {
@@ -97,7 +97,7 @@ const ResetPasswordPage = () => {
               </CardDescription>
             </CardHeader>
             <CardFooter className="flex flex-col space-y-4">
-              <Link to="/login" className="w-full">
+              <Link to="/" className="w-full">
                 <Button className="w-full">Back to Login</Button>
               </Link>
             </CardFooter>
@@ -196,7 +196,7 @@ const ResetPasswordPage = () => {
               </Button>
               <p className="text-sm text-center text-grey">
                 Remember your password?{" "}
-                <Link to="/login" className="text-primary hover:underline font-medium">
+                <Link to="/" className="text-primary hover:underline font-medium">
                   Login
                 </Link>
               </p>

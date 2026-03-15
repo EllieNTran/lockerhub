@@ -29,8 +29,8 @@ class DatabasePool:
                 command_timeout=60,
             )
             logger.info("Database pool created")
-        except Exception as e:
-            logger.error(f"Failed to create database pool: {e}")
+        except Exception:
+            logger.error("Failed to create database pool")
             raise
 
     async def disconnect(self) -> None:
@@ -43,8 +43,8 @@ class DatabasePool:
             await self._pool.close()
             self._pool = None
             logger.info("Database pool closed")
-        except Exception as e:
-            logger.error(f"Error closing database pool: {e}")
+        except Exception:
+            logger.error("Error closing database pool")
             raise
 
     def get_pool(self) -> asyncpg.Pool:

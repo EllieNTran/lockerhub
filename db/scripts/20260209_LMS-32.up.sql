@@ -105,28 +105,33 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Triggers for booking_rules
+DROP TRIGGER IF EXISTS booking_rule_created ON lockerhub.booking_rules;
 CREATE TRIGGER booking_rule_created
 AFTER INSERT ON lockerhub.booking_rules
 FOR EACH ROW
 EXECUTE FUNCTION lockerhub.log_audit('booking_rule', 'create');
 
+DROP TRIGGER IF EXISTS booking_rule_updated ON lockerhub.booking_rules;
 CREATE TRIGGER booking_rule_updated
 AFTER UPDATE ON lockerhub.booking_rules
 FOR EACH ROW
 WHEN (OLD.* IS DISTINCT FROM NEW.*)
 EXECUTE FUNCTION lockerhub.log_audit('booking_rule', 'update');
 
+DROP TRIGGER IF EXISTS booking_rule_deleted ON lockerhub.booking_rules;
 CREATE TRIGGER booking_rule_deleted
 AFTER DELETE ON lockerhub.booking_rules
 FOR EACH ROW
 EXECUTE FUNCTION lockerhub.log_audit('booking_rule', 'delete');
 
 -- Triggers for bookings
+DROP TRIGGER IF EXISTS booking_created ON lockerhub.bookings;
 CREATE TRIGGER booking_created
 AFTER INSERT ON lockerhub.bookings
 FOR EACH ROW
 EXECUTE FUNCTION lockerhub.log_audit('booking', 'create');
 
+DROP TRIGGER IF EXISTS booking_updated ON lockerhub.bookings;
 CREATE TRIGGER booking_updated
 AFTER UPDATE ON lockerhub.bookings
 FOR EACH ROW
@@ -135,17 +140,20 @@ WHEN (OLD.* IS DISTINCT FROM NEW.* AND
       NOT (NEW.status = 'completed' AND OLD.status IN ('active', 'expired')))
 EXECUTE FUNCTION lockerhub.log_audit('booking', 'update');
 
+DROP TRIGGER IF EXISTS booking_deleted ON lockerhub.bookings;
 CREATE TRIGGER booking_deleted
 AFTER DELETE ON lockerhub.bookings
 FOR EACH ROW
 EXECUTE FUNCTION lockerhub.log_audit('booking', 'delete');
 
+DROP TRIGGER IF EXISTS booking_handover ON lockerhub.bookings;
 CREATE TRIGGER booking_handover
 AFTER UPDATE ON lockerhub.bookings
 FOR EACH ROW
 WHEN (NEW.status = 'active' AND OLD.status = 'upcoming')
 EXECUTE FUNCTION lockerhub.log_audit('booking', 'handover');
 
+DROP TRIGGER IF EXISTS booking_return ON lockerhub.bookings;
 CREATE TRIGGER booking_return
 AFTER UPDATE ON lockerhub.bookings
 FOR EACH ROW
@@ -153,34 +161,40 @@ WHEN (NEW.status = 'completed' AND OLD.status IN ('active', 'expired'))
 EXECUTE FUNCTION lockerhub.log_audit('booking', 'return');
 
 -- Triggers for keys
+DROP TRIGGER IF EXISTS key_created ON lockerhub.keys;
 CREATE TRIGGER key_created
 AFTER INSERT ON lockerhub.keys
 FOR EACH ROW
 EXECUTE FUNCTION lockerhub.log_audit('key', 'create');
 
+DROP TRIGGER IF EXISTS key_updated ON lockerhub.keys;
 CREATE TRIGGER key_updated
 AFTER UPDATE ON lockerhub.keys
 FOR EACH ROW
 WHEN (OLD.* IS DISTINCT FROM NEW.*)
 EXECUTE FUNCTION lockerhub.log_audit('key', 'update');
 
+DROP TRIGGER IF EXISTS key_deleted ON lockerhub.keys;
 CREATE TRIGGER key_deleted
 AFTER DELETE ON lockerhub.keys
 FOR EACH ROW
 EXECUTE FUNCTION lockerhub.log_audit('key', 'delete');
 
 -- Triggers for lockers
+DROP TRIGGER IF EXISTS locker_created ON lockerhub.lockers;
 CREATE TRIGGER locker_created
 AFTER INSERT ON lockerhub.lockers
 FOR EACH ROW
 EXECUTE FUNCTION lockerhub.log_audit('locker', 'create');
 
+DROP TRIGGER IF EXISTS locker_updated ON lockerhub.lockers;
 CREATE TRIGGER locker_updated
 AFTER UPDATE ON lockerhub.lockers
 FOR EACH ROW
 WHEN (OLD.* IS DISTINCT FROM NEW.*)
 EXECUTE FUNCTION lockerhub.log_audit('locker', 'update');
 
+DROP TRIGGER IF EXISTS locker_deleted ON lockerhub.lockers;
 CREATE TRIGGER locker_deleted
 AFTER DELETE ON lockerhub.lockers
 FOR EACH ROW
@@ -188,11 +202,13 @@ EXECUTE FUNCTION lockerhub.log_audit('locker', 'delete');
 
 
 -- Triggers for requests
+DROP TRIGGER IF EXISTS request_created ON lockerhub.requests;
 CREATE TRIGGER request_created
 AFTER INSERT ON lockerhub.requests
 FOR EACH ROW
 EXECUTE FUNCTION lockerhub.log_audit('request', 'create');
 
+DROP TRIGGER IF EXISTS request_updated ON lockerhub.requests;
 CREATE TRIGGER request_updated
 AFTER UPDATE ON lockerhub.requests
 FOR EACH ROW
@@ -201,17 +217,20 @@ WHEN (OLD.* IS DISTINCT FROM NEW.* AND
       NOT (NEW.status = 'rejected' AND OLD.status = 'pending'))
 EXECUTE FUNCTION lockerhub.log_audit('request', 'update');
 
+DROP TRIGGER IF EXISTS request_deleted ON lockerhub.requests;
 CREATE TRIGGER request_deleted
 AFTER DELETE ON lockerhub.requests
 FOR EACH ROW
 EXECUTE FUNCTION lockerhub.log_audit('request', 'delete');
 
+DROP TRIGGER IF EXISTS request_approved ON lockerhub.requests;
 CREATE TRIGGER request_approved
 AFTER UPDATE ON lockerhub.requests
 FOR EACH ROW
 WHEN (NEW.status = 'approved' AND OLD.status = 'pending')
 EXECUTE FUNCTION lockerhub.log_audit('request', 'approve');
 
+DROP TRIGGER IF EXISTS request_rejected ON lockerhub.requests;
 CREATE TRIGGER request_rejected
 AFTER UPDATE ON lockerhub.requests
 FOR EACH ROW

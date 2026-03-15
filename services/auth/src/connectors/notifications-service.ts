@@ -30,7 +30,7 @@ export const notificationsServiceClient = {
 
       return await response.json() as T
     } catch (error: unknown) {
-      logger.error({ error, url }, 'Notifications service request failed')
+      logger.error('Notifications service request failed')
       throw error
     }
   },

@@ -3,13 +3,13 @@
  * Aligned with database schema types
  */
 
-import type { Locker } from '@/shared/types/locker'
-import type { User } from '@/services/auth'
-import type { Key } from '@/shared/types/key'
-import type { Request } from '@/shared/types/request'
-import type { Department } from '@/shared/types/department'
-import type { Floor } from '@/shared/types/floor'
-import type { BookingRule } from '@/shared/types/booking-rule'
+import type { Locker } from '@/types/locker'
+import type { User } from '@/types/auth'
+import type { Key } from '@/types/key'
+import type { Request } from '@/types/request'
+import type { Department } from '@/types/department'
+import type { Floor } from '@/types/floor'
+import type { BookingRule } from '@/types/booking-rule'
 
 /**
  * Floors

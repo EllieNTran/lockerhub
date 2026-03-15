@@ -1,5 +1,4 @@
 import { formatDistanceToNow } from "date-fns";
-import type { LucideIcon } from "lucide-react";
 import {
   Bell,
   CalendarDays,
@@ -9,7 +8,7 @@ import {
   Building2,
   ClipboardList,
 } from "lucide-react";
-import type { Notification, EntityType } from "@/shared/types/notification";
+import type { Notification, EntityType } from "@/types/notification";
 
 interface NotificationCardProps {
   notification: Notification;

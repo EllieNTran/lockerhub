@@ -28,6 +28,6 @@ async def get_booking_rules() -> list:
         rules = await db.fetch(GET_BOOKING_RULES_QUERY)
         logger.info("Retrieved active booking rules")
         return rules
-    except Exception as e:
-        logger.error(f"Error fetching booking rules: {e}")
+    except Exception:
+        logger.error("Error fetching booking rules")
         raise

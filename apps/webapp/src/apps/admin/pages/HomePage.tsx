@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import AdminLayout from "../layout/AdminLayout";
 import HeroBanner from "@/components/HeroBanner";
-import StatCard from "@/apps/admin/components/StatCard";
+import StatCard from "../components/StatCard";
 import LockerUtilisation from "../components/LockerUtilisation";
 import RecentActivity, { type ActivityItem } from "../components/RecentActivity";
 import { useDashboardStats, useFloorsUtilization, useRecentActivity } from "@/services/admin/hooks";

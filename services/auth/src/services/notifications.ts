@@ -21,14 +21,14 @@ export const sendPasswordResetEmail = async (
   }
 
   try {
-    const result = await notificationsServiceClient.post<NotificationServiceResponse>(
+    await notificationsServiceClient.post<NotificationServiceResponse>(
       '/notifications/password-reset',
       payload,
     )
 
-    logger.info({ email, success: result.success }, 'Password reset email sent successfully')
+    logger.info('Password reset email sent successfully')
   } catch (error: unknown) {
-    logger.error({ error, email }, 'Failed to send password reset email')
+    logger.error('Failed to send password reset email')
     throw error
   }
 }
@@ -48,14 +48,14 @@ export const sendActivationEmail = async (
   }
 
   try {
-    const result = await notificationsServiceClient.post<NotificationServiceResponse>(
+    await notificationsServiceClient.post<NotificationServiceResponse>(
       '/notifications/activation',
       payload,
     )
 
-    logger.info({ email, success: result.success }, 'Activation email sent successfully')
+    logger.info('Activation email sent successfully')
   } catch (error: unknown) {
-    logger.error({ error, email }, 'Failed to send activation email')
+    logger.error('Failed to send activation email')
     throw error
   }
 }

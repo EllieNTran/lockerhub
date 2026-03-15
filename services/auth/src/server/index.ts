@@ -49,11 +49,11 @@ app.use(notFoundHandler)
 app.use(errorHandler)
 
 const server = app.listen(PORT, () => {
-  logger.info(`Auth server listening on port ${PORT}`)
+  logger.info('Auth server listening on port')
 })
 
-const shutdown = (signal: string) => {
-  logger.info(`${signal} received, shutting down gracefully`)
+const shutdown = () => {
+  logger.info('Signal received, shutting down gracefully')
   server.close(() => {
     logger.info('Server closed')
     process.exit(0)
@@ -66,7 +66,7 @@ const shutdown = (signal: string) => {
   }, 10000)
 }
 
-process.on('SIGTERM', () => shutdown('SIGTERM'))
-process.on('SIGINT', () => shutdown('SIGINT'))
+process.on('SIGTERM', () => shutdown())
+process.on('SIGINT', () => shutdown())
 
 export default app

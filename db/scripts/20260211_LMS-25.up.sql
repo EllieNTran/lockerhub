@@ -1,39 +1,47 @@
 -- Create office enum type
-CREATE TYPE lockerhub.office AS ENUM (
-    '15 Canada Square',
-    'Malta',
-    'Nottingham',
-    'Watford',
-    'Birmingham',
-    'Leeds',
-    'Reading',
-    'Manchester',
-    'Liverpool',
-    'Glasgow 319',
-    'Bristol Queen Square',
-    'Edinburgh',
-    'Newcastle upon Tyne',
-    'South Coast - Southampton',
-    'Gibraltar',
-    'Gatwick',
-    'Canada Square IFRG',
-    'Cambridge',
-    'Cardiff',
-    'Milton Keynes',
-    'Aberdeen',
-    '15 Canada Square EMA',
-    'Plymouth',
-    'Overseas',
-    'Zurich',
-    'Glasgow Tax CoE',
-    'Bangalore (KGS)',
-    'New Delhi (KRC)',
-    'Spain'
-);
+DO $$ BEGIN
+    CREATE TYPE lockerhub.office AS ENUM (
+        '15 Canada Square',
+        'Malta',
+        'Nottingham',
+        'Watford',
+        'Birmingham',
+        'Leeds',
+        'Reading',
+        'Manchester',
+        'Liverpool',
+        'Glasgow 319',
+        'Bristol Queen Square',
+        'Edinburgh',
+        'Newcastle upon Tyne',
+        'South Coast - Southampton',
+        'Gibraltar',
+        'Gatwick',
+        'Canada Square IFRG',
+        'Cambridge',
+        'Cardiff',
+        'Milton Keynes',
+        'Aberdeen',
+        '15 Canada Square EMA',
+        'Plymouth',
+        'Overseas',
+        'Zurich',
+        'Glasgow Tax CoE',
+        'Bangalore (KGS)',
+        'New Delhi (KRC)',
+        'Spain'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Alter users table to support pre-registration and password reset functionality
-ALTER TABLE lockerhub.users 
-  ALTER COLUMN password_hash DROP NOT NULL;
+DO $$ BEGIN
+    ALTER TABLE lockerhub.users 
+      ALTER COLUMN password_hash DROP NOT NULL;
+EXCEPTION
+    WHEN others THEN null;
+END $$;
 
 ALTER TABLE lockerhub.users
   ADD COLUMN IF NOT EXISTS office lockerhub.office,
@@ -76,13 +84,13 @@ CREATE INDEX IF NOT EXISTS idx_user_notifications_user_unread ON lockerhub.user_
 -- Migrate existing notification data to junction table
 INSERT INTO lockerhub.user_notifications (user_id, notification_id, read, read_at, created_at)
 SELECT 
-    user_id,
-    notification_id,
-    read,
-    CASE WHEN read = TRUE THEN created_at ELSE NULL END as read_at,
-    created_at
-FROM lockerhub.notifications
-WHERE user_id IS NOT NULL
+    n.user_id,
+    n.notification_id,
+    n.read,
+    CASE WHEN n.read = TRUE THEN n.created_at ELSE NULL END as read_at,
+    n.created_at
+FROM lockerhub.notifications n
+WHERE n.user_id IS NOT NULL
 ON CONFLICT (user_id, notification_id) DO NOTHING;
 
 -- Alter notifications table structure
@@ -123,7 +131,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.capabilities (
     name VARCHAR(255) NOT NULL UNIQUE
 );
 
-CREATE INDEX idx_capabilities_name ON lockerhub.capabilities(name);
+CREATE INDEX IF NOT EXISTS idx_capabilities_name ON lockerhub.capabilities(name);
 
 -- Add capability_id to departments table
 ALTER TABLE lockerhub.departments

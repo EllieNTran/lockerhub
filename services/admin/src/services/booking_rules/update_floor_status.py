@@ -34,7 +34,7 @@ async def update_floor_status(floor_id: str, status: str, user_id: str) -> dict:
         async with db.transaction() as connection:
             floor = await connection.fetchrow(GET_FLOOR_QUERY, floor_id)
             if not floor:
-                logger.warning(f"Floor {floor_id} not found")
+                logger.warning("Floor not found")
                 raise ValueError("Floor not found")
 
             updated_floor = await connection.fetchrow(
@@ -51,6 +51,6 @@ async def update_floor_status(floor_id: str, status: str, user_id: str) -> dict:
                 "status": updated_floor["status"],
             }
 
-    except Exception as e:
-        logger.error(f"Error updating floor {floor_id} status: {e}")
+    except Exception:
+        logger.error("Error updating floor status")
         raise

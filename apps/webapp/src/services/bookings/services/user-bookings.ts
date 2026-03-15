@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient'
-import type { Booking } from '@/shared/types/booking'
+import type { Booking } from '@/types/booking'
 
 export interface CreateBookingData {
   locker_id: string
@@ -14,7 +14,8 @@ export interface UpdateBookingData {
 }
 
 export const getUserBookings = async (): Promise<Booking[]> => {
-  return apiClient.get<Booking[]>('/bookings/user')
+  const response = await apiClient.get<{ bookings: Booking[] }>('/bookings')
+  return response.bookings
 }
 
 export const getBookingById = async (bookingId: string): Promise<Booking> => {

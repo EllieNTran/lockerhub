@@ -2,6 +2,7 @@
  * Store auth tokens in localStorage
  */
 export function storeTokens(accessToken: string, refreshToken: string): void {
+  if (typeof window === 'undefined') return;
   localStorage.setItem('accessToken', accessToken);
   localStorage.setItem('refreshToken', refreshToken);
 }
@@ -10,6 +11,7 @@ export function storeTokens(accessToken: string, refreshToken: string): void {
  * Get stored access token
  */
 export function getAccessToken(): string | null {
+  if (typeof window === 'undefined') return null;
   return localStorage.getItem('accessToken');
 }
 
@@ -17,6 +19,7 @@ export function getAccessToken(): string | null {
  * Get stored refresh token
  */
 export function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
   return localStorage.getItem('refreshToken');
 }
 
@@ -24,6 +27,7 @@ export function getRefreshToken(): string | null {
  * Clear stored tokens
  */
 export function clearTokens(): void {
+  if (typeof window === 'undefined') return;
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('userRole');
@@ -56,5 +60,5 @@ export function getUserIdFromToken(): string | null {
   if (!token) return null;
   
   const payload = decodeJWT(token);
-  return payload?.userId as string || null;
+  return payload?.sub as string || null;
 }

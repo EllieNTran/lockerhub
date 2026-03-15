@@ -41,7 +41,7 @@ async def update_booking(
             booking = await connection.fetchrow(GET_BOOKING_QUERY, booking_id)
 
             if not booking:
-                logger.warning(f"Booking {booking_id} not found for update")
+                logger.warning("Booking not found for update")
                 raise ValueError("Booking not found")
 
             if booking["user_id"] != user_id:
@@ -73,6 +73,6 @@ async def update_booking(
             )
 
             return updated_id
-    except Exception as e:
-        logger.error(f"Error updating booking {booking_id}: {e}")
+    except Exception:
+        logger.error("Error updating booking")
         raise

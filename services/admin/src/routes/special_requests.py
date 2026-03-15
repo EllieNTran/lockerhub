@@ -17,7 +17,7 @@ from src.services.special_requests.review_special_request import review_special_
 router = APIRouter(prefix="/special-requests", tags=["admin-special-requests"])
 
 
-@router.get("/", response_model=AllSpecialRequestsResponse)
+@router.get("", response_model=AllSpecialRequestsResponse)
 async def get_all_special_requests_endpoint(
     _: dict = Depends(get_current_user),
 ):

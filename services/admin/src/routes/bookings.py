@@ -24,7 +24,7 @@ from src.services.bookings.confirm_key_return import confirm_key_return
 router = APIRouter(prefix="/bookings", tags=["admin-bookings"])
 
 
-@router.post("/", response_model=CreateBookingResponse)
+@router.post("", response_model=CreateBookingResponse)
 async def create_booking_endpoint(
     request: CreateBookingRequest,
     _: dict = Depends(get_current_user),
@@ -34,8 +34,8 @@ async def create_booking_endpoint(
         booking_id = await create_booking(
             str(request.user_id),
             str(request.locker_id),
-            str(request.start_date),
-            str(request.end_date),
+            request.start_date,
+            request.end_date,
         )
         return CreateBookingResponse(booking_id=booking_id)
     except ValueError as e:
@@ -44,7 +44,7 @@ async def create_booking_endpoint(
         raise HTTPException(status_code=500, detail="Failed to create booking")
 
 
-@router.get("/", response_model=AllBookingsResponse)
+@router.get("", response_model=AllBookingsResponse)
 async def get_all_bookings_endpoint(_: dict = Depends(get_current_user)):
     """Get all bookings with employee and locker details."""
     try:

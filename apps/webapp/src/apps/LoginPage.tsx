@@ -189,7 +189,7 @@ const LoginPage = () => {
               ) : (
                 <p className="text-sm text-center text-grey">
                   Don't have an account?{" "}
-                  <Link to="/" className="text-primary hover:underline font-medium">
+                  <Link to="/signup" className="text-primary hover:underline font-medium">
                     Sign up
                   </Link>
                 </p>
