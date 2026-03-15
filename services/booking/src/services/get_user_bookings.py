@@ -37,8 +37,8 @@ async def get_user_bookings(user_id: str) -> list[BookingResponse]:
     """
     try:
         rows = await db.fetch(GET_USER_BOOKINGS_QUERY, user_id)
-        logger.info(f"Retrieved bookings for user {user_id}")
+        logger.info("Retrieved bookings for user")
         return [BookingResponse(**dict(row)) for row in rows]
     except Exception:
-        logger.error(f"Error retrieving bookings for user {user_id}: {e}")
+        logger.error("Error retrieving bookings for user")
         raise
