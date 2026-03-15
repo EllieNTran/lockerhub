@@ -135,7 +135,7 @@ const BookLocker = () => {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-dark-blue">Book a Locker</h2>
           <p className="mt-1 text-sm text-grey">
-            Select your dates, choose a floor, then pick an available locker from the plan below.
+            Select your dates, choose a floor, then pick an available locker from the results below.
           </p>
 
           <div className="mt-5 flex flex-wrap items-end gap-4">
@@ -156,7 +156,6 @@ const BookLocker = () => {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
-                    mode="single"
                     selected={startDate}
                     onSelect={setStartDate}
                     disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
@@ -184,7 +183,6 @@ const BookLocker = () => {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
-                    mode="single"
                     selected={endDate}
                     onSelect={setEndDate}
                     disabled={(date) => date < (startDate || new Date()) || date.getDay() === 0 || date.getDay() === 6}

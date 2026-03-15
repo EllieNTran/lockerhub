@@ -58,12 +58,10 @@ async def get_available_lockers(
         lockers = await db.fetch(
             GET_AVAILABLE_LOCKERS_QUERY, floor_id, start_date_obj, end_date_obj
         )
-        logger.info(
-            f"Retrieved {len(lockers)} lockers for floor {floor_id} from {start_date} to {end_date}"
-        )
+        logger.info("Retrieved available lockers")
         return [AvailableLockerResponse(**dict(locker)) for locker in lockers]
     except Exception as e:
         logger.error(
-            f"Error retrieving lockers for floor {floor_id} from {start_date} to {end_date}: {e}"
+            f"Error retrieving available lockers: {e}"
         )
         raise
