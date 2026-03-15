@@ -58,7 +58,9 @@ async def create_booking(
         )
 
         if existing_booking:
-            logger.warning(f"User {user_id} already has an existing booking that overlaps with requested dates.")
+            logger.warning(
+                f"User {user_id} already has an existing booking that overlaps with requested dates."
+            )
             raise ValueError("Existing overlapping booking exists for this user")
 
         booking_id = await db.fetchval(

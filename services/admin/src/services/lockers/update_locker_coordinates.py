@@ -37,8 +37,7 @@ async def update_locker_coordinates(
 
         result = await db.fetchrow(update_query, x_coordinate, y_coordinate, locker_id)
 
-        logger.info(f"Updated locker {locker_id} coordinates"
-        )
+        logger.info(f"Updated locker {locker_id} coordinates")
 
         return dict(result)
     except ValueError:
