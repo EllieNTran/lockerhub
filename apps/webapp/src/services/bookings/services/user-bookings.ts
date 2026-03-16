@@ -8,9 +8,17 @@ export interface CreateBookingData {
 }
 
 export interface UpdateBookingData {
-  start_date?: string
-  end_date?: string
-  status?: 'upcoming' | 'active' | 'completed' | 'cancelled' | 'expired'
+  new_start_date?: string
+  new_end_date?: string
+}
+
+export interface ExtendBookingData {
+  new_end_date: string
+}
+
+export interface ExtendBookingResponse {
+  request_id: number
+  status: string
 }
 
 export const getUserBookings = async (): Promise<Booking[]> => {
@@ -30,13 +38,18 @@ export const updateBooking = async (
   bookingId: string,
   data: UpdateBookingData,
 ): Promise<Booking> => {
-  return apiClient.patch<Booking>(`/bookings/${bookingId}`, data)
+  return apiClient.put<Booking>(`/bookings/${bookingId}`, data)
+}
+
+export const extendBooking = async (
+  bookingId: string,
+  data: ExtendBookingData,
+): Promise<ExtendBookingResponse> => {
+  return apiClient.post<ExtendBookingResponse>(`/bookings/${bookingId}/extend`, data)
 }
 
 export const cancelBooking = async (bookingId: string): Promise<Booking> => {
-  return apiClient.patch<Booking>(`/bookings/${bookingId}`, {
-    status: 'cancelled',
-  })
+  return apiClient.put<Booking>(`/bookings/${bookingId}/cancel`, {})
 }
 
 export const deleteBooking = async (bookingId: string): Promise<void> => {

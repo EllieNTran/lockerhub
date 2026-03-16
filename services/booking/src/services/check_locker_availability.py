@@ -1,5 +1,8 @@
 """Check the availability for a locker"""
 
+from datetime import date
+from uuid import UUID
+
 from src.logger import logger
 from src.connectors.db import db
 
@@ -18,15 +21,18 @@ async def check_locker_availability(
 
     Args:
         locker_id: ID of the locker to check
-        start_date: Proposed start date for the booking
-        end_date: Proposed end date for the booking
+        start_date: Proposed start date for the booking (YYYY-MM-DD)
+        end_date: Proposed end date for the booking (YYYY-MM-DD)
 
     Returns:
         True if the locker is available, False if there is a conflict
     """
     try:
         conflict = await db.fetchval(
-            CHECK_AVAILABILITY_QUERY, locker_id, start_date, end_date
+            CHECK_AVAILABILITY_QUERY,
+            UUID(locker_id) if isinstance(locker_id, str) else locker_id,
+            date.fromisoformat(start_date),
+            date.fromisoformat(end_date),
         )
         if conflict:
             logger.info("Locker is not available")

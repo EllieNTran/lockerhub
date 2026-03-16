@@ -6,6 +6,7 @@ from asyncpg.exceptions import ExclusionViolationError
 from src.logger import logger
 from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
+from src.models.responses import CreateBookingResponse
 
 CREATE_BOOKING_QUERY = """
 INSERT INTO lockerhub.bookings (
@@ -45,7 +46,7 @@ WHERE u.user_id = $2
 
 async def create_booking(
     user_id: str, locker_id: str, start_date: date, end_date: date
-) -> str:
+) -> CreateBookingResponse:
     """
     Create a new booking for a locker.
 
@@ -60,7 +61,7 @@ async def create_booking(
         end_date: End date of the booking
 
     Returns:
-        The ID of the created booking
+        CreateBookingResponse with the booking ID
 
     Raises:
         ValueError: If user already has an overlapping booking, or if there's a locker conflict
@@ -102,7 +103,7 @@ async def create_booking(
 
         logger.info("Created booking")
 
-        return booking_id
+        return CreateBookingResponse(booking_id=booking_id)
     except ValueError:
         raise
     except ExclusionViolationError:

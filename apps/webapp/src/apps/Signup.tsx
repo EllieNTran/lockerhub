@@ -15,7 +15,7 @@ import {
 } from "@/services/auth";
 
 
-const SignupPage = () => {
+const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -290,4 +290,4 @@ const SignupPage = () => {
   );
 };
 
-export default SignupPage;
+export default Signup;

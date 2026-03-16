@@ -143,7 +143,7 @@ const Home = () => {
             ) : (
               <div className="space-y-3">
                 {upcomingBookings.map((booking) => (
-                  <BookingCard key={booking.booking_id} booking={booking} />
+                  <BookingCard key={booking.booking_id} booking={booking} bg_color="grey-foreground/50" />
                 ))}
               </div>
             )}

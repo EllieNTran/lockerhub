@@ -41,7 +41,7 @@ async def delete_booking(user_id: str, booking_id: str) -> DeleteBookingResponse
                 logger.warning("Booking not found for deletion")
                 raise ValueError("Booking not found")
 
-            if booking["user_id"] != user_id:
+            if str(booking["user_id"]) != user_id:
                 logger.warning(
                     f"User {user_id} attempted to delete booking {booking_id} not owned by them"
                 )
@@ -58,5 +58,5 @@ async def delete_booking(user_id: str, booking_id: str) -> DeleteBookingResponse
     except ValueError:
         raise
     except Exception:
-        logger.error(f"Error deleting booking {booking_id}: {e}")
+        logger.error("Error deleting booking")
         raise

@@ -17,7 +17,7 @@ type AccountStatus = {
   message: string;
 };
 
-const CheckAccountPage = () => {
+const CheckAccount = () => {
   const [email, setEmail] = useState("");
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const [error, setError] = useState("");
@@ -193,4 +193,4 @@ const CheckAccountPage = () => {
   );
 };
 
-export default CheckAccountPage;
+export default CheckAccount;

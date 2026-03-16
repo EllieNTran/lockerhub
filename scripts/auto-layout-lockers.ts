@@ -268,7 +268,7 @@ async function autoLayoutAllLockers() {
       }
     }
 
-    console.log(`\n✅ Total lockers auto-positioned: ${totalUpdated}`);
+    console.log(`\nTotal lockers auto-positioned: ${totalUpdated}`);
   } catch (error) {
     console.error('Error:', error);
     throw error;

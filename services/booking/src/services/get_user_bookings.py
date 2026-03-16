@@ -21,7 +21,15 @@ FROM lockerhub.bookings b
 INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
 INNER JOIN lockerhub.floors f ON l.floor_id = f.floor_id
 WHERE b.user_id = $1
-ORDER BY b.start_date DESC
+ORDER BY 
+    CASE b.status
+        WHEN 'expired' THEN 1
+        WHEN 'active' THEN 2
+        WHEN 'upcoming' THEN 3
+        WHEN 'completed' THEN 4
+        WHEN 'cancelled' THEN 5
+    END,
+    b.start_date ASC
 """
 
 

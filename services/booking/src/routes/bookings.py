@@ -14,14 +14,13 @@ from src.models.responses import (
     BookingListResponse,
     CreateBookingResponse,
     UpdateBookingResponse,
-    DeleteBookingResponse,
     ExtendBookingResponse,
     AvailableLockersResponse,
     AvailabilityResponse,
     FloorsResponse,
 )
 from src.services.create_booking import create_booking
-from src.services.delete_booking import delete_booking
+from src.services.cancel_booking import cancel_booking
 from src.services.update_booking import update_booking
 from src.services.extend_booking import extend_booking
 from src.services.get_booking import get_booking
@@ -40,13 +39,13 @@ async def create_booking_endpoint(
 ):
     """Create a new booking."""
     try:
-        booking_id = await create_booking(
+        result = await create_booking(
             current_user["user_id"],
             str(request.locker_id),
             request.start_date,
             request.end_date,
         )
-        return CreateBookingResponse(booking_id=booking_id)
+        return result
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
@@ -93,27 +92,28 @@ async def update_booking_endpoint(
 ):
     """Update a booking (shorten only)."""
     try:
-        updated_id = await update_booking(
+        result = await update_booking(
             current_user["user_id"],
             booking_id,
             str(request.new_start_date) if request.new_start_date else None,
             str(request.new_end_date) if request.new_end_date else None,
         )
-        return UpdateBookingResponse(booking_id=updated_id)
+        return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/{booking_id}", response_model=DeleteBookingResponse)
-async def delete_booking_endpoint(
-    booking_id: str, current_user: dict = Depends(get_current_user)
+@router.put("/{booking_id}/cancel", response_model=UpdateBookingResponse)
+async def cancel_booking_endpoint(
+    booking_id: str,
+    current_user: dict = Depends(get_current_user),
 ):
-    """Delete a booking."""
+    """Cancel a booking."""
     try:
-        result = await delete_booking(current_user["user_id"], booking_id)
-        return DeleteBookingResponse(**result)
+        result = await cancel_booking(current_user["user_id"], booking_id)
+        return result
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/{booking_id}/extend", response_model=ExtendBookingResponse)
@@ -127,7 +127,7 @@ async def extend_booking_endpoint(
         result = await extend_booking(
             booking_id, str(request.new_end_date), current_user["user_id"]
         )
-        return ExtendBookingResponse(**result)
+        return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

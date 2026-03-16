@@ -1,7 +1,10 @@
 """Update an existing booking (shorten only)."""
 
+from datetime import date
+
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import UpdateBookingResponse
 
 GET_BOOKING_QUERY = """
 SELECT start_date, end_date, user_id FROM lockerhub.bookings
@@ -23,7 +26,7 @@ async def update_booking(
     booking_id: str,
     new_start_date: str = None,
     new_end_date: str = None,
-) -> str:
+) -> UpdateBookingResponse:
     """
     Update booking dates (can only shorten, not extend).
 
@@ -34,7 +37,7 @@ async def update_booking(
         new_end_date: Proposed new end date for the booking
 
     Returns:
-        The ID of the updated booking
+        UpdateBookingResponse with the booking ID
     """
     try:
         async with db.transaction() as connection:
@@ -44,7 +47,7 @@ async def update_booking(
                 logger.warning("Booking not found for update")
                 raise ValueError("Booking not found")
 
-            if booking["user_id"] != user_id:
+            if str(booking["user_id"]) != user_id:
                 logger.warning(
                     f"User {user_id} attempted to update booking {booking_id} not owned by them"
                 )
@@ -53,8 +56,12 @@ async def update_booking(
             original_start = booking["start_date"]
             original_end = booking["end_date"]
 
-            start_date = new_start_date or original_start
-            end_date = new_end_date or original_end
+            start_date = (
+                date.fromisoformat(new_start_date) if new_start_date else original_start
+            )
+            end_date = (
+                date.fromisoformat(new_end_date) if new_end_date else original_end
+            )
 
             if start_date < original_start:
                 raise ValueError("Cannot move start date earlier")
@@ -68,11 +75,9 @@ async def update_booking(
             updated_id = await connection.fetchval(
                 UPDATE_BOOKING_QUERY, booking_id, start_date, end_date
             )
-            logger.info(
-                f"Updated booking {booking_id}: {original_start} to {original_end} → {start_date} to {end_date}"
-            )
+            logger.info("Updated booking")
 
-            return updated_id
+            return UpdateBookingResponse(booking_id=updated_id)
     except Exception:
         logger.error("Error updating booking")
         raise
