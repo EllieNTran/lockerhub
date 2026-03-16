@@ -101,7 +101,6 @@ async def extend_booking(
                 )
             else:
                 logger.info("Extension request for booking approved")
-                logger.info(f"BOOKING ID {booking_id} EXTENDED TO {new_end_date_obj}")
 
             request_id = await connection.fetchval(
                 CREATE_EXTENSION_REQUEST_QUERY,
