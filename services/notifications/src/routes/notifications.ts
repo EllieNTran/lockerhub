@@ -198,14 +198,14 @@ router.post(
       floorNumber,
       startDate,
       endDate,
-      userBookingsLink,
-      adminBookingsLink,
+      userBookingsPath,
+      adminBookingsPath,
     } = req.body
 
-    if (!userId || !email || !name || !lockerNumber || !floorNumber || !startDate || !endDate || !userBookingsLink || !adminBookingsLink) {
+    if (!userId || !email || !name || !lockerNumber || !floorNumber || !startDate || !endDate || !userBookingsPath || !adminBookingsPath) {
       res.status(400).json({
         success: false,
-        message: 'All fields are required: userId, email, name, lockerNumber, floorNumber, startDate, endDate, userBookingsLink, adminBookingsLink',
+        message: 'All fields are required: userId, email, name, lockerNumber, floorNumber, startDate, endDate, userBookingsPath, adminBookingsPath',
       })
       return
     }
@@ -218,8 +218,8 @@ router.post(
       floorNumber,
       startDate,
       endDate,
-      userBookingsLink,
-      adminBookingsLink,
+      userBookingsPath,
+      adminBookingsPath,
     )
 
     res.status(200).json({
@@ -290,14 +290,14 @@ router.post(
       floorNumber,
       originalEndDate,
       newEndDate,
-      userBookingsLink,
-      adminBookingsLink,
+      userBookingsPath,
+      adminBookingsPath,
     } = req.body
 
-    if (!userId || !email || !name || !lockerNumber || !floorNumber || !originalEndDate || !newEndDate || !userBookingsLink || !adminBookingsLink) {
+    if (!userId || !email || !name || !lockerNumber || !floorNumber || !originalEndDate || !newEndDate || !userBookingsPath || !adminBookingsPath) {
       res.status(400).json({
         success: false,
-        message: 'All fields are required: userId, email, name, lockerNumber, floorNumber, originalEndDate, newEndDate, userBookingsLink, adminBookingsLink',
+        message: 'All fields are required: userId, email, name, lockerNumber, floorNumber, originalEndDate, newEndDate, userBookingsPath, adminBookingsPath',
       })
       return
     }
@@ -310,8 +310,8 @@ router.post(
       floorNumber,
       originalEndDate,
       newEndDate,
-      userBookingsLink,
-      adminBookingsLink,
+      userBookingsPath,
+      adminBookingsPath,
     )
 
     res.status(200).json({

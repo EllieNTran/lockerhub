@@ -14,7 +14,7 @@ import QuickActionCard from "@/apps/user/components/QuickActionCard";
 import NotificationCard from "@/apps/user/components/NotificationCard";
 import BookingCard from "@/apps/user/components/BookingCard";
 import HeroBanner from "@/components/HeroBanner";
-import { useUserNotifications } from "@/services/notifications";
+import { useUserNotifications, useMarkNotificationAsRead } from "@/services/notifications";
 import { getUserIdFromToken } from "@/services/auth";
 import { useUserBookings } from "@/services/bookings";
 import type { Notification } from "@/types/notification";
@@ -27,10 +27,18 @@ const Home = () => {
   const notifications = notificationsData?.notifications || [];
   const unreadCount = notificationsData?.unread || 0;
   
+  const { mutate: markAsRead } = useMarkNotificationAsRead();
+  
   const { data: bookingsData, isLoading: isLoadingBookings } = useUserBookings();
   const upcomingBookings = bookingsData?.filter(
     (b) => b.status === 'active' || b.status === 'upcoming'
   ) || [];
+
+  const handleNotificationClick = (notification: Notification) => {
+    if (!notification.read) {
+      markAsRead({ userId, notificationId: notification.notification_id });
+    }
+  };
 
   return (
     <UserLayout>
@@ -90,6 +98,7 @@ const Home = () => {
                   <NotificationCard
                     key={notification.notification_id}
                     notification={notification}
+                    onClick={() => handleNotificationClick(notification)}
                   />
                 ))}
               </div>

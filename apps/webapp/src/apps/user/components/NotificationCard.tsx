@@ -24,24 +24,52 @@ const entityIcons: Record<NonNullable<EntityType>, typeof Bell> = {
   booking_rule: ClipboardList,
 };
 
-const createColorScheme = (color: string) => ({
-  bg: `bg-${color}-foreground/20`,
-  border: `border-${color}-outline/30`,
-  iconBg: `bg-${color}-foreground`,
-  iconColor: `text-${color}`,
-  dot: "bg-secondary",
-});
-
 const unreadColors = {
-  booking: createColorScheme("purple"),
-  locker: createColorScheme("primary"),
-  key: createColorScheme("secondary"),
-  request: createColorScheme("pink"),
-  floor: createColorScheme("error"),
-  booking_rule: createColorScheme("error"),
+  booking: {
+    bg: "bg-purple-foreground/20",
+    border: "border-purple-outline/30",
+    iconBg: "bg-purple-foreground",
+    iconColor: "text-purple",
+    dot: "bg-secondary",
+  },
+  locker: {
+    bg: "bg-primary-foreground/20",
+    border: "border-primary-outline/30",
+    iconBg: "bg-primary-foreground",
+    iconColor: "text-primary",
+    dot: "bg-secondary",
+  },
+  key: {
+    bg: "bg-secondary-foreground/20",
+    border: "border-secondary-outline/30",
+    iconBg: "bg-secondary-foreground",
+    iconColor: "text-secondary",
+    dot: "bg-secondary",
+  },
+  request: {
+    bg: "bg-pink-foreground/20",
+    border: "border-pink-outline/30",
+    iconBg: "bg-pink-foreground",
+    iconColor: "text-pink",
+    dot: "bg-secondary",
+  },
+  floor: {
+    bg: "bg-error-foreground/20",
+    border: "border-error-outline/30",
+    iconBg: "bg-error-foreground",
+    iconColor: "text-error",
+    dot: "bg-secondary",
+  },
+  booking_rule: {
+    bg: "bg-error-foreground/20",
+    border: "border-error-outline/30",
+    iconBg: "bg-error-foreground",
+    iconColor: "text-error",
+    dot: "bg-secondary",
+  },
   default: {
-    bg: "bg-primary-foreground",
-    border: "border-primary-outline",
+    bg: "bg-primary-foreground/20",
+    border: "border-primary-outline/30",
     iconBg: "bg-white",
     iconColor: "text-primary",
     dot: "bg-secondary",

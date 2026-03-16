@@ -5,6 +5,7 @@ from asyncpg.exceptions import ExclusionViolationError
 
 from src.logger import logger
 from src.connectors.db import db
+from src.connectors.notifications_service import NotificationsServiceClient
 
 CREATE_BOOKING_QUERY = """
 INSERT INTO lockerhub.bookings (
@@ -27,6 +28,18 @@ AND (
     daterange($2, $3, '[]') && daterange(start_date, COALESCE(end_date, 'infinity'::date), '[]')
 )
 LIMIT 1
+"""
+
+GET_BOOKING_DETAILS_QUERY = """
+SELECT 
+    u.email,
+    u.first_name,
+    l.locker_number,
+    f.floor_number
+FROM lockerhub.users u
+JOIN lockerhub.lockers l ON l.locker_id = $1
+JOIN lockerhub.floors f ON f.floor_id = l.floor_id
+WHERE u.user_id = $2
 """
 
 
@@ -66,6 +79,27 @@ async def create_booking(
         booking_id = await db.fetchval(
             CREATE_BOOKING_QUERY, user_id, locker_id, start_date, end_date
         )
+
+        booking_details = await db.fetchrow(
+            GET_BOOKING_DETAILS_QUERY, locker_id, user_id
+        )
+
+        if booking_details:
+            await NotificationsServiceClient().post(
+                "/booking/confirmation",
+                {
+                    "userId": user_id,
+                    "email": booking_details["email"],
+                    "name": booking_details["first_name"],
+                    "lockerNumber": booking_details["locker_number"],
+                    "floorNumber": booking_details["floor_number"],
+                    "startDate": start_date.isoformat(),
+                    "endDate": end_date.isoformat(),
+                    "userBookingsPath": "/user/my-bookings",
+                    "adminBookingsPath": "/admin/bookings",
+                },
+            )
+
         logger.info("Created booking")
 
         return booking_id

@@ -1,6 +1,8 @@
 import sendEmail from '../utils/send-email'
 import { createNotification } from './notifications'
+import { fromEnv } from '../constants'
 
+const APP_URL = fromEnv('APP_URL') || 'http://localhost:3001'
 const ADMIN_EMAIL = 'fm@lockerhub.com'
 
 interface BookingEmailData {
@@ -21,8 +23,7 @@ const sendBookingEmails = async (
   userExtraData: Record<string, string | number> = {},
   adminExtraData: Record<string, string | number> = {},
 ): Promise<void> => {
-  const emailData = {
-    NAME: baseData.name,
+  const commonData = {
     LOCKER_NUMBER: baseData.lockerNumber,
     FLOOR: baseData.floorNumber,
     START_DATE: baseData.startDate || '',
@@ -30,18 +31,8 @@ const sendBookingEmails = async (
   }
 
   await Promise.all([
-    sendEmail(
-      userEmail,
-      { ...emailData, ...userExtraData },
-      userTemplateId,
-      userSubject,
-    ),
-    sendEmail(
-      ADMIN_EMAIL,
-      { ...emailData, ...adminExtraData },
-      adminTemplateId,
-      adminSubject,
-    ),
+    sendEmail(userEmail, { NAME: baseData.name, ...commonData, ...userExtraData }, userTemplateId, userSubject),
+    sendEmail(ADMIN_EMAIL, { USER_NAME: baseData.name, USER_EMAIL: userEmail, ...commonData, ...adminExtraData }, adminTemplateId, adminSubject),
   ])
 }
 
@@ -53,8 +44,8 @@ export const notifyBookingConfirmation = async (
   floorNumber: string,
   startDate: string,
   endDate: string,
-  userBookingsLink: string,
-  adminBookingsLink: string,
+  userBookingsPath: string,
+  adminBookingsPath: string,
 ): Promise<void> => {
   await createNotification({
     entityType: 'booking',
@@ -73,8 +64,8 @@ export const notifyBookingConfirmation = async (
     'locker-booking-confirmation-admin',
     'User booking confirmation',
     'Admin booking confirmation',
-    { BOOKINGS_LINK: userBookingsLink },
-    { BOOKINGS_LINK: adminBookingsLink },
+    { BOOKINGS_LINK: `${APP_URL}${userBookingsPath}` },
+    { BOOKINGS_LINK: `${APP_URL}${adminBookingsPath}` },
   )
 }
 
@@ -128,8 +119,8 @@ export const notifyBookingExtension = async (
   floorNumber: string,
   originalEndDate: string,
   newEndDate: string,
-  userBookingsLink: string,
-  adminBookingsLink: string,
+  userBookingsPath: string,
+  adminBookingsPath: string,
 ): Promise<void> => {
   await createNotification({
     entityType: 'booking',
@@ -148,7 +139,7 @@ export const notifyBookingExtension = async (
     'extended-locker-booking-admin',
     'Booking extension',
     'Booking extension',
-    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: userBookingsLink },
-    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: adminBookingsLink },
+    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: `${APP_URL}${userBookingsPath}` },
+    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: `${APP_URL}${adminBookingsPath}` },
   )
 }

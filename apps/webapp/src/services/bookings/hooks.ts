@@ -41,6 +41,7 @@ export const useCreateBooking = () => {
     mutationFn: createBooking,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userBookings'] })
+      queryClient.invalidateQueries({ queryKey: ['userNotifications'] })
     },
   })
 }

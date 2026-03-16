@@ -1,3 +1,5 @@
+"""Connection pool manager for PostgreSQL using asyncpg."""
+
 import asyncpg
 from typing import Optional
 from contextlib import asynccontextmanager
