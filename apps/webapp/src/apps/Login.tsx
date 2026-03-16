@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLogin, useRequestPasswordReset, storeTokens } from "@/services/auth";
 
-const LoginPage = () => {
+const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -202,4 +202,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Login;

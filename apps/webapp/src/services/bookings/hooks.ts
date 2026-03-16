@@ -3,12 +3,13 @@ import {
   getUserBookings,
   createBooking,
   updateBooking,
+  extendBooking,
   cancelBooking,
   deleteBooking,
   getBookingById,
 } from './services/user-bookings'
 import { getFloors } from './services/floors'
-import type { UpdateBookingData } from './services/user-bookings'
+import type { UpdateBookingData, ExtendBookingData } from './services/user-bookings'
 import { getAvailableLockers } from './services/available-lockers'
 import type { GetAvailableLockersParams } from './services/available-lockers'
 
@@ -55,6 +56,22 @@ export const useUpdateBooking = () => {
   return useMutation({
     mutationFn: ({ bookingId, data }: { bookingId: string; data: UpdateBookingData }) =>
       updateBooking(bookingId, data),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['userBookings'] })
+      queryClient.invalidateQueries({ queryKey: ['booking', variables.bookingId] })
+    },
+  })
+}
+
+/**
+ * Extend an existing booking
+ */
+export const useExtendBooking = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ bookingId, data }: { bookingId: string; data: ExtendBookingData }) =>
+      extendBooking(bookingId, data),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userBookings'] })
       queryClient.invalidateQueries({ queryKey: ['booking', variables.bookingId] })

@@ -41,7 +41,7 @@ async def get_booking(user_id: str, booking_id: str) -> BookingResponse:
         if not booking:
             logger.warning(f"Booking {booking_id} not found for user {user_id}")
             raise ValueError("Booking not found")
-        if booking["user_id"] != user_id:
+        if str(booking["user_id"]) != user_id:
             logger.warning(
                 f"User {user_id} attempted to access booking {booking_id} not owned by them"
             )
@@ -50,5 +50,5 @@ async def get_booking(user_id: str, booking_id: str) -> BookingResponse:
         logger.info(f"Retrieved booking {booking_id} for user {user_id}")
         return BookingResponse(**dict(booking))
     except Exception:
-        logger.error(f"Error retrieving booking {booking_id} for user {user_id}: {e}")
+        logger.error("Error retrieving booking for user")
         raise

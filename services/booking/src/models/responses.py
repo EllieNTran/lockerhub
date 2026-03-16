@@ -18,7 +18,7 @@ class BookingResponse(BaseModel):
     start_date: date
     end_date: Optional[date] = None
     status: str
-    special_request_id: Optional[UUID] = None
+    special_request_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 
@@ -41,15 +41,6 @@ class UpdateBookingResponse(BaseModel):
     """Response model for updating a booking."""
 
     booking_id: UUID
-    message: str = "Booking updated"
-
-
-class DeleteBookingResponse(BaseModel):
-    """Response model for deleting a booking."""
-
-    booking_id: UUID
-    key_number: str
-    key_status: str
 
 
 class ExtendBookingResponse(BaseModel):

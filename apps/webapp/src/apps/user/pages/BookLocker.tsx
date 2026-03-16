@@ -30,6 +30,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import SearchResults from "@/shared/components/SearchResults";
 import type { Locker, AvailableLocker } from "@/types/locker";
 import { toast } from "@/components/ui/sonner";
+import Heading from "@/components/Heading";
 import { useAvailableLockers, useFloors, useCreateBooking } from "@/services/bookings";
 
 const BookLocker = () => {
@@ -137,13 +138,12 @@ const BookLocker = () => {
   return (
     <UserLayout>
       <div className="w-full">
-
-      <main className="container max-w-6xl px-6 py-8">
+      <main className="container max-w-6xl px-6 py-8 mx-auto">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-dark-blue">Book a Locker</h2>
-          <p className="mt-1 text-sm text-grey">
-            Select your dates, choose a floor, then pick an available locker from the results below.
-          </p>
+          <Heading
+            title="Book a Locker"
+            description="Select your dates, choose a floor, then pick an available locker from the results below."
+          />
 
           <div className="mt-5 flex flex-wrap items-end gap-4">
             <div className="space-y-1.5">
@@ -219,9 +219,9 @@ const BookLocker = () => {
             </div>
 
             <Button
+              variant="highlight"
               onClick={handleBook}
               disabled={!isReadyToBook}
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
             >
               <CheckCircle2 className="mr-2 h-4 w-4" />
               Book Locker
@@ -325,13 +325,12 @@ const BookLocker = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={isCreatingBooking}>
+            <Button variant="destructive" onClick={() => setConfirmOpen(false)} disabled={isCreatingBooking}>
               Cancel
             </Button>
             <Button 
               onClick={confirmBooking} 
               disabled={isCreatingBooking}
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
             >
               {isCreatingBooking ? 'Booking...' : 'Confirm Booking'}
             </Button>

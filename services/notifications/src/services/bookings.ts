@@ -65,7 +65,7 @@ export const notifyBookingConfirmation = async (
     'User booking confirmation',
     'Admin booking confirmation',
     { BOOKINGS_LINK: `${WEBAPP_URL}${userBookingsPath}` },
-    { BOOKINGS_LINK: `${WEBAPP_URL}${adminBookingsPath}` },
+    { ADMIN_BOOKINGS_LINK: `${WEBAPP_URL}${adminBookingsPath}` },
   )
 }
 
@@ -140,6 +140,6 @@ export const notifyBookingExtension = async (
     'Booking extension',
     'Booking extension',
     { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: `${WEBAPP_URL}${userBookingsPath}` },
-    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: `${WEBAPP_URL}${adminBookingsPath}` },
+    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, ADMIN_BOOKINGS_LINK: `${WEBAPP_URL}${adminBookingsPath}` },
   )
 }

@@ -23,7 +23,7 @@ const LOCKER_SPACING = 8
 const ZONE_LABEL_HEIGHT = 40
 const SNAP_THRESHOLD = 12 // Pixels within which to snap to nearby lockers
 
-const LockerConfigurationPage = () => {
+const LockerConfiguration = () => {
   const [selectedFloor, setSelectedFloor] = useState<string>('')
   const [lockers, setLockers] = useState<Locker[]>([])
   const [draggingLocker, setDraggingLocker] = useState<string | null>(null)
@@ -394,4 +394,4 @@ const LockerConfigurationPage = () => {
   )
 }
 
-export default LockerConfigurationPage
+export default LockerConfiguration

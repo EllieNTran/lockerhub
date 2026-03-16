@@ -74,14 +74,10 @@
   --color-input: #E2E4EB;
   --color-ring: #00308F;
 
-  /* Locker Status */
-  --color-locker-available: #4DC089;
-
-
-
   /* Greys */
   --color-grey: #85919D;
   --color-grey-outline: #E2E4EB;
+  --color-light-grey: #EEEFF2;
   --color-mid-grey: #AEB3BD;
   --color-grey-foreground: #EFF2F7;
   --color-floor-grey: #EEEFF2;

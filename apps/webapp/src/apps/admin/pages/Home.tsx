@@ -10,7 +10,7 @@ import LockerUtilisation from "../components/LockerUtilisation";
 import RecentActivity, { type ActivityItem } from "../components/RecentActivity";
 import { useDashboardStats, useFloorsUtilization, useRecentActivity } from "@/services/admin/hooks";
 
-const AdminHomePage = () => {
+const AdminHome = () => {
   const { data: dashboardStats } = useDashboardStats();
   const { data: floorsUtilization } = useFloorsUtilization();
   const { data: recentActivityData } = useRecentActivity();
@@ -89,4 +89,4 @@ const AdminHomePage = () => {
   );
 };
 
-export default AdminHomePage;
+export default AdminHome;
