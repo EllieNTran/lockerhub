@@ -22,14 +22,20 @@ const statusColors: Record<BookingStatus, "green" | "blue" | "brightBlue" | "red
   expired: "red",
 };
 
+const formatFloorNumber = (floor: string): string => {
+  return floor.replace(/\s+(East|West)/i, (match) => match.trim()[0].toUpperCase());
+};
+
 const BookingCard = ({ booking }: BookingCardProps) => {
+  const formattedFloor = formatFloorNumber(booking.floor_number);
+  
   return (
     <div
       className="flex items-center justify-between rounded-lg border border-grey-outline bg-grey-foreground/50 p-3.5"
     >
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-foreground text-primary font-bold text-m shrink-0">
-          {booking.floor_number}
+          {formattedFloor}
         </div>
         <div>
           <div className="flex items-center gap-2">

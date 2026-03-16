@@ -79,6 +79,13 @@ const BookLocker = () => {
     }
   };
 
+  const handleStartDateChange = (date: Date | undefined) => {
+    setStartDate(date);
+    if (date && endDate && date > endDate) {
+      setEndDate(undefined);
+    }
+  };
+
   const handleBook = () => {
     if (!isReadyToBook) {
       toast.error('Please select dates and an available locker');
@@ -157,7 +164,7 @@ const BookLocker = () => {
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     selected={startDate}
-                    onSelect={setStartDate}
+                    onSelect={handleStartDateChange}
                     disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
                     initialFocus
                     className="p-3 pointer-events-auto"
@@ -186,6 +193,7 @@ const BookLocker = () => {
                     selected={endDate}
                     onSelect={setEndDate}
                     disabled={(date) => date < (startDate || new Date()) || date.getDay() === 0 || date.getDay() === 6}
+                    defaultMonth={endDate || startDate}
                     initialFocus
                     className="p-3 pointer-events-auto"
                   />
