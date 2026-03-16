@@ -22,6 +22,7 @@ services:
     environment:
       - PORT=80
       - LOCALHOST_MODE=true
+      - WEBAPP_URL=http://localhost:3001
       - AUTH_SERVICE_URL=http://auth
       - BOOKING_SERVICE_URL=http://booking
       - ADMIN_SERVICE_URL=http://admin
@@ -51,7 +52,7 @@ services:
       - DB_PASSWORD=postgres
       - LOCALHOST_MODE=true
       - NOTIFICATIONS_SERVICE_URL=http://notifications
-      - APP_URL=http://localhost:3001
+      - WEBAPP_URL=http://localhost:3001
     depends_on:
       postgres:
         condition: service_healthy
@@ -122,7 +123,7 @@ services:
       - DB_PASSWORD=postgres
       - LOCALHOST_MODE=true
       - RESEND_API_KEY=${RESEND_API_KEY}
-      - APP_URL=http://localhost:3001
+      - WEBAPP_URL=http://localhost:3001
     depends_on:
       postgres:
         condition: service_healthy
