@@ -36,7 +36,7 @@ const initJWKS = async (): Promise<void> => {
 
 app.use(helmet())
 app.use(cors({
-  origin: '*',
+  origin: fromEnv('WEBAPP_URL') || 'http://localhost:3001',
   credentials: true,
 }))
 

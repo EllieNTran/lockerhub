@@ -2,7 +2,7 @@ import sendEmail from '../utils/send-email'
 import { createNotification } from './notifications'
 import { fromEnv } from '../constants'
 
-const APP_URL = fromEnv('APP_URL') || 'http://localhost:3001'
+const WEBAPP_URL = fromEnv('WEBAPP_URL') || 'http://localhost:3001'
 const ADMIN_EMAIL = 'fm@lockerhub.com'
 
 interface BookingEmailData {
@@ -64,8 +64,8 @@ export const notifyBookingConfirmation = async (
     'locker-booking-confirmation-admin',
     'User booking confirmation',
     'Admin booking confirmation',
-    { BOOKINGS_LINK: `${APP_URL}${userBookingsPath}` },
-    { BOOKINGS_LINK: `${APP_URL}${adminBookingsPath}` },
+    { BOOKINGS_LINK: `${WEBAPP_URL}${userBookingsPath}` },
+    { BOOKINGS_LINK: `${WEBAPP_URL}${adminBookingsPath}` },
   )
 }
 
@@ -139,7 +139,7 @@ export const notifyBookingExtension = async (
     'extended-locker-booking-admin',
     'Booking extension',
     'Booking extension',
-    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: `${APP_URL}${userBookingsPath}` },
-    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: `${APP_URL}${adminBookingsPath}` },
+    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: `${WEBAPP_URL}${userBookingsPath}` },
+    { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: `${WEBAPP_URL}${adminBookingsPath}` },
   )
 }

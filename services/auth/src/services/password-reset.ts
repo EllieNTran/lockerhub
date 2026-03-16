@@ -48,7 +48,7 @@ export const requestPasswordReset = async (email: string): Promise<PasswordReset
     [resetTokenHash, expiresAt, user.user_id],
   )
 
-  const resetLink = `${process.env.APP_URL}/reset-password?token=${resetToken}`
+  const resetLink = `${process.env.WEBAPP_URL}/reset-password?token=${resetToken}`
   if (user.is_pre_registered) {
     await sendActivationEmail(user.email, user.first_name || 'User', resetLink)
   } else {
