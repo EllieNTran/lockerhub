@@ -4,7 +4,7 @@
  */
 
 import type { Locker } from '@/types/locker'
-import type { User } from '@/types/auth'
+import type { AuthUser } from '@/types/auth'
 import type { Key } from '@/types/key'
 import type { Request } from '@/types/request'
 import type { Department } from '@/types/department'
@@ -40,7 +40,7 @@ export const mockDepartments: Department[] = [
 /**
  * Users
  */
-export const mockUsers: User[] = [
+export const mockUsers: AuthUser[] = [
   {
     user_id: 'u1',
     first_name: 'John',

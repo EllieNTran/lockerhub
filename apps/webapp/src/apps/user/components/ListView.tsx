@@ -48,9 +48,24 @@ const ListView = ({ lockers, selectedLockerId, onSelectLocker }: ListViewProps) 
           const isAvailable = isAvailableLocker 
             ? (locker as AvailableLocker).is_available 
             : locker.status === 'available';
-          const displayStatus = isAvailableLocker && !isAvailable && locker.status === 'available'
-            ? 'booked'
-            : locker.status;
+          
+          let displayStatus: string = locker.status || 'available';
+          if (isAvailableLocker && !isAvailable && locker.status === 'available') {
+            displayStatus = 'booked';
+          } else if (locker.status === 'reserved') {
+            displayStatus = 'booked';
+          }
+
+          const getStatusColors = (status: string) => {
+            switch (status) {
+              case 'available':
+                return 'bg-success-foreground text-success border-success-outline';
+              case 'maintenance':
+                return 'bg-pending-foreground text-pending border-pending-outline';
+              default:
+                return 'bg-error-foreground text-error border-error-outline';
+            }
+          };
           
           return (
             <div
@@ -74,11 +89,8 @@ const ListView = ({ lockers, selectedLockerId, onSelectLocker }: ListViewProps) 
                 </div>
                 <span
                   className={`
-                    px-2 py-1 rounded-full text-xs font-medium capitalize
-                    ${isAvailable
-                      ? 'bg-success-foreground text-success border border-success-outline'
-                      : 'bg-error-foreground text-error  border border-error-outline'
-                    }
+                    px-2 py-1 rounded-full text-xs font-medium capitalize border
+                    ${getStatusColors(displayStatus)}
                   `}
                 >
                   {displayStatus}

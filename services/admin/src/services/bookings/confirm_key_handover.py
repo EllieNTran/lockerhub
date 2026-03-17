@@ -45,12 +45,8 @@ async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
                 raise ValueError("Booking not found")
 
             if booking["status"] != "upcoming":
-                logger.warning(
-                    f"Booking {booking_id} is not in 'upcoming' status (current: {booking['status']})"
-                )
-                raise ValueError(
-                    f"Booking must be 'upcoming' to confirm handover (current: {booking['status']})"
-                )
+                logger.warning("Booking is not in 'upcoming' status")
+                raise ValueError("Booking must be 'upcoming' to confirm handover")
 
             key = await connection.fetchrow(
                 UPDATE_KEY_STATUS_QUERY, booking["locker_id"]
@@ -63,9 +59,7 @@ async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
                 UPDATE_BOOKING_STATUS_QUERY, booking_id
             )
 
-            logger.info(
-                f"Confirmed key handover for booking {booking_id}, key {key['key_number']}"
-            )
+            logger.info("Confirmed key handover for booking")
 
             return KeyHandoverResponse(
                 booking_id=updated_booking["booking_id"],

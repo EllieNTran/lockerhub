@@ -4,6 +4,9 @@ import type { CreateBookingData } from '@/services/bookings/services/user-bookin
 
 export interface CreateAdminBookingData extends CreateBookingData {
   user_id: string;
+  locker_id: string;
+  start_date: string;
+  end_date: string;
 }
 
 export interface HandoverData {

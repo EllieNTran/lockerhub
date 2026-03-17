@@ -37,7 +37,7 @@ const LockerCell = ({ locker, isSelected, onSelect }: LockerCellProps) => {
             !isAvailable && !isMaintenance &&
               "border-error-outline bg-error-foreground text-error cursor-not-allowed opacity-70",
             isMaintenance &&
-              "border-pending-outline bg-pending-foreground text-pending cursor-not-allowed opacity-60"
+              "border-pending-outline bg-pending-foreground text-pending cursor-not-allowed opacity-70"
           )}
         >
           {!isAvailable || isMaintenance ? (

@@ -299,9 +299,9 @@ const LockerConfiguration = () => {
               Reset
             </Button>
             <Button
+              variant="highlight"
               disabled={!hasChanges}
               onClick={handleSave}
-              className="bg-secondary text-secondary-foreground"
             >
               <Save className="h-4 w-4 mr-2" />
               Save Changes

@@ -26,6 +26,13 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
 
+  const legend = [
+    { classes: 'border-success bg-success/30', label: 'Available' },
+    { classes: 'border-error bg-error/30', label: 'Occupied' },
+    { classes: 'border-pending bg-pending/30', label: 'Maintenance' },
+    { classes: 'border-secondary bg-secondary/30', label: 'Selected' },
+  ];
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, viewMode);
   }, [viewMode]);
@@ -64,18 +71,12 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
           {viewMode === "floor" && (
             <>
               <div className="flex items-center gap-4 text-[11px] text-grey mr-4">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full border-2 border-success bg-success/30" />
-                  Available
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full border-2 border-error bg-error/30" />
-                  Occupied
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full border-2 border-secondary bg-secondary/30" />
-                  Selected
-                </span>
+                {legend.map(({ classes, label }) => (
+                  <span key={label} className="flex items-center gap-1.5">
+                    <span className={`h-3 w-3 rounded-full border-2 ${classes}`} />
+                    {label}
+                  </span>
+                ))}
               </div>
             
               <ZoomControls

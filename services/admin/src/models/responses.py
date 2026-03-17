@@ -44,6 +44,24 @@ class AllBookingsResponse(BaseModel):
     bookings: List[BookingDetailResponse]
 
 
+class UserDetailResponse(BaseModel):
+    """Response model for detailed user information."""
+
+    user_id: UUID
+    employee_name: str
+    staff_number: str
+    department_name: Optional[str]
+    email: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AllUsersResponse(BaseModel):
+    """Response model for all users list."""
+
+    users: List[UserDetailResponse]
+
+
 class LockerResponse(BaseModel):
     """Response model for locker details."""
 
