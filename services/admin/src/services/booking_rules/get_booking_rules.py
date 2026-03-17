@@ -1,7 +1,10 @@
 """Get all booking rules."""
 
+from typing import List
+
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import BookingRuleResponse
 
 GET_BOOKING_RULES_QUERY = """
 SELECT 
@@ -18,16 +21,16 @@ ORDER BY rule_type;
 """
 
 
-async def get_booking_rules() -> list:
+async def get_booking_rules() -> List[BookingRuleResponse]:
     """Get all active booking rules.
 
     Returns:
-        A list of dictionaries containing booking rule details
+        A list of BookingRuleResponse objects
     """
     try:
         rules = await db.fetch(GET_BOOKING_RULES_QUERY)
         logger.info("Retrieved active booking rules")
-        return rules
+        return [BookingRuleResponse(**dict(rule)) for rule in rules]
     except Exception:
         logger.error("Error fetching booking rules")
         raise

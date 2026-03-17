@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import LockerStatsResponse
 
 GET_LOCKER_STATISTICS_QUERY = """
     SELECT 
@@ -12,25 +13,19 @@ GET_LOCKER_STATISTICS_QUERY = """
 """
 
 
-async def get_locker_availability_statistics():
+async def get_locker_availability_statistics() -> LockerStatsResponse:
     """Get locker availability statistics including total, available, and under maintenance counts.
 
     Returns:
-        A dictionary with total lockers, available lockers, and lockers under maintenance.
+        LockerStatsResponse with locker statistics.
     """
     try:
         logger.info("Fetching locker availability statistics")
 
         result = await db.fetchrow(GET_LOCKER_STATISTICS_QUERY)
 
-        stats = {
-            "total_lockers": result["total_lockers"],
-            "total_available": result["total_available"],
-            "total_maintenance": result["total_maintenance"],
-        }
-
         logger.info("Locker availability statistics retrieved")
-        return stats
+        return LockerStatsResponse(**dict(result))
 
     except Exception:
         logger.error("Error fetching locker availability statistics")

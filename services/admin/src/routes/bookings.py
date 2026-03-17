@@ -8,7 +8,6 @@ from src.models.responses import (
     CreateBookingResponse,
     CancelBookingResponse,
     AllBookingsResponse,
-    BookingDetailResponse,
 )
 from src.services.bookings.create_booking import create_booking
 from src.services.bookings.cancel_booking import cancel_booking
@@ -31,13 +30,12 @@ async def create_booking_endpoint(
 ):
     """Create a new booking for a user."""
     try:
-        booking_id = await create_booking(
+        return await create_booking(
             str(request.user_id),
             str(request.locker_id),
             request.start_date,
             request.end_date,
         )
-        return CreateBookingResponse(booking_id=booking_id)
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
     except Exception:
@@ -49,9 +47,7 @@ async def get_all_bookings_endpoint(_: dict = Depends(get_current_user)):
     """Get all bookings with employee and locker details."""
     try:
         bookings = await get_all_bookings()
-        return AllBookingsResponse(
-            bookings=[BookingDetailResponse(**booking) for booking in bookings]
-        )
+        return AllBookingsResponse(bookings=bookings)
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve bookings")
 

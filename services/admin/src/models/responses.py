@@ -241,8 +241,8 @@ class NotificationResponse(BaseModel):
     entity_type: str
     title: str
     caption: Optional[str]
-    time_ago: str
     type: str
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

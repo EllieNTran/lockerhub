@@ -8,7 +8,6 @@ from src.models.responses import (
     AllLockersResponse,
     LockerStatsResponse,
     LockerStatusResponse,
-    LockerResponse,
 )
 from src.services.lockers.get_all_lockers import get_all_lockers
 from src.services.lockers.get_locker_availability_stats import (
@@ -26,9 +25,7 @@ async def get_all_lockers_endpoint(_: dict = Depends(get_current_user)):
     """Get all lockers with details."""
     try:
         lockers = await get_all_lockers()
-        return AllLockersResponse(
-            lockers=[LockerResponse(**locker) for locker in lockers]
-        )
+        return AllLockersResponse(lockers=lockers)
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve lockers")
 
@@ -37,8 +34,7 @@ async def get_all_lockers_endpoint(_: dict = Depends(get_current_user)):
 async def get_lockers_stats_endpoint(_: dict = Depends(get_current_user)):
     """Get locker availability statistics."""
     try:
-        stats = await get_locker_availability_statistics()
-        return LockerStatsResponse(**stats)
+        return await get_locker_availability_statistics()
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve locker stats")
 
@@ -50,8 +46,7 @@ async def mark_locker_maintenance_endpoint(
 ):
     """Mark a locker as under maintenance."""
     try:
-        result = await mark_locker_maintenance(locker_id)
-        return LockerStatusResponse(**result)
+        return await mark_locker_maintenance(locker_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
@@ -67,8 +62,7 @@ async def mark_locker_available_endpoint(
 ):
     """Mark a locker as available (repaired)."""
     try:
-        result = await mark_locker_available(locker_id)
-        return LockerStatusResponse(**result)
+        return await mark_locker_available(locker_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:

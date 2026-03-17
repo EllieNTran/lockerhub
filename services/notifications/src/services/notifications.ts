@@ -75,11 +75,13 @@ const COUNT_UNREAD_NOTIFICATIONS_QUERY = `
     WHERE b.status NOT IN ('cancelled', 'expired')
   ) user_floors ON user_floors.user_id = $1
   WHERE 
-    (n.scope = 'user' AND un.user_id = $1)
-    OR (n.scope = 'department' AND n.target_department_id = u.department_id)
-    OR (n.scope = 'floor' AND n.target_floor_id = user_floors.floor_id)
-    OR (n.scope = 'global')
-  AND COALESCE(un.read, FALSE) = FALSE
+    (
+      (n.scope = 'user' AND un.user_id = $1)
+      OR (n.scope = 'department' AND n.target_department_id = u.department_id)
+      OR (n.scope = 'floor' AND n.target_floor_id = user_floors.floor_id)
+      OR (n.scope = 'global')
+    )
+    AND COALESCE(un.read, FALSE) = FALSE
 `
 
 /**

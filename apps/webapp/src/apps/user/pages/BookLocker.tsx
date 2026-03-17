@@ -31,7 +31,7 @@ import SearchResults from "@/shared/components/SearchResults";
 import type { Locker, AvailableLocker } from "@/types/locker";
 import { toast } from "@/components/ui/sonner";
 import Heading from "@/components/Heading";
-import { useAvailableLockers, useFloors, useCreateBooking } from "@/services/bookings";
+import { useAvailableLockers, useFloors, useCreateBooking, useJoinFloorQueue } from "@/services/bookings";
 
 const BookLocker = () => {
   const navigate = useNavigate();
@@ -46,6 +46,7 @@ const BookLocker = () => {
 
   const { data: floors = [], isLoading: floorsLoading } = useFloors();
   const { mutate: createBookingMutation, isPending: isCreatingBooking } = useCreateBooking();
+  const { mutate: joinFloorQueueMutation, isPending: isJoiningQueue } = useJoinFloorQueue();
 
   useEffect(() => {
     if (floors.length > 0 && !selectedFloorId) {
@@ -106,7 +107,9 @@ const BookLocker = () => {
       },
       {
         onSuccess: () => {
-          toast.success(`Locker ${selectedLocker.locker_number} booked successfully!`);
+          toast.success(`Locker ${selectedLocker.locker_number} booked successfully!`, {
+            description: 'Check your email inbox for confirmation.'
+          });
           setConfirmOpen(false);
           navigate('/user');
         },
@@ -122,7 +125,9 @@ const BookLocker = () => {
               duration: 4000,
             });
           } else {
-            toast.error(error.message || 'Failed to book locker');
+            toast.error(error.message || 'Failed to book locker', {
+              description: 'Please try again later.'
+            });
           }
         },
       }
@@ -130,9 +135,27 @@ const BookLocker = () => {
   };
 
   const joinWaitlist = () => {
-    setIsOnWaitlist(true);
-    setWaitlistOpen(false);
-    toast.success('You have been added to the waiting list');
+    if (!selectedFloorId || !startDate || !endDate) return;
+
+    joinFloorQueueMutation(
+      {
+        floor_id: selectedFloorId,
+        start_date: format(startDate, 'yyyy-MM-dd'),
+        end_date: format(endDate, 'yyyy-MM-dd'),
+      },
+      {
+        onSuccess: () => {
+          setIsOnWaitlist(true);
+          setWaitlistOpen(false);
+          toast.success('Joined Waiting List', {
+            description: 'You will be notified when a locker becomes available.'
+          })
+        },
+        onError: (error: Error) => {
+          toast.error(error.message || 'Failed to join waiting list');
+        },
+      }
+    );
   };
 
   return (
@@ -306,7 +329,7 @@ const BookLocker = () => {
             <DialogTitle>Confirm Booking</DialogTitle>
             <DialogDescription>You're about to book the following locker:</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 rounded-lg bg-background border border-grey-outline p-4 text-sm">
+          <div className="space-y-3 rounded-lg bg-muted p-4 text-sm">
             <div className="flex justify-between">
               <span className="text-grey">Locker</span>
               <span className="font-medium">
@@ -361,12 +384,12 @@ const BookLocker = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setWaitlistOpen(false)}>
+            <Button variant="destructive" onClick={() => setWaitlistOpen(false)} disabled={isJoiningQueue}>
               Cancel
             </Button>
-            <Button onClick={joinWaitlist}>
+            <Button onClick={joinWaitlist} disabled={isJoiningQueue}>
               <Clock className="mr-2 h-4 w-4" />
-              Join Waiting List
+              {isJoiningQueue ? 'Joining...' : 'Join Waiting List'}
             </Button>
           </DialogFooter>
         </DialogContent>

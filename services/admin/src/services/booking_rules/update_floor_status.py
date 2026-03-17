@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import UpdateFloorStatusResponse
 
 GET_FLOOR_QUERY = """
 SELECT floor_id, number, status
@@ -19,7 +20,9 @@ RETURNING floor_id, number, status
 """
 
 
-async def update_floor_status(floor_id: str, status: str, user_id: str) -> dict:
+async def update_floor_status(
+    floor_id: str, status: str, user_id: str
+) -> UpdateFloorStatusResponse:
     """Update the status of a floor (open/closed).
 
     Args:
@@ -28,7 +31,7 @@ async def update_floor_status(floor_id: str, status: str, user_id: str) -> dict:
         user_id: ID of the admin making the update
 
     Returns:
-        A dictionary containing the updated floor details
+        UpdateFloorStatusResponse with updated floor details
     """
     try:
         async with db.transaction() as connection:
@@ -45,11 +48,11 @@ async def update_floor_status(floor_id: str, status: str, user_id: str) -> dict:
                 f"Updated floor {updated_floor['number']} status to '{status}' by admin {user_id}"
             )
 
-            return {
-                "floor_id": updated_floor["floor_id"],
-                "floor_number": updated_floor["number"],
-                "status": updated_floor["status"],
-            }
+            return UpdateFloorStatusResponse(
+                floor_id=updated_floor["floor_id"],
+                floor_number=updated_floor["number"],
+                status=updated_floor["status"],
+            )
 
     except Exception:
         logger.error("Error updating floor status")

@@ -1,8 +1,10 @@
 """Get the recent activity."""
 
+from typing import List
+
 from src.logger import logger
 from src.connectors.db import db
-from src.utils.time_ago import time_ago
+from src.models.responses import NotificationResponse
 
 GET_RECENT_ACTIVITY_QUERY = """
 SELECT 
@@ -25,20 +27,26 @@ LIMIT 7
 """
 
 
-async def get_recent_activity():
+async def get_recent_activity() -> List[NotificationResponse]:
     """Get the 7 most recent activities.
 
     Returns:
-        A list of dictionaries, each containing a notification with relative time.
+        A list of NotificationResponse objects with relative time.
     """
     try:
         result = await db.fetch(GET_RECENT_ACTIVITY_QUERY)
 
         activities = [
-            {
-                **dict(row),
-                "time_ago": time_ago(row["created_at"]),
-            }
+            NotificationResponse(
+                notification_id=row["notification_id"],
+                user_id=row["user_id"],
+                user_name=row["user_name"],
+                entity_type=row["entity_type"],
+                title=row["admin_title"],
+                caption=row["caption"],
+                type=row["type"],
+                created_at=row["created_at"],
+            )
             for row in result
         ]
 

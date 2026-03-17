@@ -10,7 +10,20 @@ import {
   notifyBookingCancellation,
   notifyBookingExtension,
 } from '../services/bookings'
+import { notifyJoinedWaitingList, notifyRemovedFromWaitingList } from '../services/waiting-list'
 import { asyncHandler } from '../utils/async-handler'
+import { validate } from '../middleware/validate'
+import {
+  passwordResetSchema,
+  activationSchema,
+  createNotificationSchema,
+  markAsReadSchema,
+  bookingConfirmationSchema,
+  bookingCancellationSchema,
+  bookingExtensionSchema,
+  waitlistJoinedSchema,
+  waitlistRemovedSchema,
+} from '../schemas/validation'
 import type {
   SendPasswordResetEmailRequest,
   SendActivationEmailRequest,
@@ -26,16 +39,9 @@ const router = express.Router()
  */
 router.post(
   '/password-reset',
+  validate(passwordResetSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { email, name, resetLink } = req.body as SendPasswordResetEmailRequest
-
-    if (!email || !name || !resetLink) {
-      res.status(400).json({
-        success: false,
-        message: 'Email, name, and resetLink are required',
-      })
-      return
-    }
 
     await sendResetPasswordEmail(email, name, resetLink)
 
@@ -52,16 +58,9 @@ router.post(
  */
 router.post(
   '/activation',
+  validate(activationSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { email, name, activationLink } = req.body as SendActivationEmailRequest
-
-    if (!email || !name || !activationLink) {
-      res.status(400).json({
-        success: false,
-        message: 'Email, name, and activationLink are required',
-      })
-      return
-    }
 
     await sendActivationEmail(email, name, activationLink)
 
@@ -86,41 +85,10 @@ router.get('/health', (_req: Request, res: Response) => {
  */
 router.post(
   '/',
+  validate(createNotificationSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { title, adminTitle, caption, type, scope, createdBy, userIds, departmentId, floorId } =
       req.body as CreateNotificationRequest
-
-    if (!title || !scope) {
-      res.status(400).json({
-        success: false,
-        message: 'Title and scope are required',
-      })
-      return
-    }
-
-    if (scope === 'user' && (!userIds || !Array.isArray(userIds) || userIds.length === 0)) {
-      res.status(400).json({
-        success: false,
-        message: 'userIds (non-empty array) is required for user scope',
-      })
-      return
-    }
-
-    if (scope === 'department' && !departmentId) {
-      res.status(400).json({
-        success: false,
-        message: 'departmentId is required for department scope',
-      })
-      return
-    }
-
-    if (scope === 'floor' && !floorId) {
-      res.status(400).json({
-        success: false,
-        message: 'floorId is required for floor scope',
-      })
-      return
-    }
 
     const result = await createNotification({
       title,
@@ -144,17 +112,10 @@ router.post(
  */
 router.put(
   '/:notificationId/read',
+  validate(markAsReadSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const notificationId = req.params.notificationId as string
     const { userId } = req.body as MarkAsReadRequest
-
-    if (!userId) {
-      res.status(400).json({
-        success: false,
-        message: 'userId is required in request body',
-      })
-      return
-    }
 
     const result = await markAsRead({ userId, notificationId })
 
@@ -189,6 +150,7 @@ router.get(
  */
 router.post(
   '/booking/confirmation',
+  validate(bookingConfirmationSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const {
       userId,
@@ -201,14 +163,6 @@ router.post(
       userBookingsPath,
       adminBookingsPath,
     } = req.body
-
-    if (!userId || !email || !name || !lockerNumber || !floorNumber || !startDate || !endDate || !userBookingsPath || !adminBookingsPath) {
-      res.status(400).json({
-        success: false,
-        message: 'All fields are required: userId, email, name, lockerNumber, floorNumber, startDate, endDate, userBookingsPath, adminBookingsPath',
-      })
-      return
-    }
 
     await notifyBookingConfirmation(
       userId,
@@ -235,6 +189,7 @@ router.post(
  */
 router.post(
   '/booking/cancellation',
+  validate(bookingCancellationSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const {
       userId,
@@ -246,15 +201,8 @@ router.post(
       endDate,
       keyStatus,
       keyNumber,
+      adminBookingsPath,
     } = req.body
-
-    if (!userId || !email || !name || !lockerNumber || !floorNumber || !startDate || !endDate || !keyStatus || !keyNumber) {
-      res.status(400).json({
-        success: false,
-        message: 'All fields are required: userId, email, name, lockerNumber, floorNumber, startDate, endDate, keyStatus, keyNumber',
-      })
-      return
-    }
 
     await notifyBookingCancellation(
       userId,
@@ -266,6 +214,7 @@ router.post(
       endDate,
       keyStatus,
       keyNumber,
+      adminBookingsPath,
     )
 
     res.status(200).json({
@@ -281,6 +230,7 @@ router.post(
  */
 router.post(
   '/booking/extension',
+  validate(bookingExtensionSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const {
       userId,
@@ -293,14 +243,6 @@ router.post(
       userBookingsPath,
       adminBookingsPath,
     } = req.body
-
-    if (!userId || !email || !name || !lockerNumber || !floorNumber || !originalEndDate || !newEndDate || !userBookingsPath || !adminBookingsPath) {
-      res.status(400).json({
-        success: false,
-        message: 'All fields are required: userId, email, name, lockerNumber, floorNumber, originalEndDate, newEndDate, userBookingsPath, adminBookingsPath',
-      })
-      return
-    }
 
     await notifyBookingExtension(
       userId,
@@ -317,6 +259,72 @@ router.post(
     res.status(200).json({
       success: true,
       message: 'Booking extension sent successfully',
+    })
+  }),
+)
+
+/**
+ * POST /notifications/waitlist/joined
+ * Send waitlist joined notification and email
+ */
+router.post(
+  '/waitlist/joined',
+  validate(waitlistJoinedSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const {
+      userId,
+      email,
+      name,
+      floorNumber,
+      startDate,
+      endDate,
+    } = req.body
+
+    await notifyJoinedWaitingList(
+      userId,
+      email,
+      name,
+      floorNumber,
+      startDate,
+      endDate,
+    )
+
+    res.status(200).json({
+      success: true,
+      message: 'Waitlist joined notification sent successfully',
+    })
+  }),
+)
+
+/**
+ * POST /notifications/waitlist/removed
+ * Send waitlist removed notification and email
+ */
+router.post(
+  '/waitlist/removed',
+  validate(waitlistRemovedSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const {
+      userId,
+      email,
+      name,
+      floorNumber,
+      startDate,
+      endDate,
+    } = req.body
+
+    await notifyRemovedFromWaitingList(
+      userId,
+      email,
+      name,
+      floorNumber,
+      startDate,
+      endDate,
+    )
+
+    res.status(200).json({
+      success: true,
+      message: 'Waitlist removed notification sent successfully',
     })
   }),
 )

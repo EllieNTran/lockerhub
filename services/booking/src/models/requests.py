@@ -47,3 +47,19 @@ class ExtendBookingRequest(BaseModel):
     """Request model for extending a booking."""
 
     new_end_date: date = Field(..., description="New end date for the booking")
+
+
+class JoinFloorQueueRequest(BaseModel):
+    """Request model for joining a floor queue (waitlist)."""
+
+    floor_id: UUID = Field(..., description="ID of the floor to join the queue for")
+    start_date: date = Field(..., description="Desired start date")
+    end_date: date = Field(..., description="Desired end date")
+
+    @field_validator("end_date")
+    @classmethod
+    def validate_end_date(cls, v: date, info) -> date:
+        """Ensure end_date is not before start_date."""
+        if "start_date" in info.data and v < info.data["start_date"]:
+            raise ValueError("end_date cannot be before start_date")
+        return v

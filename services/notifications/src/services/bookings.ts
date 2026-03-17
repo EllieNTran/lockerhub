@@ -55,6 +55,7 @@ export const notifyBookingConfirmation = async (
     type: 'info',
     scope: 'user',
     userIds: [userId],
+    createdBy: userId,
   })
 
   await sendBookingEmails(
@@ -79,6 +80,7 @@ export const notifyBookingCancellation = async (
   endDate: string,
   keyStatus: string,
   keyNumber: string,
+  adminBookingsPath: string,
 ): Promise<void> => {
   await createNotification({
     entityType: 'booking',
@@ -88,6 +90,7 @@ export const notifyBookingCancellation = async (
     type: 'info',
     scope: 'user',
     userIds: [userId],
+    createdBy: userId,
   })
 
   const hasKey = keyStatus === 'with_employee'
@@ -107,7 +110,7 @@ export const notifyBookingCancellation = async (
     'User booking cancellation',
     'Admin booking cancellation',
     { MESSAGE: userMessage },
-    { MESSAGE: adminMessage },
+    { MESSAGE: adminMessage, ADMIN_BOOKINGS_LINK: adminBookingsPath },
   )
 }
 
@@ -130,6 +133,7 @@ export const notifyBookingExtension = async (
     type: 'success',
     scope: 'user',
     userIds: [userId],
+    createdBy: userId,
   })
 
   await sendBookingEmails(

@@ -8,7 +8,6 @@ from src.models.responses import (
     GetBookingRulesResponse,
     UpdateBookingRulesResponse,
     UpdateFloorStatusResponse,
-    BookingRuleResponse,
 )
 from src.services.booking_rules.get_booking_rules import get_booking_rules
 from src.services.booking_rules.update_booking_rules import update_booking_rules
@@ -22,9 +21,7 @@ async def get_booking_rules_endpoint(_: dict = Depends(get_current_user)):
     """Get all active booking rules."""
     try:
         rules = await get_booking_rules()
-        return GetBookingRulesResponse(
-            rules=[BookingRuleResponse(**rule) for rule in rules]
-        )
+        return GetBookingRulesResponse(rules=rules)
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve booking rules")
 
@@ -36,14 +33,14 @@ async def update_booking_rules_endpoint(
 ):
     """Update booking rules."""
     try:
-        result = await update_booking_rules(
+        rules = await update_booking_rules(
             current_user["user_id"],
             request.max_booking_duration,
             request.max_extension,
             request.advance_booking_window,
             request.allow_same_day_bookings,
         )
-        return UpdateBookingRulesResponse(rules=result["updated_rules"])
+        return UpdateBookingRulesResponse(rules=rules)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
@@ -58,13 +55,8 @@ async def update_floor_status_endpoint(
 ):
     """Update floor status (open/closed)."""
     try:
-        result = await update_floor_status(
+        return await update_floor_status(
             floor_id, request.status, current_user["user_id"]
-        )
-        return UpdateFloorStatusResponse(
-            floor_id=result["floor_id"],
-            floor_number=result["number"],
-            status=result["status"],
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -8,6 +8,7 @@ import {
   deleteBooking,
   getBookingById,
 } from './services/user-bookings'
+import { joinFloorQueue } from './services/waiting-list'
 import { getFloors } from './services/floors'
 import type { UpdateBookingData, ExtendBookingData } from './services/user-bookings'
 import { getAvailableLockers } from './services/available-lockers'
@@ -127,3 +128,17 @@ export const useFloors = () =>
     queryKey: ['floors'],
     queryFn: getFloors,
   })
+
+/**
+ * Join a floor queue (waitlist)
+ */
+export const useJoinFloorQueue = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: joinFloorQueue,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userNotifications'] })
+    },
+  })
+}
