@@ -215,7 +215,17 @@ const BookLocker = () => {
                   <Calendar
                     selected={endDate}
                     onSelect={setEndDate}
-                    disabled={(date) => date < (startDate || new Date()) || date.getDay() === 0 || date.getDay() === 6}
+                    disabled={(date) => {
+                      if (!startDate) return date < new Date() || date.getDay() === 0 || date.getDay() === 6;
+                      
+                      const maxEndDate = new Date(startDate);
+                      maxEndDate.setDate(startDate.getDate() + 2);
+                      
+                      return date < startDate || 
+                             date > maxEndDate || 
+                             date.getDay() === 0 || 
+                             date.getDay() === 6;
+                    }}
                     defaultMonth={endDate || startDate}
                     initialFocus
                     className="p-3 pointer-events-auto"
