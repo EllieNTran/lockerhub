@@ -11,6 +11,8 @@ import {
   getAllLockers,
   getLockerStats,
   markLockerMaintenance,
+  reportLostKey,
+  orderReplacementKey,
   markLockerAvailable,
   updateLockerCoordinates,
   getAllSpecialRequests,
@@ -129,6 +131,32 @@ export const useMarkLockerMaintenance = () => {
   
   return useMutation({
     mutationFn: (lockerId: string) => markLockerMaintenance(lockerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminLockers'] });
+      queryClient.invalidateQueries({ queryKey: ['lockerStats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+    },
+  });
+};
+
+export const useReportLostKey = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (lockerId: string) => reportLostKey(lockerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminLockers'] });
+      queryClient.invalidateQueries({ queryKey: ['lockerStats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+    },
+  });
+};
+
+export const useOrderReplacementKey = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (lockerId: string) => orderReplacementKey(lockerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminLockers'] });
       queryClient.invalidateQueries({ queryKey: ['lockerStats'] });

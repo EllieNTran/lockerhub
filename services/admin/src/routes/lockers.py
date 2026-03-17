@@ -15,6 +15,8 @@ from src.services.lockers.get_locker_availability_stats import (
 )
 from src.services.lockers.mark_locker_maintenance import mark_locker_maintenance
 from src.services.lockers.mark_locker_available import mark_locker_available
+from src.services.lockers.report_lost_key import report_lost_key
+from src.services.lockers.order_replacement_key import order_replacement_key
 from src.services.lockers.update_locker_coordinates import update_locker_coordinates
 
 router = APIRouter(prefix="/lockers", tags=["admin-lockers"])
@@ -53,6 +55,34 @@ async def mark_locker_maintenance_endpoint(
         raise HTTPException(
             status_code=500, detail="Failed to mark locker as maintenance"
         )
+
+
+@router.post("/{locker_id}/lost-key", response_model=LockerStatusResponse)
+async def report_lost_key_endpoint(
+    locker_id: str,
+    _: dict = Depends(get_current_user),
+):
+    """Report a lost key and mark locker as under maintenance."""
+    try:
+        return await report_lost_key(locker_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to report lost key")
+
+
+@router.post("/{locker_id}/order-replacement-key", response_model=LockerStatusResponse)
+async def order_replacement_key_endpoint(
+    locker_id: str,
+    _: dict = Depends(get_current_user),
+):
+    """Order a replacement key for a locker with lost key."""
+    try:
+        return await order_replacement_key(locker_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to order replacement key")
 
 
 @router.post("/{locker_id}/available", response_model=LockerStatusResponse)

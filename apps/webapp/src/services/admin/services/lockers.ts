@@ -35,14 +35,28 @@ export async function getLockerStats(): Promise<LockerStats> {
  * Mark locker as maintenance
  */
 export async function markLockerMaintenance(lockerId: string): Promise<Locker> {
-  return apiClient.put<Locker>(`/admin/lockers/${lockerId}/maintenance`);
+  return apiClient.post<Locker>(`/admin/lockers/${lockerId}/maintenance`);
+}
+
+/**
+ * Report lost key and mark locker as maintenance
+ */
+export async function reportLostKey(lockerId: string): Promise<Locker> {
+  return apiClient.post<Locker>(`/admin/lockers/${lockerId}/lost-key`);
+}
+
+/**
+ * Order replacement key for locker
+ */
+export async function orderReplacementKey(lockerId: string): Promise<Locker> {
+  return apiClient.post<Locker>(`/admin/lockers/${lockerId}/order-replacement-key`);
 }
 
 /**
  * Mark locker as available
  */
 export async function markLockerAvailable(lockerId: string): Promise<Locker> {
-  return apiClient.put<Locker>(`/admin/lockers/${lockerId}/available`);
+  return apiClient.post<Locker>(`/admin/lockers/${lockerId}/available`);
 }
 
 /**

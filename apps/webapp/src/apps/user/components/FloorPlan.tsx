@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import type { Locker, AvailableLocker } from "@/types/locker";
 import LockerCell from "./LockerCell";
-import { FloorLayoutRenderer, getFloorLayout } from "./floor-layouts";
+import { FloorLayoutRenderer, getFloorLayout } from "@/components/floor-layouts";
 
 interface FloorPlanProps {
   lockers: (Locker | AvailableLocker)[];

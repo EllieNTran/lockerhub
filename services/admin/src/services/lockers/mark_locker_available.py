@@ -6,10 +6,13 @@ from src.models.responses import LockerStatusResponse
 
 GET_LOCKER_QUERY = """
 SELECT 
-    locker_id,
-    status
-FROM lockerhub.lockers
-WHERE locker_id = $1
+    l.locker_id,
+    l.status,
+    k.key_number,
+    k.status as key_status
+FROM lockerhub.lockers l
+LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
+WHERE l.locker_id = $1
 """
 
 UPDATE_LOCKER_STATUS_QUERY = """
@@ -17,6 +20,13 @@ UPDATE lockerhub.lockers
 SET status = 'available'
 WHERE locker_id = $1
 RETURNING locker_id, locker_number, status
+"""
+
+UPDATE_KEY_STATUS_QUERY = """
+UPDATE lockerhub.keys
+SET status = 'available'
+WHERE locker_id = $1
+RETURNING key_number, status
 """
 
 
@@ -47,6 +57,10 @@ async def mark_locker_available(locker_id: str) -> LockerStatusResponse:
             updated_locker = await connection.fetchrow(
                 UPDATE_LOCKER_STATUS_QUERY, locker_id
             )
+
+            if locker["key_number"] and locker["key_status"] == "awaiting_replacement":
+                await connection.fetchrow(UPDATE_KEY_STATUS_QUERY, locker_id)
+                logger.info(f"Updated key status to available for locker {locker_id}")
 
             logger.info(
                 f"Marked locker {updated_locker['locker_number']} as available (repaired)"
