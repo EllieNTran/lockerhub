@@ -7,7 +7,6 @@ from src.models.requests import ReviewSpecialRequestRequest
 from src.models.responses import (
     AllSpecialRequestsResponse,
     ReviewSpecialRequestResponse,
-    SpecialRequestDetailResponse,
 )
 from src.services.special_requests.get_all_special_requests import (
     get_all_special_requests,
@@ -24,9 +23,7 @@ async def get_all_special_requests_endpoint(
     """Get all special requests."""
     try:
         requests = await get_all_special_requests()
-        return AllSpecialRequestsResponse(
-            requests=[SpecialRequestDetailResponse(**req) for req in requests]
-        )
+        return AllSpecialRequestsResponse(requests=requests)
     except Exception:
         raise HTTPException(
             status_code=500, detail="Failed to retrieve special requests"

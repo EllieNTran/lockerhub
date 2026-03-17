@@ -1,7 +1,10 @@
 """Get the locker utilisation for each floor."""
 
+from typing import List
+
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import FloorUtilizationResponse
 
 GET_FLOOR_LOCKERS_UTIL_QUERY = """
 SELECT 
@@ -28,17 +31,16 @@ ORDER BY
 """
 
 
-async def get_floor_lockers_util():
+async def get_floor_lockers_util() -> List[FloorUtilizationResponse]:
     """Get the locker utilisation for each floor.
 
     Returns:
-        A list of dictionaries with floor utilization stats including:
-        - floor_id, floor_number, total_lockers, available, occupied, maintenance, utilization_rate
+        A list of FloorUtilizationResponse objects with floor utilization stats.
     """
     try:
         result = await db.fetch(GET_FLOOR_LOCKERS_UTIL_QUERY)
         logger.info("Retrieved locker utilization for floors")
-        return result
+        return [FloorUtilizationResponse(**dict(row)) for row in result]
     except Exception:
         logger.error("Error fetching floor locker utilization")
         raise

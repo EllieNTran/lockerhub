@@ -1,3 +1,10 @@
+/**
+ * Import Lockers from CSV
+ * 
+ * Imports locker data from a CSV file into the database.
+ * This is intended to be run as a one-time script using Facility Management's existing CSV.
+ */
+
 import { parse } from 'csv-parse/sync';
 import { readFileSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';

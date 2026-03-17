@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import DashboardStatsResponse
 
 GET_DASHBOARD_STATS_QUERY = """
 WITH locker_stats AS (
@@ -31,20 +32,16 @@ SELECT * FROM locker_stats, request_stats, booking_stats, user_stats;
 """
 
 
-async def get_dashboard_stats():
+async def get_dashboard_stats() -> DashboardStatsResponse:
     """Get all statistics for the admin dashboard.
 
     Returns:
-        A dictionary containing:
-        - total_lockers, available_lockers, occupied_lockers, maintenance_lockers
-        - total_bookings, active_bookings
-        - pending_requests
-        - total_users
+        DashboardStatsResponse containing all dashboard statistics.
     """
     try:
         result = await db.fetchrow(GET_DASHBOARD_STATS_QUERY)
         logger.info("Retrieved dashboard statistics successfully")
-        return result
+        return DashboardStatsResponse(**dict(result))
     except Exception:
         logger.error("Error fetching dashboard statistics")
         raise

@@ -1,3 +1,10 @@
+/**
+ * Auto Layout Lockers
+ * 
+ * Uses predefined floor layouts to automatically calculate and update the (x, y) coordinates of lockers in the database.
+ * This is intended to be run as a one-time script after locker data has been imported.
+ */
+
 import { Pool } from 'pg';
 import { config } from 'dotenv';
 

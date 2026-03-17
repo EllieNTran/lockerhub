@@ -7,6 +7,7 @@ import {
   MapPin,
   Building2,
   ClipboardList,
+  Clock,
 } from "lucide-react";
 import type { Notification, EntityType } from "@/types/notification";
 
@@ -22,9 +23,18 @@ const entityIcons: Record<NonNullable<EntityType>, typeof Bell> = {
   request: FileText,
   floor: MapPin,
   booking_rule: ClipboardList,
+  waiting_list: Clock,
 };
 
-const unreadColors = {
+type ColorScheme = {
+  bg: string;
+  border: string;
+  iconBg: string;
+  iconColor: string;
+  dot: string;
+};
+
+const unreadColors: Record<NonNullable<EntityType> | "default", ColorScheme> = {
   booking: {
     bg: "bg-purple-foreground/20",
     border: "border-purple-outline/30",
@@ -67,6 +77,13 @@ const unreadColors = {
     iconColor: "text-error",
     dot: "bg-secondary",
   },
+  waiting_list: {
+    bg: "bg-baby-blue-foreground/20",
+    border: "border-baby-blue-outline/30",
+    iconBg: "bg-baby-blue-foreground",
+    iconColor: "text-baby-blue",
+    dot: "bg-secondary",
+  },
   default: {
     bg: "bg-primary-foreground/20",
     border: "border-primary-outline/30",
@@ -76,7 +93,7 @@ const unreadColors = {
   },
 };
 
-const readColors = {
+const readColors: ColorScheme = {
   bg: "bg-background",
   border: "border-grey-outline",
   iconBg: "bg-grey-foreground",

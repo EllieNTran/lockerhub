@@ -3,6 +3,7 @@ import {
   FileText,
   Lock,
 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import AdminLayout from "../layout/AdminLayout";
 import HeroBanner from "@/components/HeroBanner";
 import StatCard from "../components/StatCard";
@@ -25,9 +26,9 @@ const AdminHome = () => {
   const activities: ActivityItem[] = recentActivityData?.activities?.map((activity, index) => ({
     id: index + 1,
     type: mapEntityTypeToActivityType(activity.entity_type),
-    action: activity.action,
-    user: activity.user_name,
-    time: new Date(activity.timestamp),
+    action: activity.title,
+    user: activity.user_name || 'System',
+    time: formatDistanceToNow(new Date(activity.created_at), { addSuffix: true }),
   })) || [];
 
   function mapEntityTypeToActivityType(entityType: string): ActivityItem['type'] {
@@ -36,6 +37,7 @@ const AdminHome = () => {
       'key': 'return',
       'locker': 'admin',
       'request': 'request',
+      'waiting_list': 'waiting_list',
     };
     return mapping[entityType] || 'admin';
   }

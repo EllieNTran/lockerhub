@@ -5,6 +5,7 @@ from asyncpg.exceptions import ExclusionViolationError
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import CreateBookingResponse
 
 CREATE_BOOKING_QUERY = """
 INSERT INTO lockerhub.bookings (
@@ -20,7 +21,7 @@ RETURNING booking_id
 
 async def create_booking(
     user_id: str, locker_id: str, start_date: date, end_date: date
-) -> str:
+) -> CreateBookingResponse:
     """
     Create a new booking for a user (admin override).
 
@@ -38,7 +39,7 @@ async def create_booking(
         end_date: End date of the booking
 
     Returns:
-        The ID of the created booking
+        CreateBookingResponse with the booking ID
 
     Raises:
         ValueError: If there's a locker booking conflict (locker already booked for this period)
@@ -50,7 +51,7 @@ async def create_booking(
         logger.info(
             f"Created booking {booking_id} for user {user_id} and locker {locker_id} ({start_date} to {end_date})"
         )
-        return booking_id
+        return CreateBookingResponse(booking_id=booking_id)
     except ExclusionViolationError:
         logger.warning(
             f"Booking conflict for locker {locker_id} between {start_date} and {end_date}"

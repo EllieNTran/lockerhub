@@ -68,7 +68,9 @@ const MyBookings = () => {
         bookingId: selectedBooking.booking_id,
         data: { new_end_date: format(newEndDate, 'yyyy-MM-dd') },
       });
-      toast.success('Booking extended successfully!');
+      toast.success('Booking Extended', {
+        description: 'Check your email inbox for confirmation.'
+      });
       setExtendOpen(false);
       setSelectedBooking(null);
       setNewEndDate(undefined);
@@ -90,11 +92,15 @@ const MyBookings = () => {
 
     try {
       await cancelBooking.mutateAsync(selectedBooking.booking_id);
-      toast.success('Booking cancelled successfully!');
+      toast.success('Booking Cancelled', {
+        description: 'Check your email inbox for confirmation.'
+      });
       setCancelOpen(false);
       setSelectedBooking(null);
     } catch {
-      toast.error('Failed to cancel booking');
+      toast.error('Failed to cancel booking', {
+        description: 'Please try again later.'
+      });
     }
   };
 
@@ -208,7 +214,7 @@ const MyBookings = () => {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="space-y-3 rounded-lg bg-grey-foreground/30 border border-grey-outline p-4 text-sm">
+            <div className="space-y-3 rounded-lg bg-muted p-4 text-sm">
               <div className="flex justify-between">
                 <span className="text-grey">Locker</span>
                 <span className="font-medium">{selectedBooking?.locker_number}</span>
@@ -283,7 +289,7 @@ const MyBookings = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-3 rounded-lg bg-grey-foreground/30 border border-grey-outline p-4 text-sm">
+          <div className="space-y-3 rounded-lg bg-muted p-4 text-sm">
             <div className="flex justify-between">
               <span className="text-grey">Locker</span>
               <span className="font-medium">{selectedBooking?.locker_number}</span>

@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import LockerStatusResponse
 
 GET_LOCKER_QUERY = """
 SELECT 
@@ -19,14 +20,14 @@ RETURNING locker_id, locker_number, status
 """
 
 
-async def mark_locker_available(locker_id: str) -> dict:
+async def mark_locker_available(locker_id: str) -> LockerStatusResponse:
     """Mark a locker as available after maintenance.
 
     Args:
         locker_id: ID of the locker to mark as available
 
     Returns:
-        A dictionary containing the updated locker details
+        LockerStatusResponse with updated locker details
     """
     try:
         async with db.transaction() as connection:
@@ -51,11 +52,7 @@ async def mark_locker_available(locker_id: str) -> dict:
                 f"Marked locker {updated_locker['locker_number']} as available (repaired)"
             )
 
-            return {
-                "locker_id": updated_locker["locker_id"],
-                "locker_number": updated_locker["locker_number"],
-                "status": updated_locker["status"],
-            }
+            return LockerStatusResponse(**dict(updated_locker))
 
     except Exception:
         logger.error("Error marking locker as available")

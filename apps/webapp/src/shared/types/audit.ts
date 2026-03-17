@@ -10,7 +10,7 @@ export type AuditAction =
   | 'handover'
   | 'return'
 
-export type EntityType = 'booking' | 'locker' | 'key' | 'request' | 'floor' | 'booking_rule'
+export type EntityType = 'booking' | 'locker' | 'key' | 'request' | 'floor' | 'booking_rule' | 'waiting_list'
 
 export interface AuditLog {
   audit_log_id: string

@@ -54,6 +54,8 @@
 
   /* Baby Blue */
   --color-baby-blue: #00BBFC;
+  --color-baby-blue-foreground: #D2F0FA;
+  --color-baby-blue-outline: #69D5FB;
 
   /* Base Colors */
   --color-background: #FAFAFA;

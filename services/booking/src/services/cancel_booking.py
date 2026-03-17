@@ -15,7 +15,7 @@ SELECT
     f.floor_number, 
     b.start_date, 
     b.end_date,
-    k.key_status,
+    k.status as key_status,
     k.key_number
 FROM lockerhub.bookings b
 JOIN lockerhub.users u ON b.user_id = u.user_id
@@ -74,6 +74,7 @@ async def cancel_booking(user_id: str, booking_id: str) -> UpdateBookingResponse
                     "endDate": booking["end_date"].isoformat(),
                     "keyStatus": booking["key_status"],
                     "keyNumber": booking["key_number"],
+                    "adminBookingsPath": "/admin/bookings",
                 },
             )
             logger.info("Cancelled booking")
@@ -82,5 +83,5 @@ async def cancel_booking(user_id: str, booking_id: str) -> UpdateBookingResponse
     except ValueError:
         raise
     except Exception:
-        logger.error("Error cancelling booking}")
+        logger.error("Error cancelling booking")
         raise

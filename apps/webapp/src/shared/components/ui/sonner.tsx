@@ -14,13 +14,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
         classNames: {
           toast:
             "group toast group-[.toaster]:bg-background group-[.toaster]:text-dark-blue group-[.toaster]:border-primary-outline group-[.toaster]:shadow-lg",
+          title: "group-[.toast]:!text-current group-[.toast]:font-semibold text-md",
           success:
-            "group toast group-[.toaster]:!bg-success-foreground group-[.toaster]:!text-success group-[.toaster]:!border-success-outline group-[.toaster]:shadow-lg",
+            "group toast group-[.toaster]:!bg-success-foreground/80 group-[.toaster]:!text-success group-[.toaster]:!border-success-outline group-[.toaster]:shadow-lg",
           error:
-            "group toast group-[.toaster]:!bg-error-foreground group-[.toaster]:!text-error group-[.toaster]:!border-error-outline group-[.toaster]:shadow-lg",
+            "group toast group-[.toaster]:!bg-error-foreground/80 group-[.toaster]:!text-error group-[.toaster]:!border-error-outline group-[.toaster]:shadow-lg",
           info:
-            "group toast group-[.toaster]:!bg-primary-foreground group-[.toaster]:!text-primary group-[.toaster]:!border-primary-outline group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:!text-current group-[.toast]:!opacity-60",
+            "group toast group-[.toaster]:!bg-primary-foreground/80 group-[.toaster]:!text-primary group-[.toaster]:!border-primary-outline group-[.toaster]:shadow-lg",
+          description: "group-[.toast]:!text-dark-blue/80",
           actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-background",
         },

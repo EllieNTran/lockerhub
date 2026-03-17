@@ -96,7 +96,7 @@ export interface QueryResult<T = unknown> {
 // Notification database types
 export type NotificationType = 'info' | 'warning' | 'error' | 'success'
 export type NotificationScope = 'user' | 'department' | 'floor' | 'global'
-export type EntityType = 'booking' | 'locker' | 'key' | 'request' | 'floor' | 'booking_rule'
+export type EntityType = 'booking' | 'locker' | 'key' | 'request' | 'floor' | 'booking_rule' | 'waiting_list'
 
 export interface Notification {
   notification_id: string

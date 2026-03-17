@@ -22,13 +22,14 @@ export interface FloorUtilization {
 }
 
 export interface RecentActivity {
-  activity_id: string;
-  action: string;
+  notification_id: string;
+  user_id: string | null;
+  user_name: string | null;
   entity_type: string;
-  entity_id: string;
-  user_name: string;
-  timestamp: string;
-  details?: Record<string, unknown>;
+  title: string;
+  caption: string | null;
+  type: string;
+  created_at: string;
 }
 
 export interface RecentActivityResponse {

@@ -17,14 +17,7 @@ async def get_audit_logs_endpoint(
 ):
     """Get audit logs with pagination."""
     try:
-        result = await get_audit_logs(page, limit)
-        return AuditLogsResponse(
-            logs=[AuditLogResponse(**log) for log in result["logs"]],
-            total=result["total"],
-            page=result["page"],
-            pages=result["pages"],
-            limit=result["limit"],
-        )
+        return await get_audit_logs(page, limit)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:

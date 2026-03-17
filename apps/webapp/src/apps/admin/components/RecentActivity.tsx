@@ -1,14 +1,13 @@
-import { BookOpen, CalendarDays, FileText, KeyRound, Layers, Lock, ShieldCheck, Users, XCircle } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { BookOpen, CalendarDays, FileText, KeyRound, Layers, Lock, ShieldCheck, Users, XCircle, Clock } from "lucide-react";
 
-export type ActivityType = 'booking' | 'return' | 'admin' | 'cancel' | 'request';
+export type ActivityType = 'booking' | 'return' | 'admin' | 'cancel' | 'request' | 'waiting_list';
 
 export interface ActivityItem {
   id: number;
   type: ActivityType;
   action: string;
   user: string;
-  time: Date;
+  time: string;
 }
 
 interface RecentActivityProps {
@@ -29,6 +28,7 @@ const activityIcon: Record<ActivityType, typeof Lock> = {
   admin: ShieldCheck,
   cancel: XCircle,
   request: FileText,
+  waiting_list: Clock,
 };
 
 const activityColors: Record<ActivityType, ReturnType<typeof createColorScheme>> = {
@@ -37,6 +37,7 @@ const activityColors: Record<ActivityType, ReturnType<typeof createColorScheme>>
   admin: createColorScheme("primary"),
   cancel: createColorScheme("error"),
   request: createColorScheme("pink"),
+  waiting_list: createColorScheme("baby-blue"),
 };
 
 const RecentActivity = ({ activities }: RecentActivityProps) => {
@@ -70,7 +71,7 @@ const RecentActivity = ({ activities }: RecentActivityProps) => {
                     <span className="text-xs text-grey">{item.user}</span>
                     <span className="text-xs text-grey">·</span>
                     <span className="text-xs text-grey">
-                      {formatDistanceToNow(item.time, { addSuffix: true })}
+                      {item.time}
                     </span>
                   </div>
                 </div>

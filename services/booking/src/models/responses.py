@@ -50,6 +50,22 @@ class ExtendBookingResponse(BaseModel):
     status: str
 
 
+class JoinFloorQueueResponse(BaseModel):
+    """Response model for joining a floor queue."""
+
+    floor_queue_id: int
+    request_id: int
+    floor_number: str
+
+
+class ProcessFloorQueuesResponse(BaseModel):
+    """Response model for processing floor queues."""
+
+    success: bool
+    allocations_made: int
+    message: str
+
+
 class LockerResponse(BaseModel):
     """Response model for a locker."""
 

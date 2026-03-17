@@ -4,10 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from src.logger import logger
 from src.middleware.auth import get_current_user
+from src.middleware.api_key import verify_api_key
 from src.models.requests import (
     CreateBookingRequest,
     UpdateBookingRequest,
     ExtendBookingRequest,
+    JoinFloorQueueRequest,
 )
 from src.models.responses import (
     BookingResponse,
@@ -18,6 +20,8 @@ from src.models.responses import (
     AvailableLockersResponse,
     AvailabilityResponse,
     FloorsResponse,
+    JoinFloorQueueResponse,
+    ProcessFloorQueuesResponse,
 )
 from src.services.create_booking import create_booking
 from src.services.cancel_booking import cancel_booking
@@ -28,6 +32,8 @@ from src.services.get_user_bookings import get_user_bookings
 from src.services.get_available_lockers import get_available_lockers
 from src.services.check_locker_availability import check_locker_availability
 from src.services.get_floors import get_floors
+from src.services.join_floor_queue import join_floor_queue
+from src.services.process_floor_queues import process_floor_queues
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -167,3 +173,39 @@ async def check_locker_availability_endpoint(
         )
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to check availability")
+
+
+@router.post("/waitlist/join", response_model=JoinFloorQueueResponse)
+async def join_floor_queue_endpoint(
+    request: JoinFloorQueueRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Join a floor queue (waitlist) for a floor."""
+    try:
+        result = await join_floor_queue(
+            current_user["user_id"],
+            str(request.floor_id),
+            request.start_date,
+            request.end_date,
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+@router.post("/queues/process", response_model=ProcessFloorQueuesResponse)
+async def process_floor_queues_endpoint(_: bool = Depends(verify_api_key)):
+    """
+    Process all floor queues and auto-allocate available lockers.
+
+    This endpoint should be called by a scheduled job (cron) to automatically
+    allocate lockers to users in the waitlist when lockers become available.
+
+    Requires X-API-Key header for authentication.
+    """
+    try:
+        result = await process_floor_queues()
+        return result
+    except Exception as e:
+        logger.error(f"Error in process_floor_queues_endpoint: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process floor queues")

@@ -2,6 +2,7 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import AuditLogsResponse, AuditLogResponse
 
 GET_AUDIT_LOGS_QUERY = """
 SELECT 
@@ -27,7 +28,7 @@ FROM lockerhub.audit_logs;
 """
 
 
-async def get_audit_logs(page: int = 1, limit: int = 12) -> dict:
+async def get_audit_logs(page: int = 1, limit: int = 12) -> AuditLogsResponse:
     """Get audit logs with pagination.
 
     Args:
@@ -35,12 +36,7 @@ async def get_audit_logs(page: int = 1, limit: int = 12) -> dict:
         limit: Number of records per page (default: 12)
 
     Returns:
-        A dictionary containing:
-        - logs: List of audit log records
-        - total: Total number of audit logs
-        - page: Current page number
-        - pages: Total number of pages
-        - limit: Records per page
+        AuditLogsResponse with paginated audit logs
     """
     try:
         offset = (page - 1) * limit
@@ -53,13 +49,13 @@ async def get_audit_logs(page: int = 1, limit: int = 12) -> dict:
 
         logger.info("Retrieved audit logs")
 
-        return {
-            "logs": logs,
-            "total": total,
-            "page": page,
-            "pages": total_pages,
-            "limit": limit,
-        }
+        return AuditLogsResponse(
+            logs=[AuditLogResponse(**dict(log)) for log in logs],
+            total=total,
+            page=page,
+            pages=total_pages,
+            limit=limit,
+        )
 
     except Exception:
         logger.error("Error fetching audit logs")

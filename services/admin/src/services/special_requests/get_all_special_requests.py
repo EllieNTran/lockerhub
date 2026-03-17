@@ -1,7 +1,10 @@
 """Get all special requests."""
 
+from typing import List
+
 from src.logger import logger
 from src.connectors.db import db
+from src.models.responses import SpecialRequestDetailResponse
 
 GET_ALL_SPECIAL_REQUESTS_QUERY = """
 SELECT 
@@ -39,16 +42,16 @@ ORDER BY
 """
 
 
-async def get_all_special_requests():
+async def get_all_special_requests() -> List[SpecialRequestDetailResponse]:
     """Get all special requests.
 
     Returns:
-        A list of dictionaries, each containing a special request.
+        A list of SpecialRequestDetailResponse objects.
     """
     try:
         result = await db.fetch(GET_ALL_SPECIAL_REQUESTS_QUERY)
         logger.info("Retrieved special requests")
-        return result
+        return [SpecialRequestDetailResponse(**dict(row)) for row in result]
     except Exception:
         logger.error("Error fetching special requests")
         raise
