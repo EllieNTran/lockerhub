@@ -17,6 +17,7 @@ import type { Locker } from '@/types/locker'
 import { getZoneFromLockerNumber, getFloorFromLockerNumber } from '@/shared/utils/locker-parser'
 import { useFloors } from "@/services/bookings";
 import { DraggableLocker } from '../components/DraggableLocker'
+import Heading from '@/components/Heading'
 
 const LOCKER_SIZE = 48
 const LOCKER_SPACING = 8
@@ -266,10 +267,10 @@ const LockerConfiguration = () => {
       <div className="w-full space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-dark-blue">Locker Configuration</h2>
-            <p className="text-sm text-grey mt-1">
-              Drag lockers to reposition them within their zones
-            </p>
+            <Heading
+              title="Locker Configuration"
+              description="Drag lockers to reposition them within their zones"
+            />
           </div>
           <div className="flex items-center gap-3">
             <Select value={selectedFloor} onValueChange={setSelectedFloor}>

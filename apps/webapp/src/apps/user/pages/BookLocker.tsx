@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import SearchResults from "@/shared/components/SearchResults";
+import SearchResults from "@/apps/user/components/SearchResults";
 import type { Locker, AvailableLocker } from "@/types/locker";
 import { toast } from "@/components/ui/sonner";
 import Heading from "@/components/Heading";

@@ -1,4 +1,4 @@
-"""Mark a locker as available (repaired after maintenance)."""
+"""Report a lost key for a locker and mark it as under maintenance."""
 
 from src.logger import logger
 from src.connectors.db import db
@@ -15,26 +15,26 @@ LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
 WHERE l.locker_id = $1
 """
 
-UPDATE_LOCKER_STATUS_QUERY = """
-UPDATE lockerhub.lockers
-SET status = 'available'
-WHERE locker_id = $1
-RETURNING locker_id, locker_number, status
-"""
-
 UPDATE_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'available'
+SET status = 'lost'
 WHERE locker_id = $1
 RETURNING key_number, status
 """
 
+UPDATE_LOCKER_STATUS_QUERY = """
+UPDATE lockerhub.lockers
+SET status = 'maintenance'
+WHERE locker_id = $1
+RETURNING locker_id, locker_number, status
+"""
 
-async def mark_locker_available(locker_id: str) -> LockerStatusResponse:
-    """Mark a locker as available after maintenance.
+
+async def report_lost_key(locker_id: str) -> LockerStatusResponse:
+    """Report a lost key for a locker and mark it as under maintenance.
 
     Args:
-        locker_id: ID of the locker to mark as available
+        locker_id: ID of the locker to report a lost key for
 
     Returns:
         LockerStatusResponse with updated locker details
@@ -46,22 +46,21 @@ async def mark_locker_available(locker_id: str) -> LockerStatusResponse:
                 logger.warning("Locker not found")
                 raise ValueError("Locker not found")
 
-            if locker["status"] != "maintenance":
-                logger.warning("Cannot mark locker as available")
-                raise ValueError("Locker must be 'maintenance' to mark as available")
+            if locker["status"] != "available":
+                logger.warning("Cannot report lost key for locker")
+                raise ValueError("Locker must be 'available' to report lost key")
+
+            if locker["key_number"]:
+                await connection.fetchrow(UPDATE_KEY_STATUS_QUERY, locker_id)
 
             updated_locker = await connection.fetchrow(
                 UPDATE_LOCKER_STATUS_QUERY, locker_id
             )
 
-            if locker["key_number"] and locker["key_status"] == "awaiting_replacement":
-                await connection.fetchrow(UPDATE_KEY_STATUS_QUERY, locker_id)
-                logger.info("Updated key status to available")
-
-            logger.info("Marked locker as available (repaired)")
+            logger.info("Reported lost key and marked locker as under maintenance")
 
             return LockerStatusResponse(**dict(updated_locker))
 
     except Exception:
-        logger.error("Error marking locker as available")
+        logger.error("Error reporting lost key and marking locker as under maintenance")
         raise

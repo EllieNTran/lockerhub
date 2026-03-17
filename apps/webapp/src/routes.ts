@@ -11,5 +11,6 @@ export default [
   route("user/special-request", "apps/user/pages/SpecialRequest.tsx"),
   route("user/return-key", "apps/user/pages/ReturnKey.tsx"),
   route("admin", "apps/admin/pages/Home.tsx"),
+  route("admin/lockers", "apps/admin/pages/ManageLockers.tsx"),
   route("admin/locker-configuration", "apps/admin/pages/LockerConfiguration.tsx"),
 ] satisfies RouteConfig;

@@ -23,7 +23,10 @@ SELECT
 FROM lockerhub.lockers l
 INNER JOIN lockerhub.floors f ON l.floor_id = f.floor_id
 LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
-ORDER BY l.locker_number;
+ORDER BY 
+    CAST(REGEXP_REPLACE(f.floor_number, '[^0-9]', '', 'g') AS INTEGER),
+    f.floor_number,
+    l.locker_number;
 """
 
 

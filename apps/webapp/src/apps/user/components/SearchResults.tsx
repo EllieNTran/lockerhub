@@ -3,7 +3,7 @@ import type { Locker, AvailableLocker } from "@/types/locker";
 import { RotateCcw, Map, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SlidingToggle } from "@/components/ui/sliding-toggle";
-import ZoomControls from "./ZoomControls";
+import ZoomControls from "@/components/ZoomControls";
 import FloorPlan from "./FloorPlan";
 import ListView from "./ListView";
 
