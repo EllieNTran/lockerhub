@@ -1,6 +1,9 @@
-import { useState } from 'react';
-import { CalendarDays, Wrench, CircleCheckBig, X, KeyRound, AlertTriangle } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { CalendarDays, Wrench, CircleCheckBig, X, KeyRound, AlertTriangle, Search } from 'lucide-react'
+import { format } from "date-fns";
 import type { Locker } from "@/shared/types";
+import type { User } from "@/types/user";
+import { cn } from "@/shared/utils/cn";
 import {
   Dialog,
   DialogContent,
@@ -9,8 +12,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { DateRangePicker } from "@/components/DateRangePicker";
 import StatusBadge from "@/components/StatusBadge";
-import { useMarkLockerMaintenance, useReportLostKey, useOrderReplacementKey, useMarkLockerAvailable } from "@/services/admin";
+import { useMarkLockerMaintenance, useReportLostKey, useOrderReplacementKey, useMarkLockerAvailable, useAllUsers, useCreateAdminBooking } from "@/services/admin";
 import { toast } from "sonner";
 
 interface ManageLockerDialogProps {
@@ -22,11 +29,64 @@ interface ManageLockerDialogProps {
 
 const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: ManageLockerDialogProps) => {
   const [showMaintenanceOptions, setShowMaintenanceOptions] = useState(false);
+  const [showManualBooking, setShowManualBooking] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   
   const markMaintenanceMutation = useMarkLockerMaintenance();
   const reportLostKeyMutation = useReportLostKey();
   const orderReplacementKeyMutation = useOrderReplacementKey();
   const markAvailableMutation = useMarkLockerAvailable();
+  const createAdminBookingMutation = useCreateAdminBooking();
+  const { data: usersData = [], isLoading: usersLoading } = useAllUsers();
+
+  useEffect(() => {
+    if (isOpen) {
+      setShowMaintenanceOptions(false);
+      setShowManualBooking(false);
+      setUserSearchQuery("");
+      setSelectedUser(null);
+      setShowUserDropdown(false);
+      setStartDate(undefined);
+      setEndDate(undefined);
+    }
+  }, [isOpen]);
+
+  const filteredUsers = usersData.filter((user) => {
+    const query = userSearchQuery.toLowerCase();
+    return (
+      user.employee_name.toLowerCase().includes(query) ||
+      user.staff_number.toLowerCase().includes(query)
+    );
+  });
+
+  const handleManualBookingClick = () => {
+    setShowManualBooking(true);
+  };
+
+  const handleUserSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setUserSearchQuery(newQuery);
+    if (selectedUser && newQuery !== `${selectedUser.staff_number} - ${selectedUser.employee_name}`) {
+      setSelectedUser(null);
+    }
+  };
+
+  const handleInputFocus = () => {
+    setShowUserDropdown(true);
+    if (selectedUser) {
+      setUserSearchQuery("");
+    }
+  };
+
+  const handleUserSelect = (user: User) => {
+    setSelectedUser(user);
+    setUserSearchQuery(`${user.staff_number} - ${user.employee_name}`);
+    setShowUserDropdown(false);
+  };
 
   const handleMaintenanceClick = () => {
     if (!locker?.key_number) {
@@ -79,9 +139,36 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
     }
   };
 
+  const handleCreateBooking = async () => {
+    if (!selectedUser || !startDate || !endDate) {
+      toast.error('Please select a user and date range for the booking');
+      return;
+    }
+
+    try {
+      await createAdminBookingMutation.mutateAsync({
+        user_id: selectedUser.user_id,
+        locker_id: locker.locker_id,
+        start_date: startDate ? format(startDate, 'yyyy-MM-dd') : '',
+        end_date: endDate ? format(endDate, 'yyyy-MM-dd') : '',
+      });
+      toast.success('Booking created successfully');
+      onOpenChange(false);
+      setShowManualBooking(false);
+    } catch {
+      toast.error('Failed to create booking');
+    }
+  };
+
   const handleDialogChange = (open: boolean) => {
     if (!open) {
       setShowMaintenanceOptions(false);
+      setShowManualBooking(false);
+      setUserSearchQuery("");
+      setSelectedUser(null);
+      setShowUserDropdown(false);
+      setStartDate(undefined);
+      setEndDate(undefined);
     }
     onOpenChange(open);
   };
@@ -114,16 +201,89 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
     );
   };
 
+  const renderManualBookingForm = () => {
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="user-search">Select User</Label>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-grey" />
+            <Input
+              id="user-search"
+              placeholder="Search by name or staff number..."
+              value={userSearchQuery}
+              onChange={handleUserSearchChange}
+              onFocus={handleInputFocus}
+              className="pl-10"
+            />
+          </div>
+          {showUserDropdown && (
+            <ScrollArea className={cn(
+              "rounded-md border border-grey-outline",
+              filteredUsers.length > 0 ? "h-[200px]" : "h-auto"
+            )}>
+              {usersLoading ? (
+                <div className="p-4 text-sm text-grey text-center">Loading users...</div>
+              ) : filteredUsers.length > 0 ? (
+                <div className="p-1">
+                  {filteredUsers.map((user) => (
+                    <button
+                      key={user.user_id}
+                      onClick={() => handleUserSelect(user)}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors"
+                    >
+                      <div className="font-medium text-dark-blue">{user.employee_name}</div>
+                      <div className="text-xs text-grey">{user.staff_number}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 text-sm text-grey text-center">No users found</div>
+              )}
+            </ScrollArea>
+          )}
+        </div>
+
+        <DateRangePicker
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          disableWeekends={true}
+          disablePastDates={true}
+          maxDaysRange={2}
+        />
+
+        <Button 
+          variant="default" 
+          className="w-full"
+          onClick={handleCreateBooking}
+          disabled={!selectedUser || !startDate || !endDate || createAdminBookingMutation.isPending}
+        >
+          Create Booking
+        </Button>
+      </div>
+    );
+  };
+
   const renderActions = () => {
     if (showMaintenanceOptions) {
       return renderMaintenanceOptions();
+    }
+
+    if (showManualBooking) {
+      return renderManualBookingForm();
     }
 
     switch (locker?.locker_status) {
       case 'available':
         return (
           <>
-            <Button variant="outline" className="w-full flex items-center justify-start h-12 font-normal">
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center justify-start h-12 font-normal"
+              onClick={handleManualBookingClick}
+            >
               <CalendarDays className="mr-2 h-4 w-4" />
               Create Manual Booking
             </Button>
@@ -191,7 +351,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       <Dialog open={isOpen} onOpenChange={handleDialogChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Locker: {locker?.locker_number}</DialogTitle>
+            <DialogTitle className="text-xl">Locker: {locker?.locker_number}</DialogTitle>
             <DialogDescription className="flex items-center gap-2">
               Current Status:
               <StatusBadge 
@@ -202,7 +362,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm font-medium">
-              {showMaintenanceOptions ? 'Maintenance Reason' : 'Available Actions:'}
+              {showMaintenanceOptions ? 'Maintenance Reason' : showManualBooking ? 'Manual Booking' : 'Available Actions:'}
             </p>
             {renderActions()}
           </div>

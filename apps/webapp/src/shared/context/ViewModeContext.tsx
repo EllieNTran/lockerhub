@@ -14,6 +14,7 @@ const ViewModeContext = createContext<ViewModeContextType>({
   isAdmin: false,
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useViewMode = () => useContext(ViewModeContext);
 
 export const ViewModeProvider = ({ children }: { children: React.ReactNode }) => {

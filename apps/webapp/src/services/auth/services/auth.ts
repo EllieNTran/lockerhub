@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { User } from '@/types/auth';
+import type { AuthUser } from '@/types/auth';
 
 export interface SignupRequest {
   firstName: string;
@@ -17,13 +17,13 @@ export interface LoginRequest {
 }
 
 export interface SignupResponse {
-  user: User;
+  user: AuthUser;
   accessToken: string;
   refreshToken: string;
 }
 
 export interface LoginResponse {
-  user: User;
+  user: AuthUser;
   accessToken: string;
   refreshToken: string;
 }

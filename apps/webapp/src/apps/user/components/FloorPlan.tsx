@@ -117,7 +117,6 @@ const FloorPlan = ({
             LockerComponent={LockerCell}
           />
         ) : (
-          /* Fallback: simple floor outline without layout */
           <div
             className="relative h-full w-full rounded-xl border-2 border-border bg-background/80 p-4"
             style={{

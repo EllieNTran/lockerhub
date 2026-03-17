@@ -8,3 +8,4 @@ export * from './request';
 export * from './booking-rule';
 export * from './department';
 export * from './audit';
+export * from './user';

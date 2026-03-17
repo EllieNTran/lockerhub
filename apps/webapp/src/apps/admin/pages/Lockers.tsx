@@ -30,7 +30,7 @@ const statusColors = {
   reserved: "purple",
 } as const;
 
-const ManageLockers = () => {
+const Lockers = () => {
   const [totalLockers, setTotalLockers] = useState<number>(0);
   const [availableLockers, setAvailableLockers] = useState<number>(0);
   const [maintenanceLockers, setMaintenanceLockers] = useState<number>(0);
@@ -87,7 +87,7 @@ const ManageLockers = () => {
     <AdminLayout>
       <main className="w-full space-y-6">
         <Heading
-          title="Manage Lockers"
+          title="Lockers"
           description="View, search and update locker statuses."
         />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -186,7 +186,7 @@ const ManageLockers = () => {
                 <TableHead>Location</TableHead>
                 <TableHead className="w-45">Locker Status</TableHead>
                 <TableHead>Key Number</TableHead>
-                <TableHead>Key Status</TableHead>
+                <TableHead className="w-65">Key Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -255,4 +255,4 @@ const ManageLockers = () => {
   );
 };
 
-export default ManageLockers;
+export default Lockers;

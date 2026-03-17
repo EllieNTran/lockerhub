@@ -52,12 +52,8 @@ async def confirm_key_return(booking_id: str) -> KeyReturnResponse:
                 raise ValueError("Booking not found")
 
             if booking["status"] != "active":
-                logger.warning(
-                    f"Booking {booking_id} is not in 'active' status (current: {booking['status']})"
-                )
-                raise ValueError(
-                    f"Booking must be 'active' to confirm RETURN (current: {booking['status']})"
-                )
+                logger.warning("Booking is not in 'active' status")
+                raise ValueError("Booking must be 'active' to confirm RETURN")
 
             key = await connection.fetchrow(
                 UPDATE_KEY_STATUS_QUERY, booking["locker_id"]
@@ -70,17 +66,13 @@ async def confirm_key_return(booking_id: str) -> KeyReturnResponse:
                 await connection.execute(
                     UPDATE_REQUEST_STATUS_QUERY, booking["special_request_id"]
                 )
-                logger.info(
-                    f"Marked special request {booking['special_request_id']} as completed"
-                )
+                logger.info("Marked special request as completed")
 
             updated_booking = await connection.fetchrow(
                 UPDATE_BOOKING_STATUS_QUERY, booking_id
             )
 
-            logger.info(
-                f"Confirmed key return for booking {booking_id}, key {key['key_number']}"
-            )
+            logger.info("Confirmed key return for booking")
 
             return KeyReturnResponse(
                 booking_id=updated_booking["booking_id"],

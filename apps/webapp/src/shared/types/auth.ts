@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'user'
 
-export interface User {
+export interface AuthUser {
   user_id: string
   first_name: string
   last_name: string

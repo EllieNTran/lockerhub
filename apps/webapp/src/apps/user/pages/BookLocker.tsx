@@ -2,15 +2,9 @@ import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import UserLayout from "../layout/UserLayout";
 import { format } from "date-fns";
-import { CalendarIcon, Building2, CheckCircle2, Clock, Users } from "lucide-react";
-import { cn } from "@/shared/utils/cn";
+import { Building2, CheckCircle2, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { DateRangePicker } from "@/components/DateRangePicker";
 import {
   Select,
   SelectContent,
@@ -78,13 +72,6 @@ const BookLocker = () => {
   const handleSelectLocker = (locker: Locker | AvailableLocker) => {
     if ('is_available' in locker && locker.is_available) {
       setSelectedLocker(locker as AvailableLocker);
-    }
-  };
-
-  const handleStartDateChange = (date: Date | undefined) => {
-    setStartDate(date);
-    if (date && endDate && date > endDate) {
-      setEndDate(undefined);
     }
   };
 
@@ -169,70 +156,15 @@ const BookLocker = () => {
           />
 
           <div className="mt-5 flex flex-wrap items-end gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-grey">Start Date</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[180px] justify-start text-left font-normal",
-                      !startDate && "text-grey"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "MMM d, yyyy") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    selected={startDate}
-                    onSelect={handleStartDateChange}
-                    disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-grey">End Date</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[180px] justify-start text-left font-normal",
-                      !endDate && "text-grey"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "MMM d, yyyy") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    disabled={(date) => {
-                      if (!startDate) return date < new Date() || date.getDay() === 0 || date.getDay() === 6;
-                      
-                      const maxEndDate = new Date(startDate);
-                      maxEndDate.setDate(startDate.getDate() + 2);
-                      
-                      return date < startDate || 
-                             date > maxEndDate || 
-                             date.getDay() === 0 || 
-                             date.getDay() === 6;
-                    }}
-                    defaultMonth={endDate || startDate}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+            <DateRangePicker
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              disableWeekends={true}
+              disablePastDates={true}
+              maxDaysRange={2}
+            />
 
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-grey">Floor</label>

@@ -21,6 +21,8 @@ import {
   updateBookingRules,
   updateFloorStatus,
   getAuditLogs,
+  getAllUsers,
+  getUser,
 } from './index';
 import type {
   CreateAdminBookingData,
@@ -249,4 +251,18 @@ export const useAuditLogs = (params?: GetAuditLogsParams) =>
     queryKey: ['auditLogs', params],
     queryFn: () => getAuditLogs(params),
     staleTime: 60 * 1000, // 1 minute
+  });
+
+// Users Hooks
+export const useAllUsers = () =>
+  useQuery({
+    queryKey: ['adminUsers'],
+    queryFn: getAllUsers,
+  });
+
+export const useUser = (user_id: string) =>
+  useQuery({
+    queryKey: ['adminUser', user_id],
+    queryFn: () => getUser(user_id),
+    enabled: !!user_id,
   });
