@@ -1,2 +1,2 @@
 export * from './hooks';
-export * from './user-notifications';
+export * from './services/user-notifications';

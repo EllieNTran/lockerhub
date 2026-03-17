@@ -249,7 +249,6 @@ const LockerConfiguration = () => {
   const handleReset = () => {
     setLockers(JSON.parse(JSON.stringify(originalLockers)))
     setHasChanges(false)
-    toast.info('Changes reset')
   }
 
   if (lockersLoading || floorsLoading) {

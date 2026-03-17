@@ -23,7 +23,7 @@ const Home = () => {
   const navigate = useNavigate();
   const userId = getUserIdFromToken() || '';
   
-  const { data: notificationsData, isLoading: isLoadingNotifications } = useUserNotifications(userId);
+  const { data: notificationsData, isLoading: isLoadingNotifications } = useUserNotifications(userId, true);
   const notifications = notificationsData?.notifications || [];
   const unreadCount = notificationsData?.unread || 0;
   
