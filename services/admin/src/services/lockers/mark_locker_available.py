@@ -47,12 +47,8 @@ async def mark_locker_available(locker_id: str) -> LockerStatusResponse:
                 raise ValueError("Locker not found")
 
             if locker["status"] != "maintenance":
-                logger.warning(
-                    f"Cannot mark locker {locker_id} as available: current status is '{locker['status']}'"
-                )
-                raise ValueError(
-                    f"Locker must be 'maintenance' to mark as available (current: {locker['status']})"
-                )
+                logger.warning("Cannot mark locker as available")
+                raise ValueError("Locker must be 'maintenance' to mark as available")
 
             updated_locker = await connection.fetchrow(
                 UPDATE_LOCKER_STATUS_QUERY, locker_id
@@ -60,11 +56,9 @@ async def mark_locker_available(locker_id: str) -> LockerStatusResponse:
 
             if locker["key_number"] and locker["key_status"] == "awaiting_replacement":
                 await connection.fetchrow(UPDATE_KEY_STATUS_QUERY, locker_id)
-                logger.info(f"Updated key status to available for locker {locker_id}")
+                logger.info("Updated key status to available")
 
-            logger.info(
-                f"Marked locker {updated_locker['locker_number']} as available (repaired)"
-            )
+            logger.info("Marked locker as available (repaired)")
 
             return LockerStatusResponse(**dict(updated_locker))
 
