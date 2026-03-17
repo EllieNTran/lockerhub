@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getUserNotifications,
   markNotificationAsRead,
-} from './user-notifications';
+} from './services/user-notifications';
 
 /**
  * Fetch user's notifications

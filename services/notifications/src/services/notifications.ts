@@ -55,11 +55,12 @@ const GET_USER_NOTIFICATIONS_QUERY = `
     INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
     WHERE b.status NOT IN ('cancelled', 'expired')
   ) user_floors ON user_floors.user_id = $1
-  WHERE 
+  WHERE (
     (n.scope = 'user' AND un.user_id = $1)
     OR (n.scope = 'department' AND n.target_department_id = u.department_id)
     OR (n.scope = 'floor' AND n.target_floor_id = user_floors.floor_id)
     OR (n.scope = 'global')
+  )
 `
 
 const COUNT_UNREAD_NOTIFICATIONS_QUERY = `
