@@ -19,6 +19,7 @@ interface DateRangePickerProps {
   disablePastDates?: boolean;
   maxDaysRange?: number;
   className?: string;
+  labelClassName?: string;
 }
 
 export const DateRangePicker = ({
@@ -30,6 +31,7 @@ export const DateRangePicker = ({
   disablePastDates = false,
   maxDaysRange,
   className,
+  labelClassName,
 }: DateRangePickerProps) => {
   const handleStartDateChange = (date: Date | undefined) => {
     onStartDateChange(date);
@@ -74,8 +76,8 @@ export const DateRangePicker = ({
 
   return (
     <div className={cn("grid grid-cols-2 gap-4", className)}>
-      <div className="space-y-2">
-        <Label>Start Date</Label>
+      <div>
+        <Label className={labelClassName}>Start Date</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -102,7 +104,7 @@ export const DateRangePicker = ({
       </div>
 
       <div className="space-y-2">
-        <Label>End Date</Label>
+        <Label className={labelClassName}>End Date</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button

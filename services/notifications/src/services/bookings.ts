@@ -156,13 +156,14 @@ export const notifyKeyReturnReminder = async (
   floorNumber: string,
   startDate: string,
   endDate: string,
+  keyNumber: string,
   keyReturnPath: string,
 ): Promise<void> => {
   await createNotification({
     entityType: 'key',
     title: 'Key Return Due Today',
     adminTitle: `Key return reminder for Locker ${lockerNumber}`,
-    caption: `The key for Locker ${lockerNumber} on Floor ${floorNumber} is due for return by ${endDate}.`,
+    caption: `The key ${keyNumber} for Locker ${lockerNumber} on Floor ${floorNumber} is due for return by ${endDate}.`,
     type: 'warning',
     scope: 'user',
     userIds: [userId],
@@ -171,7 +172,7 @@ export const notifyKeyReturnReminder = async (
 
   await sendEmail(
     email,
-    { NAME: name, LOCKER_NUMBER: lockerNumber, FLOOR: floorNumber, START_DATE: startDate, END_DATE: endDate, KEY_RETURN_LINK: keyReturnPath },
+    { NAME: name, LOCKER_NUMBER: lockerNumber, FLOOR: floorNumber, START_DATE: startDate, END_DATE: endDate, KEY_NUMBER: keyNumber, KEY_RETURN_LINK: keyReturnPath },
     'key-return-reminder-user',
     'Key Return Reminder',
   )

@@ -281,6 +281,7 @@ router.post(
       floorNumber,
       startDate,
       endDate,
+      keyNumber,
       keyReturnPath,
     } = req.body
 
@@ -292,6 +293,7 @@ router.post(
       floorNumber,
       startDate,
       endDate,
+      keyNumber,
       keyReturnPath,
     )
 

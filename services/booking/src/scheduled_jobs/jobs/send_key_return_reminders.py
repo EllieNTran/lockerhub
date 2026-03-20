@@ -11,15 +11,18 @@ SELECT
     b.booking_id,
     b.user_id,
     b.locker_id,
+    b.start_date,
     b.end_date,
     u.email,
     u.name,
     l.locker_number,
-    f.floor_number
+    f.floor_number,
+    k.key_number
 FROM lockerhub.bookings b
 INNER JOIN lockerhub.users u ON b.user_id = u.user_id
 INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
 INNER JOIN lockerhub.floors f ON l.floor_id = f.floor_id
+LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
 WHERE b.end_date = $1
     AND b.status = 'active'
     AND l.status IN ('occupied', 'reserved')
@@ -64,6 +67,7 @@ async def send_key_return_reminders():
                     "floorNumber": booking["floor_number"],
                     "startDate": booking["start_date"].isoformat(),
                     "endDate": booking["end_date"].isoformat(),
+                    "keyNumber": booking["key_number"] or "Unknown",
                     "keyReturnPath": "/user/return-key",
                 }
 
