@@ -1,6 +1,5 @@
 import type { Request } from 'express'
 
-// User types
 export interface User {
   userId: string
   email: string
@@ -9,7 +8,6 @@ export interface User {
   scope: string
 }
 
-// JWT types
 export interface DecodedToken {
   userId: string
   email: string
@@ -25,7 +23,6 @@ export interface DecodedToken {
   iat: number
 }
 
-// JWKS types
 export interface JWK {
   kty: string
   kid: string
@@ -39,7 +36,6 @@ export interface JWKS {
   keys: JWK[]
 }
 
-// Error types
 export interface AppError extends Error {
   status?: number
   statusCode?: number
@@ -57,12 +53,11 @@ export interface AuthenticatedRequest extends Request {
   user?: User
 }
 
-// JWT verification options
 export interface JWTVerifyOptions {
   audience?: string | string[]
   issuer?: string
 }
-// Notification types
+
 export interface SendPasswordResetEmailRequest {
   email: string
   name: string
@@ -85,7 +80,6 @@ export interface SendActivationEmailResponse {
   message: string
 }
 
-// Database query result types
 export interface QueryResult<T = unknown> {
   rows: T[];
   rowCount: number | null;
@@ -93,7 +87,6 @@ export interface QueryResult<T = unknown> {
   fields: unknown[];
 }
 
-// Notification database types
 export type NotificationType = 'info' | 'warning' | 'error' | 'success'
 export type NotificationScope = 'user' | 'department' | 'floor' | 'global'
 export type EntityType = 'booking' | 'locker' | 'key' | 'request' | 'floor' | 'booking_rule' | 'waiting_list'
@@ -127,7 +120,6 @@ export interface NotificationWithReadStatus extends Notification {
   user_notification_created_at: Date
 }
 
-// Notification service types
 export interface CreateNotificationRequest {
   title: string
   adminTitle?: string
@@ -135,7 +127,7 @@ export interface CreateNotificationRequest {
   type?: NotificationType
   entityType?: EntityType
   scope: NotificationScope
-  createdBy?: string
+  createdBy?: string | null
   userIds?: string[]
   departmentId?: string
   floorId?: string

@@ -9,7 +9,6 @@ from .special_requests import router as special_requests_router
 from .booking_rules import router as rules_router
 from .audit import router as audit_router
 from .users import router as users_router
-from .scheduled_jobs import router as scheduled_jobs_router
 
 router = APIRouter(prefix="/admin")
 
@@ -20,4 +19,3 @@ router.include_router(special_requests_router)
 router.include_router(rules_router)
 router.include_router(audit_router)
 router.include_router(users_router)
-router.include_router(scheduled_jobs_router)

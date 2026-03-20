@@ -13,7 +13,7 @@ export const sendResetPasswordEmail = async (
       RESET_LINK: resetLink,
     },
     'password-reset',
-    'Password reset',
+    'Password Reset',
   )
 }
 
@@ -30,6 +30,6 @@ export const sendActivationEmail = async (
       ACTIVATION_LINK: activationLink,
     },
     'account-activation',
-    'Account activation',
+    'Account Activation',
   )
 }

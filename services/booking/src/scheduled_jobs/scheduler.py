@@ -6,6 +6,7 @@ from apscheduler.triggers.cron import CronTrigger
 from src.logger import logger
 from .jobs.update_booking_statuses import update_booking_statuses
 from .jobs.expire_overdue_bookings import expire_overdue_bookings
+from .jobs.send_key_return_reminders import send_key_return_reminders
 
 scheduler = AsyncIOScheduler()
 
@@ -32,6 +33,17 @@ def configure_jobs():
     )
     logger.info(
         "Configured scheduled job: expire_overdue_bookings (runs daily at midnight)"
+    )
+
+    scheduler.add_job(
+        send_key_return_reminders,
+        trigger=CronTrigger(hour=9, minute=0),
+        id="send_key_return_reminders",
+        name="Send key return reminder emails for bookings ending today",
+        replace_existing=True,
+    )
+    logger.info(
+        "Configured scheduled job: send_key_return_reminders (runs daily at 9:00 AM)"
     )
 
 

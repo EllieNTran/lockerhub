@@ -63,8 +63,8 @@ export const notifyBookingConfirmation = async (
     { name, lockerNumber, floorNumber, startDate, endDate },
     'locker-booking-confirmation-user',
     'locker-booking-confirmation-admin',
-    'User booking confirmation',
-    'Admin booking confirmation',
+    'User Booking Confirmation',
+    'Admin Booking Confirmation',
     { BOOKINGS_LINK: `${WEBAPP_URL}${userBookingsPath}` },
     { ADMIN_BOOKINGS_LINK: `${WEBAPP_URL}${adminBookingsPath}` },
   )
@@ -107,8 +107,8 @@ export const notifyBookingCancellation = async (
     { name, lockerNumber, floorNumber, startDate, endDate },
     'locker-booking-cancellation-user',
     'locker-booking-cancellation-admin',
-    'User booking cancellation',
-    'Admin booking cancellation',
+    'User Booking Cancellation',
+    'Admin Booking Cancellation',
     { MESSAGE: userMessage },
     { MESSAGE: adminMessage, ADMIN_BOOKINGS_LINK: adminBookingsPath },
   )
@@ -141,9 +141,38 @@ export const notifyBookingExtension = async (
     { name, lockerNumber, floorNumber, endDate: newEndDate },
     'extended-locker-booking-user',
     'extended-locker-booking-admin',
-    'Booking extension',
-    'Booking extension',
+    'Booking Extension',
+    'Booking Extension',
     { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, BOOKINGS_LINK: `${WEBAPP_URL}${userBookingsPath}` },
     { ORIGINAL_END_DATE: originalEndDate, NEW_END_DATE: newEndDate, ADMIN_BOOKINGS_LINK: `${WEBAPP_URL}${adminBookingsPath}` },
+  )
+}
+
+export const notifyKeyReturnReminder = async (
+  userId: string,
+  email: string,
+  name: string,
+  lockerNumber: string,
+  floorNumber: string,
+  startDate: string,
+  endDate: string,
+  keyReturnPath: string,
+): Promise<void> => {
+  await createNotification({
+    entityType: 'key',
+    title: 'Key Return Due Today',
+    adminTitle: `Key return reminder for Locker ${lockerNumber}`,
+    caption: `The key for Locker ${lockerNumber} on Floor ${floorNumber} is due for return by ${endDate}.`,
+    type: 'warning',
+    scope: 'user',
+    userIds: [userId],
+    createdBy: null,
+  })
+
+  await sendEmail(
+    email,
+    { NAME: name, LOCKER_NUMBER: lockerNumber, FLOOR: floorNumber, START_DATE: startDate, END_DATE: endDate, KEY_RETURN_LINK: keyReturnPath },
+    'key-return-reminder-user',
+    'Key Return Reminder',
   )
 }
