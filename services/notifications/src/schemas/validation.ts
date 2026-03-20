@@ -2,18 +2,18 @@ import { z } from 'zod'
 
 export const passwordResetSchema = z.object({
   email: z.email(),
-  name: z.string().min(1),
+  name: z.string(),
   resetLink: z.url(),
 })
 
 export const activationSchema = z.object({
   email: z.email(),
-  name: z.string().min(1),
+  name: z.string(),
   activationLink: z.url(),
 })
 
 export const createNotificationSchema = z.object({
-  title: z.string().min(1),
+  title: z.string(),
   adminTitle: z.string().optional(),
   caption: z.string().optional(),
   type: z.enum(['info', 'success', 'warning', 'error']).optional(),
@@ -32,56 +32,57 @@ export const markAsReadSchema = z.object({
 export const bookingConfirmationSchema = z.object({
   userId: z.uuid(),
   email: z.email(),
-  name: z.string().min(1),
-  lockerNumber: z.string().min(1),
-  floorNumber: z.string().min(1),
+  name: z.string(),
+  lockerNumber: z.string(),
+  floorNumber: z.string(),
   startDate: z.iso.date(),
   endDate: z.iso.date(),
-  userBookingsPath: z.string().min(1),
-  adminBookingsPath: z.string().min(1),
+  userBookingsPath: z.string(),
+  adminBookingsPath: z.string(),
 })
 
 export const bookingCancellationSchema = z.object({
   userId: z.uuid(),
   email: z.email(),
-  name: z.string().min(1),
-  lockerNumber: z.string().min(1),
-  floorNumber: z.string().min(1),
+  name: z.string(),
+  lockerNumber: z.string(),
+  floorNumber: z.string(),
   startDate: z.iso.date(),
   endDate: z.iso.date(),
-  keyStatus: z.string().min(1),
-  keyNumber: z.string().min(1),
-  adminBookingsPath: z.string().min(1),
+  keyStatus: z.string(),
+  keyNumber: z.string(),
+  adminBookingsPath: z.string(),
 })
 
 export const bookingExtensionSchema = z.object({
   userId: z.uuid(),
   email: z.email(),
-  name: z.string().min(1),
-  lockerNumber: z.string().min(1),
-  floorNumber: z.string().min(1),
+  name: z.string(),
+  lockerNumber: z.string(),
+  floorNumber: z.string(),
   originalEndDate: z.iso.date(),
   newEndDate: z.iso.date(),
-  userBookingsPath: z.string().min(1),
-  adminBookingsPath: z.string().min(1),
+  userBookingsPath: z.string(),
+  adminBookingsPath: z.string(),
 })
 
 export const keyReturnSchema = z.object({
   userId: z.uuid(),
   email: z.email(),
-  name: z.string().min(1),
-  lockerNumber: z.string().min(1),
-  floorNumber: z.string().min(1),
+  name: z.string(),
+  lockerNumber: z.string(),
+  floorNumber: z.string(),
   startDate: z.iso.date(),
   endDate: z.iso.date(),
-  keyReturnPath: z.string().min(1),
+  keyNumber: z.string(),
+  keyReturnPath: z.string(),
 })
 
 export const waitlistJoinedSchema = z.object({
   userId: z.uuid(),
   email: z.email(),
-  name: z.string().min(1),
-  floorNumber: z.string().min(1),
+  name: z.string(),
+  floorNumber: z.string(),
   startDate: z.iso.date(),
   endDate: z.iso.date(),
 })
@@ -89,8 +90,8 @@ export const waitlistJoinedSchema = z.object({
 export const waitlistRemovedSchema = z.object({
   userId: z.uuid(),
   email: z.email(),
-  name: z.string().min(1),
-  floorNumber: z.string().min(1),
+  name: z.string(),
+  floorNumber: z.string(),
   startDate: z.iso.date(),
   endDate: z.iso.date(),
 })

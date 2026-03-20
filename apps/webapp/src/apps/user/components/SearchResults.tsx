@@ -18,13 +18,19 @@ type ViewMode = "floor" | "list";
 const STORAGE_KEY = "locker-view-mode";
 
 const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsProps) => {
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return (saved === "floor" || saved === "list") ? saved : "floor";
-  });
+  const [viewMode, setViewMode] = useState<ViewMode>("floor");
   const [selectedLockerId, setSelectedLockerId] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === "floor" || saved === "list") {
+        setViewMode(saved);
+      }
+    }
+  }, []);
 
   const legend = [
     { classes: 'border-success bg-success/30', label: 'Available' },
@@ -34,7 +40,9 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
   ];
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, viewMode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, viewMode);
+    }
   }, [viewMode]);
 
   const handleSelectLocker = (locker: Locker | AvailableLocker) => {

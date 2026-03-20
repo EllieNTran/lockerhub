@@ -164,9 +164,10 @@ const BookLocker = () => {
               disableWeekends={true}
               disablePastDates={true}
               maxDaysRange={2}
+              labelClassName="text-xs font-medium text-grey"
             />
 
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label className="block text-xs font-medium text-grey">Floor</label>
               <Select value={selectedFloorId} onValueChange={setSelectedFloorId} disabled={floorsLoading}>
                 <SelectTrigger className="w-[180px]">
@@ -194,7 +195,7 @@ const BookLocker = () => {
           </div>
         </div>
 
-        <div className="mb-6 flex items-center gap-6 text-sm">
+        <div className="mb-3 flex items-center gap-6 text-sm">
           <span className="text-grey">
             <span className="font-semibold text-dark-blue">Floor {selectedFloor?.floor_number}</span>
             {startDate && endDate && (

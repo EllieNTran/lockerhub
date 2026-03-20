@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import Header from "@/components/Header";
+import ProtectedRoute from "@/shared/components/ProtectedRoute";
 
 const navItems = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard, end: true },
@@ -31,9 +32,10 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <div className="flex flex-1">
+    <ProtectedRoute requiredRole="admin">
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex flex-1">
 
         <aside className="w-60 shrink-0 border-r border-grey/30 bg-card flex flex-col">
           <div className="px-4 py-4 border-b border-grey/30">
@@ -73,6 +75,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         </main>
       </div>
     </div>
+    </ProtectedRoute>
   );
 };
 
