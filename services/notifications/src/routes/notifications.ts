@@ -9,6 +9,7 @@ import {
   notifyBookingConfirmation,
   notifyBookingCancellation,
   notifyBookingExtension,
+  notifyKeyReturnReminder,
 } from '../services/bookings'
 import { notifyJoinedWaitingList, notifyRemovedFromWaitingList } from '../services/waiting-list'
 import { asyncHandler } from '../utils/async-handler'
@@ -21,6 +22,7 @@ import {
   bookingConfirmationSchema,
   bookingCancellationSchema,
   bookingExtensionSchema,
+  keyReturnSchema,
   waitlistJoinedSchema,
   waitlistRemovedSchema,
 } from '../schemas/validation'
@@ -259,6 +261,43 @@ router.post(
     res.status(200).json({
       success: true,
       message: 'Booking extension sent successfully',
+    })
+  }),
+)
+
+/**
+ * POST /booking/key-return-reminder
+ * Send key return reminder notification and email
+ */
+router.post(
+  '/booking/key-return-reminder',
+  validate(keyReturnSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const {
+      userId,
+      email,
+      name,
+      lockerNumber,
+      floorNumber,
+      startDate,
+      endDate,
+      keyReturnPath,
+    } = req.body
+
+    await notifyKeyReturnReminder(
+      userId,
+      email,
+      name,
+      lockerNumber,
+      floorNumber,
+      startDate,
+      endDate,
+      keyReturnPath,
+    )
+
+    res.status(200).json({
+      success: true,
+      message: 'Key return reminder sent successfully',
     })
   }),
 )

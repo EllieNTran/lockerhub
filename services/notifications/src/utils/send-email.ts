@@ -12,7 +12,7 @@ const sendEmail = async (
 ): Promise<void> => {
   const emailPayload = {
     from: 'LockerHub <onboarding@resend.dev>',
-    to: 'ellie.tran18@gmail.com',
+    to: 'ellie.tran18@gmail.com', // Change to recipientEmail in production
     template: {
       id: templateId,
       variables: {

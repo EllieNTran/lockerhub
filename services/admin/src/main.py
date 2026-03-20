@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 from src.connectors.db import db
 from src.middleware.auth import fetch_jwks
 from src.routes import router as admin_router
-from src.scheduled_jobs import start_scheduler, shutdown_scheduler
 from src.logger import logger
 
 
@@ -15,11 +14,9 @@ async def lifespan(app: FastAPI):
     logger.info("Starting admin service...")
     await db.connect()
     await fetch_jwks()  # Fetch JWKS at startup
-    start_scheduler()  # Start scheduled jobs
     yield
     # Shutdown
     logger.info("Shutting down admin service...")
-    shutdown_scheduler()  # Shutdown scheduled jobs
     await db.disconnect()
 
 

@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from src.connectors.db import db
 from src.middleware.auth import fetch_jwks
 from src.routes.bookings import router as bookings_router
+from src.routes.scheduled_jobs import router as scheduled_jobs_router
+from src.scheduled_jobs.scheduler import start_scheduler, shutdown_scheduler
 from src.logger import logger
 
 
@@ -14,9 +16,11 @@ async def lifespan(app: FastAPI):
     logger.info("Starting booking service...")
     await db.connect()
     await fetch_jwks()  # Fetch JWKS at startup
+    start_scheduler()  # Start scheduled jobs
     yield
     # Shutdown
     logger.info("Shutting down booking service...")
+    shutdown_scheduler()
     await db.disconnect()
 
 
@@ -28,6 +32,7 @@ app = FastAPI(
 )
 
 app.include_router(bookings_router)
+app.include_router(scheduled_jobs_router)
 
 
 @app.get("/health")

@@ -19,7 +19,7 @@ export const createNotificationSchema = z.object({
   type: z.enum(['info', 'success', 'warning', 'error']).optional(),
   entityType: z.string().optional(),
   scope: z.enum(['user', 'department', 'floor', 'global']),
-  createdBy: z.uuid().optional(),
+  createdBy: z.uuid().nullable().optional(),
   userIds: z.array(z.uuid()).optional(),
   departmentId: z.uuid().optional(),
   floorId: z.uuid().optional(),
@@ -64,6 +64,17 @@ export const bookingExtensionSchema = z.object({
   newEndDate: z.iso.date(),
   userBookingsPath: z.string().min(1),
   adminBookingsPath: z.string().min(1),
+})
+
+export const keyReturnSchema = z.object({
+  userId: z.uuid(),
+  email: z.email(),
+  name: z.string().min(1),
+  lockerNumber: z.string().min(1),
+  floorNumber: z.string().min(1),
+  startDate: z.iso.date(),
+  endDate: z.iso.date(),
+  keyReturnPath: z.string().min(1),
 })
 
 export const waitlistJoinedSchema = z.object({

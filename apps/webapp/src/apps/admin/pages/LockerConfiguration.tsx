@@ -309,7 +309,7 @@ const LockerConfiguration = () => {
           </div>
         </div>
 
-        <div className="rounded-xl border border-grey-outline bg-card p-6 shadow-card">
+        <div className="rounded-xl border border-grey-outline bg-white p-6 shadow-sm">
           <p className="text-sm text-dark-blue mb-4">
             Floor {selectedFloor}
             {' · '}

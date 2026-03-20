@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     APP_HOST: str
     APP_PORT: int
     AUTH_SERVICE_URL: str
+    NOTIFICATIONS_SERVICE_URL: str
 
     @property
     def jwks_url(self) -> str:
