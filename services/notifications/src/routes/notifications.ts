@@ -10,6 +10,7 @@ import {
   notifyBookingCancellation,
   notifyBookingExtension,
   notifyKeyReturnReminder,
+  notifyOverdueKeyReturn,
 } from '../services/bookings'
 import { notifyJoinedWaitingList, notifyRemovedFromWaitingList } from '../services/waiting-list'
 import { asyncHandler } from '../utils/async-handler'
@@ -25,6 +26,7 @@ import {
   keyReturnSchema,
   waitlistJoinedSchema,
   waitlistRemovedSchema,
+  overdueKeyReturnSchema,
 } from '../schemas/validation'
 import type {
   SendPasswordResetEmailRequest,
@@ -266,7 +268,7 @@ router.post(
 )
 
 /**
- * POST /booking/key-return-reminder
+ * POST /notifications/booking/key-return-reminder
  * Send key return reminder notification and email
  */
 router.post(
@@ -300,6 +302,60 @@ router.post(
     res.status(200).json({
       success: true,
       message: 'Key return reminder sent successfully',
+    })
+  }),
+)
+
+/**
+ * POST /notifications/booking/overdue-key-return
+ * Send overdue key return notification and email
+ */
+router.post(
+  '/booking/overdue-key-return',
+  asyncHandler(async (req: Request, res: Response) => {
+    console.log('Received overdue-key-return request body:', JSON.stringify(req.body, null, 2))
+
+    // Validate after logging
+    const validationResult = overdueKeyReturnSchema.safeParse(req.body)
+    if (!validationResult.success) {
+      console.error('Validation failed:', validationResult.error.issues)
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationResult.error.issues,
+      })
+      return
+    }
+
+    const {
+      adminId,
+      userId,
+      email,
+      name,
+      lockerNumber,
+      floorNumber,
+      startDate,
+      endDate,
+      keyNumber,
+      keyReturnPath,
+    } = req.body
+
+    await notifyOverdueKeyReturn(
+      adminId,
+      userId,
+      email,
+      name,
+      lockerNumber,
+      floorNumber,
+      startDate,
+      endDate,
+      keyNumber,
+      keyReturnPath,
+    )
+
+    res.status(200).json({
+      success: true,
+      message: 'Overdue key return notification sent successfully',
     })
   }),
 )

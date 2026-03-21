@@ -1,5 +1,6 @@
 """Confirm key handover."""
 
+from datetime import datetime
 from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import KeyHandoverResponse
@@ -8,21 +9,22 @@ GET_BOOKING_QUERY = """
 SELECT 
     booking_id,
     locker_id,
-    status
+    status,
+    start_date
 FROM lockerhub.bookings
 WHERE booking_id = $1
 """
 
 UPDATE_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'with_employee'
-WHERE locker_id = $1
+SET status = 'with_employee', updated_at = CURRENT_TIMESTAMP
+WHERE locker_id = $1 AND status = 'awaiting_handover'
 RETURNING key_id, key_number, status
 """
 
 UPDATE_BOOKING_STATUS_QUERY = """
 UPDATE lockerhub.bookings
-SET status = 'active'
+SET status = 'active', updated_at = CURRENT_TIMESTAMP
 WHERE booking_id = $1
 RETURNING booking_id, status
 """
@@ -47,6 +49,11 @@ async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
             if booking["status"] != "upcoming":
                 logger.warning("Booking is not in 'upcoming' status")
                 raise ValueError("Booking must be 'upcoming' to confirm handover")
+
+            today = datetime.now().date()
+            if booking["start_date"] > today:
+                logger.warning("Cannot hand over key before booking start date")
+                raise ValueError("Cannot hand over key before booking start date")
 
             key = await connection.fetchrow(
                 UPDATE_KEY_STATUS_QUERY, booking["locker_id"]

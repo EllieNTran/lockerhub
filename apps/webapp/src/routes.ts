@@ -13,6 +13,11 @@ export default [
   route("user/return-key", "apps/user/pages/ReturnKey.tsx"),
 
   route("admin", "apps/admin/pages/Home.tsx"),
+  route("admin/bookings", "apps/admin/pages/Bookings.tsx"),
   route("admin/lockers", "apps/admin/pages/Lockers.tsx"),
+  route("admin/special-requests", "apps/admin/pages/SpecialRequests.tsx"),
+  route("admin/analytics", "apps/admin/pages/Analytics.tsx"),
+  route("admin/audit", "apps/admin/pages/AuditLogs.tsx"),
+  route("admin/rules", "apps/admin/pages/BookingRules.tsx"),
   route("admin/locker-configuration", "apps/admin/pages/LockerConfiguration.tsx"),
 ] satisfies RouteConfig;

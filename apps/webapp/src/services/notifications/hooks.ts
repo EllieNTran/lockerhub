@@ -3,6 +3,10 @@ import {
   getUserNotifications,
   markNotificationAsRead,
 } from './services/user-notifications';
+import {
+  sendOverdueKeyReturnReminder,
+  type SendOverdueKeyReturnReminderRequest,
+} from './services/admin-notifications';
 
 /**
  * Fetch user's notifications
@@ -26,5 +30,15 @@ export const useMarkNotificationAsRead = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userNotifications', variables.userId] });
     },
+  });
+};
+
+/**
+ * Send overdue key return reminder
+ */
+export const useSendOverdueKeyReturnReminder = () => {
+  return useMutation({
+    mutationFn: (data: SendOverdueKeyReturnReminderRequest) =>
+      sendOverdueKeyReturnReminder(data),
   });
 };

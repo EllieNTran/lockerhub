@@ -14,14 +14,16 @@ export interface UpdateFloorStatusData {
  * Get all booking rules
  */
 export async function getBookingRules(): Promise<BookingRule[]> {
-  return apiClient.get<BookingRule[]>('/admin/booking-rules');
+  const response = await apiClient.get<{ rules: BookingRule[] }>('/admin/booking-rules');
+  return response.rules;
 }
 
 /**
  * Update booking rules
  */
 export async function updateBookingRules(rules: UpdateBookingRuleData[]): Promise<BookingRule[]> {
-  return apiClient.put<BookingRule[]>('/admin/booking-rules', { rules });
+  const response = await apiClient.put<{ rules: BookingRule[]; message: string }>('/admin/booking-rules', { rules });
+  return response.rules;
 }
 
 /**

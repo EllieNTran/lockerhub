@@ -76,3 +76,33 @@ class UpdateLockerCoordinatesRequest(BaseModel):
 
     x_coordinate: int = Field(..., description="X coordinate relative to zone", ge=0)
     y_coordinate: int = Field(..., description="Y coordinate relative to zone", ge=0)
+
+
+class CreateLockerRequest(BaseModel):
+    """Request model for creating a new locker."""
+
+    locker_number: str = Field(
+        ..., description="Unique locker number", min_length=1, max_length=20
+    )
+    floor_id: UUID = Field(..., description="ID of the floor where locker is located")
+    location: Optional[str] = Field(
+        None, description="Location description", max_length=30
+    )
+    x_coordinate: Optional[int] = Field(
+        None, description="X coordinate relative to zone", ge=0
+    )
+    y_coordinate: Optional[int] = Field(
+        None, description="Y coordinate relative to zone", ge=0
+    )
+    key_number: str = Field(
+        ..., description="Key number for this locker", min_length=1, max_length=6
+    )
+
+
+class CreateKeyRequest(BaseModel):
+    """Request model for creating a key for an existing locker."""
+
+    key_number: str = Field(
+        ..., description="Unique key number", min_length=1, max_length=6
+    )
+    locker_id: UUID = Field(..., description="ID of the locker this key belongs to")

@@ -17,14 +17,14 @@ WHERE l.locker_id = $1
 
 UPDATE_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'lost'
+SET status = 'lost', updated_at = CURRENT_TIMESTAMP
 WHERE locker_id = $1
 RETURNING key_number, status
 """
 
 UPDATE_LOCKER_STATUS_QUERY = """
 UPDATE lockerhub.lockers
-SET status = 'maintenance'
+SET status = 'maintenance', updated_at = CURRENT_TIMESTAMP
 WHERE locker_id = $1
 RETURNING locker_id, locker_number, status
 """

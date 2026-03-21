@@ -46,8 +46,7 @@ async def create_booking_endpoint(
 async def get_all_bookings_endpoint(_: dict = Depends(get_current_user)):
     """Get all bookings with employee and locker details."""
     try:
-        bookings = await get_all_bookings()
-        return AllBookingsResponse(bookings=bookings)
+        return await get_all_bookings()
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve bookings")
 
@@ -59,8 +58,7 @@ async def cancel_booking_endpoint(
 ):
     """Cancel a booking."""
     try:
-        cancelled_id = await cancel_booking(booking_id)
-        return CancelBookingResponse(booking_id=cancelled_id)
+        return await cancel_booking(booking_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
@@ -74,11 +72,7 @@ async def confirm_key_handover_endpoint(
 ):
     """Confirm key handover to employee."""
     try:
-        result = await confirm_key_handover(booking_id)
-        return KeyHandoverResponse(
-            booking_id=result["booking_id"],
-            key_number=result["key_number"],
-        )
+        return await confirm_key_handover(booking_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
@@ -92,11 +86,7 @@ async def confirm_key_return_endpoint(
 ):
     """Confirm key return from employee."""
     try:
-        result = await confirm_key_return(booking_id)
-        return KeyReturnResponse(
-            booking_id=result["booking_id"],
-            key_number=result["key_number"],
-        )
+        return await confirm_key_return(booking_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:

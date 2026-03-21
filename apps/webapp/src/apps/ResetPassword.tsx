@@ -24,7 +24,7 @@ const ResetPassword = () => {
   const tokenValid = validationResult?.valid || false;
   const email = validationResult?.email || "";
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError("");
 

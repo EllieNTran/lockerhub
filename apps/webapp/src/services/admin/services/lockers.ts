@@ -72,3 +72,45 @@ export async function updateLockerCoordinates(
     y_coordinate,
   });
 }
+
+/**
+ * Create a new locker
+ */
+export async function createLocker(
+  lockerNumber: string,
+  floorId: string,
+  keyNumber: string,
+  location: string | undefined,
+  x_coordinate: number | undefined,
+  y_coordinate: number | undefined
+): Promise<Locker> {
+  return apiClient.post<Locker>('/admin/lockers', {
+    locker_number: lockerNumber,
+    floor_id: floorId,
+    key_number: keyNumber,
+    location,
+    x_coordinate,
+    y_coordinate,
+  });
+}
+
+/**
+ * Create a key for a locker
+ */
+export async function createLockerKey(
+  lockerId: string,
+  keyNumber: string
+): Promise<{ key_id: string; key_number: string; locker_id: string }> {
+  return apiClient.post('/admin/lockers/keys', {
+    key_number: keyNumber,
+    locker_id: lockerId,
+  });
+}
+
+/**
+ * Get all keys
+ */
+export async function getAllKeys(): Promise<{ key_id: string; key_number: string }[]> {
+  const response = await apiClient.get<{ keys: { key_id: string; key_number: string }[] }>('/admin/lockers/keys');
+  return response.keys;
+}

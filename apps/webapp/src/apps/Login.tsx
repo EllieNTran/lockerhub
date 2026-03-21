@@ -20,7 +20,7 @@ const Login = () => {
   const loginMutation = useLogin();
   const requestPasswordResetMutation = useRequestPasswordReset();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError("");
 
@@ -43,7 +43,7 @@ const Login = () => {
     );
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError("");
     setResetSuccess("");

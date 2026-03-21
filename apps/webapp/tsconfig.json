@@ -19,7 +19,7 @@
       "@/components/*": ["src/shared/components/*"],
       "@/types/*": ["src/shared/types/*"],
       "@/hooks/*": ["src/shared/hooks/*"],
-      "@/lib/*": ["src/shared/lib/*"],
+      "@/utils/*": ["src/shared/utils/*"],
       "~/*": ["src/*"]
     },
     "esModuleInterop": true,

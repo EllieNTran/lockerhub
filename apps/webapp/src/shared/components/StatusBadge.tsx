@@ -7,6 +7,7 @@ const statusColors = {
   red: "bg-error-foreground text-error border-error-outline",
   purple: "bg-purple-foreground text-purple border-purple-outline",
   pink: "bg-pink-foreground text-pink border-pink-outline",
+  grey: "bg-light-grey text-grey border-grey-outline",
 } as const;
 
 type StatusColor = keyof typeof statusColors;

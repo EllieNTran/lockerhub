@@ -16,14 +16,20 @@ WHERE booking_id = $1
 
 UPDATE_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'available'
-WHERE locker_id = $1
+SET status = 'available', updated_at = CURRENT_TIMESTAMP
+WHERE locker_id = $1 AND status IN ('with_employee', 'awaiting_return')
 RETURNING key_id, key_number, status
+"""
+
+UPDATE_LOCKER_STATUS_QUERY = """
+UPDATE lockerhub.lockers
+SET status = 'available', updated_at = CURRENT_TIMESTAMP
+WHERE locker_id = $1
 """
 
 UPDATE_BOOKING_STATUS_QUERY = """
 UPDATE lockerhub.bookings
-SET status = 'completed'
+SET status = 'completed', updated_at = CURRENT_TIMESTAMP
 WHERE booking_id = $1
 RETURNING booking_id, status
 """
@@ -61,6 +67,9 @@ async def confirm_key_return(booking_id: str) -> KeyReturnResponse:
             if not key:
                 logger.warning("Key not found for locker")
                 raise ValueError("Key not found for this locker")
+
+            await connection.execute(UPDATE_LOCKER_STATUS_QUERY, booking["locker_id"])
+            logger.info("Updated locker status to available")
 
             if booking["special_request_id"]:
                 await connection.execute(

@@ -24,8 +24,10 @@ class BookingDetailResponse(BaseModel):
     """Response model for detailed booking information."""
 
     booking_id: UUID
+    user_id: UUID
     employee_name: str
     staff_number: str
+    capability_name: Optional[str]
     department_name: Optional[str]
     email: str
     locker_number: str
@@ -33,6 +35,7 @@ class BookingDetailResponse(BaseModel):
     start_date: date
     end_date: Optional[date] = None
     booking_status: str
+    key_number: Optional[str]
     key_status: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
@@ -117,6 +120,40 @@ class KeyReturnResponse(BaseModel):
     booking_id: UUID
     key_number: str
     message: str = "Key return confirmed"
+
+
+class CreateLockerResponse(BaseModel):
+    """Response model for creating a locker."""
+
+    locker_id: UUID
+    locker_number: str
+    key_id: UUID
+    key_number: str
+    message: str = "Locker and key created successfully"
+
+
+class CreateKeyResponse(BaseModel):
+    """Response model for creating a key."""
+
+    key_id: UUID
+    key_number: str
+    locker_id: UUID
+    message: str = "Key created successfully"
+
+
+class KeyResponse(BaseModel):
+    """Response model for key details."""
+
+    key_id: UUID
+    key_number: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AllKeysResponse(BaseModel):
+    """Response model for all keys list."""
+
+    keys: List[KeyResponse]
 
 
 class SpecialRequestDetailResponse(BaseModel):

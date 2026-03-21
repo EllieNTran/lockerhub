@@ -17,7 +17,7 @@ WHERE l.locker_id = $1
 
 UPDATE_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'awaiting_replacement'
+SET status = 'awaiting_replacement', updated_at = CURRENT_TIMESTAMP
 WHERE locker_id = $1
 RETURNING key_number, status
 """

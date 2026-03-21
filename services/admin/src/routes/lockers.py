@@ -3,11 +3,18 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.middleware.auth import get_current_user
-from src.models.requests import UpdateLockerCoordinatesRequest
+from src.models.requests import (
+    UpdateLockerCoordinatesRequest,
+    CreateLockerRequest,
+    CreateKeyRequest,
+)
 from src.models.responses import (
+    AllKeysResponse,
     AllLockersResponse,
     LockerStatsResponse,
     LockerStatusResponse,
+    CreateLockerResponse,
+    CreateKeyResponse,
 )
 from src.services.lockers.get_all_lockers import get_all_lockers
 from src.services.lockers.get_locker_availability_stats import (
@@ -18,6 +25,9 @@ from src.services.lockers.mark_locker_available import mark_locker_available
 from src.services.lockers.report_lost_key import report_lost_key
 from src.services.lockers.order_replacement_key import order_replacement_key
 from src.services.lockers.update_locker_coordinates import update_locker_coordinates
+from src.services.lockers.create_locker import create_locker
+from src.services.lockers.create_locker_key import create_locker_key
+from src.services.lockers.get_all_keys import get_all_keys
 
 router = APIRouter(prefix="/lockers", tags=["admin-lockers"])
 
@@ -26,8 +36,7 @@ router = APIRouter(prefix="/lockers", tags=["admin-lockers"])
 async def get_all_lockers_endpoint(_: dict = Depends(get_current_user)):
     """Get all lockers with details."""
     try:
-        lockers = await get_all_lockers()
-        return AllLockersResponse(lockers=lockers)
+        return await get_all_lockers()
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve lockers")
 
@@ -119,3 +128,63 @@ async def update_locker_coordinates_endpoint(
         raise HTTPException(
             status_code=500, detail="Failed to update locker coordinates"
         )
+
+
+@router.post("", response_model=CreateLockerResponse)
+async def create_locker_endpoint(
+    request: CreateLockerRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Create a new locker with a key."""
+    try:
+        return await create_locker(
+            locker_number=request.locker_number,
+            floor_id=str(request.floor_id),
+            key_number=request.key_number,
+            user_id=current_user["user_id"],
+            location=request.location,
+            x_coordinate=request.x_coordinate,
+            y_coordinate=request.y_coordinate,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        error_msg = str(e)
+        if "duplicate key" in error_msg.lower():
+            if "locker_number" in error_msg:
+                raise HTTPException(
+                    status_code=409, detail="Locker number already exists"
+                )
+            elif "key_number" in error_msg:
+                raise HTTPException(status_code=409, detail="Key number already exists")
+        raise HTTPException(status_code=500, detail="Failed to create locker")
+
+
+@router.post("/keys", response_model=CreateKeyResponse)
+async def create_key_endpoint(
+    request: CreateKeyRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Create a key for an existing locker."""
+    try:
+        return await create_locker_key(
+            key_number=request.key_number,
+            locker_id=str(request.locker_id),
+            user_id=current_user["user_id"],
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        error_msg = str(e)
+        if "duplicate key" in error_msg.lower() and "key_number" in error_msg:
+            raise HTTPException(status_code=409, detail="Key number already exists")
+        raise HTTPException(status_code=500, detail="Failed to create key")
+
+
+@router.get("/keys", response_model=AllKeysResponse)
+async def get_all_keys_endpoint(_: dict = Depends(get_current_user)):
+    """Get all keys."""
+    try:
+        return await get_all_keys()
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to retrieve keys")
