@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { CalendarDays, Wrench, CircleCheckBig, X, KeyRound, AlertTriangle, Search } from 'lucide-react'
+import { Link } from 'react-router';
+import { CalendarDays, Wrench, CircleCheckBig, KeyRound, AlertTriangle, Search } from 'lucide-react'
 import { format } from "date-fns";
 import type { Locker } from "@/shared/types";
 import type { User } from "@/types/user";
@@ -17,8 +18,9 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import StatusBadge from "@/components/StatusBadge";
-import { useMarkLockerMaintenance, useReportLostKey, useOrderReplacementKey, useMarkLockerAvailable, useAllUsers, useCreateAdminBooking } from "@/services/admin";
+import { useMarkLockerMaintenance, useReportLostKey, useOrderReplacementKey, useMarkLockerAvailable, useAllUsers, useCreateAdminBooking, useCreateLockerKey, useAllKeys } from "@/services/admin";
 import { toast } from "sonner";
+import type { AxiosError } from 'axios';
 
 interface ManageLockerDialogProps {
   locker: Locker,
@@ -30,6 +32,9 @@ interface ManageLockerDialogProps {
 const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: ManageLockerDialogProps) => {
   const [showMaintenanceOptions, setShowMaintenanceOptions] = useState(false);
   const [showManualBooking, setShowManualBooking] = useState(false);
+  const [showCreateKey, setShowCreateKey] = useState(false);
+  const [keyNumber, setKeyNumber] = useState("");
+  const [keyNumberError, setKeyNumberError] = useState("");
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -41,12 +46,17 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
   const orderReplacementKeyMutation = useOrderReplacementKey();
   const markAvailableMutation = useMarkLockerAvailable();
   const createAdminBookingMutation = useCreateAdminBooking();
+  const createLockerKeyMutation = useCreateLockerKey();
   const { data: usersData = [], isLoading: usersLoading } = useAllUsers();
+  const { data: keysData = [] } = useAllKeys();
 
   useEffect(() => {
     if (isOpen) {
       setShowMaintenanceOptions(false);
       setShowManualBooking(false);
+      setShowCreateKey(false);
+      setKeyNumber("");
+      setKeyNumberError("");
       setUserSearchQuery("");
       setSelectedUser(null);
       setShowUserDropdown(false);
@@ -54,6 +64,28 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       setEndDate(undefined);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!keyNumber.trim()) {
+      setKeyNumberError("");
+      return;
+    }
+
+    const validateKeyNumber = () => {
+      const keyExists = keysData.some(
+        (key) => key.key_number === keyNumber.trim()
+      );
+      
+      if (keyExists) {
+        setKeyNumberError("A key with this number already exists");
+      } else {
+        setKeyNumberError("");
+      }
+    };
+
+    const timeoutId = setTimeout(validateKeyNumber, 300);
+    return () => clearTimeout(timeoutId);
+  }, [keyNumber, keysData]);
 
   const filteredUsers = usersData.filter((user) => {
     const query = userSearchQuery.toLowerCase();
@@ -65,6 +97,34 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
 
   const handleManualBookingClick = () => {
     setShowManualBooking(true);
+  };
+
+  const handleCreateKeyClick = () => {
+    setShowCreateKey(true);
+  };
+
+  const handleCreateKey = async () => {
+    if (!keyNumber.trim()) {
+      toast.error('Key number is required');
+      return;
+    }
+
+    if (keyNumberError) {
+      toast.error('Please fix the key number error before submitting');
+      return;
+    }
+
+    try {
+      await createLockerKeyMutation.mutateAsync({
+        lockerId: locker.locker_id,
+        keyNumber: keyNumber.trim(),
+      });
+      toast.success('Key created successfully');
+      onOpenChange(false);
+      setShowCreateKey(false);
+    } catch (error) {
+      toast.error((error as AxiosError<{ detail: string }>)?.response?.data?.detail || 'Failed to create key');
+    }
   };
 
   const handleUserSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,6 +224,9 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
     if (!open) {
       setShowMaintenanceOptions(false);
       setShowManualBooking(false);
+      setShowCreateKey(false);
+      setKeyNumber("");
+      setKeyNumberError("");
       setUserSearchQuery("");
       setSelectedUser(null);
       setShowUserDropdown(false);
@@ -266,6 +329,55 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
     );
   };
 
+  const renderCreateKeyForm = () => {
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="keyNumber">
+            Key Number <span className="text-error">*</span>
+          </Label>
+          <Input
+            id="keyNumber"
+            placeholder="e.g., AA123"
+            value={keyNumber}
+            onChange={(e) => setKeyNumber(e.target.value)}
+            disabled={createLockerKeyMutation.isPending}
+          />
+          {keyNumberError && (
+            <p className="text-xs text-error">{keyNumberError}</p>
+          )}
+          {!keyNumberError && keyNumber.trim().length > 0 && (
+            <p className="text-xs text-success">✓ Key number is available</p>
+          )}
+        </div>
+
+        <Button 
+          variant="default" 
+          className="w-full"
+          onClick={handleCreateKey}
+          disabled={!keyNumber.trim() || !!keyNumberError || createLockerKeyMutation.isPending}
+        >
+          {createLockerKeyMutation.isPending ? 'Creating...' : 'Create Key'}
+        </Button>
+      </div>
+    );
+  };
+
+  const renderCreateKeyButton = () => {
+    if (locker?.key_number) return null;
+    
+    return (
+      <Button 
+        variant="outline" 
+        className="w-full flex items-center justify-start h-12 font-normal"
+        onClick={handleCreateKeyClick}
+      >
+        <KeyRound className="mr-2 h-4 w-4" />
+        Create Key
+      </Button>
+    );
+  };
+
   const renderActions = () => {
     if (showMaintenanceOptions) {
       return renderMaintenanceOptions();
@@ -275,10 +387,15 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       return renderManualBookingForm();
     }
 
+    if (showCreateKey) {
+      return renderCreateKeyForm();
+    }
+
     switch (locker?.locker_status) {
       case 'available':
         return (
           <>
+            {renderCreateKeyButton()}
             <Button 
               variant="outline" 
               className="w-full flex items-center justify-start h-12 font-normal"
@@ -300,15 +417,24 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       
       case 'occupied':
         return (
-          <Button variant="outline" className="w-full flex items-center justify-start h-12 font-normal">
-            <X className="mr-2 h-4 w-4" />
-            End Booking
-          </Button>
+          <>
+            <div className="space-y-2">
+              <p className="text-sm text-grey">
+                This locker is currently occupied. To end the booking and confirm key return, go to the{' '}
+                <Link to="/admin/bookings" className="font-medium text-dark-blue hover:text-secondary hover:underline">
+                  Bookings
+                </Link>{' '}
+                page.
+              </p>
+            </div>
+            {renderCreateKeyButton()}
+          </>
         );
       
       case 'maintenance':
         return (
           <>
+            {renderCreateKeyButton()}
             <Button 
               variant="outline" 
               className="w-full flex items-center justify-start h-12 font-normal"
@@ -334,15 +460,27 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       
       case 'reserved':
         return (
-          <Button variant="outline" className="w-full flex items-center justify-start h-12 font-normal">
-            <X className="mr-2 h-4 w-4" />
-            Cancel Upcoming Booking
-          </Button>
+          <>
+            <div className="space-y-2">
+              <p className="text-sm text-grey">
+                This locker is reserved for an upcoming booking. To cancel the booking, go to the{' '}
+                <Link to="/admin/bookings" className="font-medium text-dark-blue hover:text-secondary hover:underline">
+                  Bookings
+                </Link>{' '}
+                page.
+              </p>
+            </div>
+            {renderCreateKeyButton()}
+          </>
         );
       
       default:
         return (
-          <p className="text-sm text-grey">No actions available</p>
+          <>
+            {locker?.key_number && (
+              <p className="text-sm text-grey">No actions available</p>
+            )}
+          </>
         );
     }
   };
@@ -362,7 +500,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm font-medium">
-              {showMaintenanceOptions ? 'Maintenance Reason' : showManualBooking ? 'Manual Booking' : 'Available Actions:'}
+              {showMaintenanceOptions ? 'Maintenance Reason' : showManualBooking ? 'Manual Booking' : showCreateKey ? '' : 'Available Actions:'}
             </p>
             {renderActions()}
           </div>

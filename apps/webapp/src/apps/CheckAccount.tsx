@@ -25,7 +25,7 @@ const CheckAccount = () => {
   const checkAccountMutation = useCheckAccount();
   const requestPasswordResetMutation = useRequestPasswordReset();
 
-  const handleCheck = async (e: React.FormEvent) => {
+  const handleCheck = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError("");
     setAccountStatus(null);

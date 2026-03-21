@@ -8,7 +8,8 @@ from src.models.responses import UpdateBookingResponse
 GET_BOOKING_QUERY = """
 SELECT
     b.user_id, 
-    b.status, 
+    b.status,
+    b.locker_id,
     u.email, 
     u.first_name, 
     l.locker_number, 
@@ -31,6 +32,18 @@ SET status = 'cancelled',
     updated_at = CURRENT_TIMESTAMP
 WHERE booking_id = $1
 RETURNING booking_id
+"""
+
+RESET_KEY_QUERY = """
+UPDATE lockerhub.keys
+SET status = 'available', updated_at = CURRENT_TIMESTAMP
+WHERE locker_id = $1 AND status = 'awaiting_handover'
+"""
+
+RESET_LOCKER_QUERY = """
+UPDATE lockerhub.lockers
+SET status = 'available', updated_at = CURRENT_TIMESTAMP
+WHERE locker_id = $1 AND status = 'reserved'
 """
 
 
@@ -62,6 +75,17 @@ async def cancel_booking(user_id: str, booking_id: str) -> UpdateBookingResponse
                 raise ValueError("Booking is already cancelled")
 
             cancelled_id = await connection.fetchval(CANCEL_BOOKING_QUERY, booking_id)
+
+            if booking["key_status"] == "awaiting_handover":
+                await connection.execute(RESET_KEY_QUERY, booking["locker_id"])
+                logger.info("Reset key to available after user cancellation")
+
+            locker_result = await connection.execute(
+                RESET_LOCKER_QUERY, booking["locker_id"]
+            )
+            if locker_result:
+                logger.info("Reset locker to available after user cancellation")
+
             await NotificationsServiceClient().post(
                 "/booking/cancellation",
                 {
@@ -72,8 +96,12 @@ async def cancel_booking(user_id: str, booking_id: str) -> UpdateBookingResponse
                     "floorNumber": booking["floor_number"],
                     "startDate": booking["start_date"].isoformat(),
                     "endDate": booking["end_date"].isoformat(),
-                    "keyStatus": booking["key_status"],
-                    "keyNumber": booking["key_number"],
+                    "keyStatus": (
+                        booking["key_status"] if booking["key_status"] else "N/A"
+                    ),
+                    "keyNumber": (
+                        booking["key_number"] if booking["key_number"] else "N/A"
+                    ),
                     "adminBookingsPath": "/admin/bookings",
                 },
             )

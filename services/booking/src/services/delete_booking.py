@@ -21,6 +21,11 @@ WHERE booking_id = $1
 RETURNING booking_id
 """
 
+DELETE_EXTENSION_REQUESTS_QUERY = """
+DELETE FROM lockerhub.requests
+WHERE booking_id = $1 AND request_type = 'extension'
+"""
+
 
 async def delete_booking(user_id: str, booking_id: str) -> DeleteBookingResponse:
     """
@@ -46,6 +51,8 @@ async def delete_booking(user_id: str, booking_id: str) -> DeleteBookingResponse
                     f"User {user_id} attempted to delete booking {booking_id} not owned by them"
                 )
                 raise ValueError("Unauthorized")
+
+            await connection.execute(DELETE_EXTENSION_REQUESTS_QUERY, booking_id)
 
             deleted_id = await connection.fetchval(DELETE_BOOKING_QUERY, booking_id)
             logger.info("Deleted booking")

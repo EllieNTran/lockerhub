@@ -1,10 +1,8 @@
 """Get all lockers."""
 
-from typing import List
-
 from src.logger import logger
 from src.connectors.db import db
-from src.models.responses import LockerResponse
+from src.models.responses import LockerResponse, AllLockersResponse
 
 GET_ALL_LOCKERS_QUERY = """
 SELECT 
@@ -30,16 +28,18 @@ ORDER BY
 """
 
 
-async def get_all_lockers() -> List[LockerResponse]:
+async def get_all_lockers() -> AllLockersResponse:
     """Get all lockers.
 
     Returns:
-        A list of LockerResponse objects.
+        AllLockersResponse with a list of LockerResponse objects.
     """
     try:
         result = await db.fetch(GET_ALL_LOCKERS_QUERY)
         logger.info("Retrieved all lockers successfully")
-        return [LockerResponse(**dict(row)) for row in result]
+        return AllLockersResponse(
+            lockers=[LockerResponse(**dict(row)) for row in result]
+        )
     except Exception:
         logger.error("Error fetching all lockers")
         raise

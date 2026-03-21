@@ -17,6 +17,7 @@ WITH updated_bookings AS (
     WHERE b.start_date = $1
         AND b.status = 'upcoming'
         AND l.status = 'available'
+        AND (k.key_id IS NULL OR k.status = 'available')
 )
 UPDATE lockerhub.lockers
 SET status = 'reserved', updated_at = CURRENT_TIMESTAMP
@@ -29,12 +30,6 @@ UPDATE_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
 SET status = 'awaiting_handover', updated_at = CURRENT_TIMESTAMP
 WHERE key_id = ANY($1::uuid[]);
-"""
-
-UPDATE_BOOKING_STATUS_QUERY = """
-UPDATE lockerhub.bookings
-SET status = 'active', updated_at = CURRENT_TIMESTAMP
-WHERE booking_id = ANY($1::uuid[]);
 """
 
 UPDATE_ENDING_BOOKINGS_QUERY = """
@@ -57,7 +52,10 @@ WHERE key_id = ANY($1::uuid[]);
 
 
 async def handle_bookings_starting_today(today: date):
-    """Handle bookings starting today: update locker to 'reserved', key to 'awaiting_handover', and booking to 'active'."""
+    """Handle bookings starting today: update locker to 'reserved' and key to 'awaiting_handover'.
+
+    Note: Booking remains 'upcoming' until admin confirms key handover via confirm_key_handover endpoint.
+    """
     results = await db.fetch(UPDATE_BOOKING_STATUSES_QUERY, today)
 
     if results:
@@ -70,8 +68,9 @@ async def handle_bookings_starting_today(today: date):
             await db.execute(UPDATE_KEY_STATUS_QUERY, key_ids)
             logger.info(f"Updated {len(key_ids)} keys to 'awaiting_handover'")
 
-        await db.execute(UPDATE_BOOKING_STATUS_QUERY, booking_ids)
-        logger.info(f"Updated {len(booking_ids)} bookings to 'active'")
+        logger.info(
+            f"Updated {len(booking_ids)} lockers to 'reserved' (bookings remain 'upcoming' until key handover)"
+        )
     else:
         logger.info("No bookings found starting today")
 
@@ -104,7 +103,7 @@ async def update_booking_statuses():
     1. Finds all bookings where start_date = today AND status = 'upcoming'
     2. Updates locker status from 'available' to 'reserved'
     3. Updates key status to 'awaiting_handover' (if key exists)
-    4. Updates booking status to 'active'
+    4. Booking remains 'upcoming' until admin confirms key handover
 
     For bookings ending today:
     1. Finds all bookings where end_date = today AND status = 'active'

@@ -23,11 +23,12 @@ import {
   getAuditLogs,
   getAllUsers,
   getUser,
+  createLocker,
+  createLockerKey,
+  getAllKeys,
 } from './index';
 import type {
   CreateAdminBookingData,
-  HandoverData,
-  ReturnData,
   ReviewRequestData,
   UpdateBookingRuleData,
   UpdateFloorStatusData,
@@ -91,8 +92,8 @@ export const useConfirmHandover = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ bookingId, data }: { bookingId: string; data: HandoverData }) =>
-      confirmHandover(bookingId, data),
+    mutationFn: ({ bookingId }: { bookingId: string }) =>
+      confirmHandover(bookingId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminBookings'] });
       queryClient.invalidateQueries({ queryKey: ['recentActivity'] });
@@ -104,8 +105,8 @@ export const useConfirmReturn = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ bookingId, data }: { bookingId: string; data: ReturnData }) =>
-      confirmReturn(bookingId, data),
+    mutationFn: ({ bookingId }: { bookingId: string }) =>
+      confirmReturn(bookingId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminBookings'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
@@ -191,6 +192,38 @@ export const useUpdateLockerCoordinates = () => {
     },
   });
 };
+
+export const useCreateLocker = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ lockerNumber, floorId, keyNumber, location, x_coordinate, y_coordinate }: { lockerNumber: string; floorId: string; keyNumber: string; location?: string; x_coordinate?: number; y_coordinate?: number }) =>
+      createLocker(lockerNumber, floorId, keyNumber, location, x_coordinate, y_coordinate),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminLockers'] });
+      queryClient.invalidateQueries({ queryKey: ['lockerStats'] });
+    },
+  });
+};
+
+export const useCreateLockerKey = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ lockerId, keyNumber }: { lockerId: string; keyNumber: string }) =>
+      createLockerKey(lockerId, keyNumber),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminLockers'] });
+      queryClient.invalidateQueries({ queryKey: ['lockerStats'] });
+    },
+  });
+};
+
+export const useAllKeys = () =>
+  useQuery({
+    queryKey: ['adminKeys'],
+    queryFn: getAllKeys,
+  });
 
 // Special Requests Hooks
 export const useAllSpecialRequests = () =>

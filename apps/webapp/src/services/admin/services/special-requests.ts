@@ -12,7 +12,8 @@ export interface ReviewRequestData {
  * Get all special requests
  */
 export async function getAllSpecialRequests(): Promise<Request[]> {
-  return apiClient.get<Request[]>('/admin/special-requests');
+  const response = await apiClient.get<{ requests: Request[] }>('/admin/special-requests');
+  return response.requests;
 }
 
 /**

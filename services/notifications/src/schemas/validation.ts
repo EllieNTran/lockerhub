@@ -95,3 +95,16 @@ export const waitlistRemovedSchema = z.object({
   startDate: z.iso.date(),
   endDate: z.iso.date(),
 })
+
+export const overdueKeyReturnSchema = z.object({
+  adminId: z.uuid(),
+  userId: z.uuid(),
+  email: z.email(),
+  name: z.string(),
+  lockerNumber: z.string(),
+  floorNumber: z.string(),
+  startDate: z.iso.date(),
+  endDate: z.iso.date(),
+  keyNumber: z.string(),
+  keyReturnPath: z.string(),
+})

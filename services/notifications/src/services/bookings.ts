@@ -110,7 +110,7 @@ export const notifyBookingCancellation = async (
     'User Booking Cancellation',
     'Admin Booking Cancellation',
     { MESSAGE: userMessage },
-    { MESSAGE: adminMessage, ADMIN_BOOKINGS_LINK: adminBookingsPath },
+    { MESSAGE: adminMessage, ADMIN_BOOKINGS_LINK: `${WEBAPP_URL}${adminBookingsPath}` },
   )
 }
 
@@ -172,8 +172,39 @@ export const notifyKeyReturnReminder = async (
 
   await sendEmail(
     email,
-    { NAME: name, LOCKER_NUMBER: lockerNumber, FLOOR: floorNumber, START_DATE: startDate, END_DATE: endDate, KEY_NUMBER: keyNumber, KEY_RETURN_LINK: keyReturnPath },
+    { NAME: name, LOCKER_NUMBER: lockerNumber, FLOOR: floorNumber, START_DATE: startDate, END_DATE: endDate, KEY_NUMBER: keyNumber, KEY_RETURN_LINK: `${WEBAPP_URL}${keyReturnPath}` },
     'key-return-reminder-user',
     'Key Return Reminder',
+  )
+}
+
+export const notifyOverdueKeyReturn = async (
+  adminId: string,
+  userId: string,
+  email: string,
+  name: string,
+  lockerNumber: string,
+  floorNumber: string,
+  startDate: string,
+  endDate: string,
+  keyNumber: string,
+  keyReturnPath: string,
+): Promise<void> => {
+  await createNotification({
+    entityType: 'key',
+    title: 'Overdue Key Return',
+    adminTitle: `Overdue key return for Locker ${lockerNumber}`,
+    caption: `The key ${keyNumber} for Locker ${lockerNumber} on Floor ${floorNumber} was due for return by ${endDate} and is now overdue. Please return it as soon as possible.`,
+    type: 'error',
+    scope: 'user',
+    userIds: [userId],
+    createdBy: adminId,
+  })
+
+  await sendEmail(
+    email,
+    { NAME: name, LOCKER_NUMBER: lockerNumber, FLOOR: floorNumber, START_DATE: startDate, END_DATE: endDate, KEY_NUMBER: keyNumber, KEY_RETURN_LINK: `${WEBAPP_URL}${keyReturnPath}` },
+    'overdue-key-return-user',
+    'Overdue Key Return',
   )
 }

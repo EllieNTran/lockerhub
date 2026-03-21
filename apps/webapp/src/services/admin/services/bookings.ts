@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { Booking } from '@/types/booking';
+import type { Booking, AdminBookingDetail } from '@/types/booking';
 import type { CreateBookingData } from '@/services/bookings/services/user-bookings';
 
 export interface CreateAdminBookingData extends CreateBookingData {
@@ -7,15 +7,6 @@ export interface CreateAdminBookingData extends CreateBookingData {
   locker_id: string;
   start_date: string;
   end_date: string;
-}
-
-export interface HandoverData {
-  key_id: string;
-  handed_over_at: string;
-}
-
-export interface ReturnData {
-  returned_at: string;
 }
 
 /**
@@ -28,8 +19,9 @@ export async function createAdminBooking(data: CreateAdminBookingData): Promise<
 /**
  * Get all bookings
  */
-export async function getAllBookings(): Promise<Booking[]> {
-  return apiClient.get<Booking[]>('/admin/bookings');
+export async function getAllBookings(): Promise<AdminBookingDetail[]> {
+  const response = await apiClient.get<{ bookings: AdminBookingDetail[] }>('/admin/bookings');
+  return response.bookings;
 }
 
 /**
@@ -42,13 +34,13 @@ export async function cancelBooking(bookingId: string): Promise<{ message: strin
 /**
  * Confirm key handover
  */
-export async function confirmHandover(bookingId: string, data: HandoverData): Promise<{ message: string }> {
-  return apiClient.post<{ message: string }>(`/admin/bookings/${bookingId}/handover`, data);
+export async function confirmHandover(bookingId: string): Promise<{ message: string }> {
+  return apiClient.post<{ message: string }>(`/admin/bookings/${bookingId}/handover`);
 }
 
 /**
  * Confirm key return
  */
-export async function confirmReturn(bookingId: string, data: ReturnData): Promise<{ message: string }> {
-  return apiClient.post<{ message: string }>(`/admin/bookings/${bookingId}/return`, data);
+export async function confirmReturn(bookingId: string): Promise<{ message: string }> {
+  return apiClient.post<{ message: string }>(`/admin/bookings/${bookingId}/return`);
 }

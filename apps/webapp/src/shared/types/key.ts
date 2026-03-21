@@ -9,10 +9,10 @@ export type KeyStatus =
 export interface Key {
   key_id: string
   key_number: string
-  locker_id: string
-  status: KeyStatus
-  created_at: string
-  updated_at: string
+  locker_id: string | null
+  status: KeyStatus | null
+  created_at: string | null
+  updated_at: string | null
 }
 
 export interface CreateKeyData {

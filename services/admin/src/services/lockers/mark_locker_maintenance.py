@@ -14,7 +14,7 @@ WHERE locker_id = $1
 
 UPDATE_LOCKER_STATUS_QUERY = """
 UPDATE lockerhub.lockers
-SET status = 'maintenance'
+SET status = 'maintenance', updated_at = CURRENT_TIMESTAMP
 WHERE locker_id = $1
 RETURNING locker_id, locker_number, status
 """

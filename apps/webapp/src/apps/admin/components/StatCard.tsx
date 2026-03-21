@@ -5,6 +5,7 @@ const colorMap = {
   red: "bg-error-foreground text-error",
   purple: "bg-purple-foreground text-purple",
   pink: "bg-pink-foreground text-pink",
+  orange: "bg-pending-foreground text-pending",
 };
 
 type color = keyof typeof colorMap;
