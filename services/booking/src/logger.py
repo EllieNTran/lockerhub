@@ -1,6 +1,7 @@
 """Logger configuration for booking service."""
 
 import logging
+import logging.config
 from pydantic import BaseModel
 
 

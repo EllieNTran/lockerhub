@@ -60,3 +60,91 @@ jobs:
         if: matrix.service.type == 'python'
         working-directory: ${{ matrix.service.path }}
         run: black --check src/
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            auth:
+              - 'services/auth/**'
+            booking:
+              - 'services/booking/**'
+            notifications:
+              - 'services/notifications/**'
+            admin:
+              - 'services/admin/**'
+
+      # Auth Service Tests (TypeScript)
+      - name: Setup Node.js for Auth
+        if: steps.changes.outputs.auth == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Auth dependencies
+        if: steps.changes.outputs.auth == 'true'
+        working-directory: services/auth
+        run: npm ci
+
+      - name: Run Auth tests
+        if: steps.changes.outputs.auth == 'true'
+        working-directory: services/auth
+        run: npm test
+
+      # Notifications Service Tests (TypeScript)
+      - name: Install Notifications dependencies
+        if: steps.changes.outputs.notifications == 'true'
+        working-directory: services/notifications
+        run: npm ci
+
+      - name: Run Notifications tests
+        if: steps.changes.outputs.notifications == 'true'
+        working-directory: services/notifications
+        run: npm test
+
+      # Booking Service Tests (Python)
+      - name: Setup Python for Booking
+        if: steps.changes.outputs.booking == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Booking dependencies
+        if: steps.changes.outputs.booking == 'true'
+        working-directory: services/booking
+        run: |
+          pip install -r requirements.txt
+          pip install -r tests/requirements-dev.txt
+
+      - name: Run Booking tests
+        if: steps.changes.outputs.booking == 'true'
+        working-directory: services/booking/tests
+        run: pytest -v
+
+      # Admin Service Tests (Python)
+      - name: Setup Python for Admin
+        if: steps.changes.outputs.admin == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Admin dependencies
+        if: steps.changes.outputs.admin == 'true'
+        working-directory: services/admin
+        run: |
+          pip install -r requirements.txt
+          pip install -r tests/requirements-dev.txt
+
+      - name: Run Admin tests
+        if: steps.changes.outputs.admin == 'true'
+        working-directory: services/admin/tests
+        run: pytest -v

@@ -25,11 +25,19 @@ async def get_user(user_id: str) -> UserDetailResponse:
 
     Returns:
         The details of the specified user.
+
+    Raises:
+        ValueError: If user is not found.
     """
     try:
         result = await db.fetch(GET_ALL_USERS_QUERY, user_id)
+        if not result:
+            logger.warning("User not found")
+            raise ValueError("User not found")
         logger.info("Retrieved user successfully")
-        return UserDetailResponse(**dict(result[0])) if result else None
+        return UserDetailResponse(**dict(result[0]))
+    except ValueError:
+        raise
     except Exception:
         logger.error("Error fetching user")
         raise

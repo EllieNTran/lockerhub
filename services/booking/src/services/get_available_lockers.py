@@ -61,5 +61,5 @@ async def get_available_lockers(
         logger.info("Retrieved available lockers")
         return [AvailableLockerResponse(**dict(locker)) for locker in lockers]
     except Exception:
-        logger.error(f"Error retrieving available lockers: {e}")
+        logger.error("Error retrieving available lockers")
         raise
