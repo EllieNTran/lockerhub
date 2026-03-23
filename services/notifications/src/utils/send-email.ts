@@ -33,7 +33,7 @@ const sendEmail = async (
 
     logger.info(`${emailType} email sent successfully`)
   } catch (error: unknown) {
-    logger.error({ error, recipientEmail, emailType, templateId, variables }, `Failed to send ${emailType} email`)
+    logger.error(`Failed to send ${emailType} email`)
     throw error
   }
 }
