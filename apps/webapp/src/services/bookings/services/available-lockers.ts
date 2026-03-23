@@ -3,8 +3,8 @@ import type { AvailableLocker } from '@/types/locker'
 
 export interface GetAvailableLockersParams {
   floor_id: string
-  start_date: string // YYYY-MM-DD
-  end_date: string // YYYY-MM-DD
+  start_date: string
+  end_date: string
 }
 
 export interface AvailableLockersResponse {

@@ -1,5 +1,8 @@
 """Booking routes."""
 
+from datetime import date
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from src.logger import logger
@@ -10,11 +13,14 @@ from src.models.requests import (
     UpdateBookingRequest,
     ExtendBookingRequest,
     JoinFloorQueueRequest,
+    CreateSpecialRequestRequest,
 )
 from src.models.responses import (
     BookingResponse,
     BookingListResponse,
     CreateBookingResponse,
+    CreateSpecialRequestResponse,
+    SpecialRequestsListResponse,
     UpdateBookingResponse,
     ExtendBookingResponse,
     AvailableLockersResponse,
@@ -22,6 +28,7 @@ from src.models.responses import (
     FloorsResponse,
     JoinFloorQueueResponse,
     ProcessFloorQueuesResponse,
+    DeleteSpecialRequestResponse,
 )
 from src.services.create_booking import create_booking
 from src.services.cancel_booking import cancel_booking
@@ -34,6 +41,9 @@ from src.services.check_locker_availability import check_locker_availability
 from src.services.get_floors import get_floors
 from src.services.join_floor_queue import join_floor_queue
 from src.services.process_floor_queues import process_floor_queues
+from src.services.create_special_request import create_special_request
+from src.services.get_user_special_requests import get_user_special_requests
+from src.services.delete_special_request import delete_special_request
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -76,6 +86,52 @@ async def get_floors_endpoint(_: dict = Depends(get_current_user)):
     except Exception:
         logger.error("Error in get_floors_endpoint")
         raise HTTPException(status_code=500, detail="Failed to retrieve floors")
+
+
+@router.delete(
+    "/special-requests/{request_id}", response_model=DeleteSpecialRequestResponse
+)
+async def delete_special_request_endpoint(
+    request_id: int,
+    current_user: dict = Depends(get_current_user),
+):
+    """Delete a special request."""
+    try:
+        result = await delete_special_request(current_user["user_id"], request_id)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/special-requests", response_model=CreateSpecialRequestResponse)
+async def create_special_request_endpoint(
+    request: CreateSpecialRequestRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Create a special request for locker allocation."""
+    try:
+        result = await create_special_request(
+            current_user["user_id"],
+            str(request.floor_id),
+            request.start_date,
+            request.justification,
+            request.end_date,
+            str(request.locker_id) if request.locker_id else None,
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/special-requests", response_model=SpecialRequestsListResponse)
+async def get_special_requests_endpoint(current_user: dict = Depends(get_current_user)):
+    """Get all special requests for the current user."""
+    try:
+        return await get_user_special_requests(current_user["user_id"])
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve special requests"
+        )
 
 
 @router.get("/{booking_id}", response_model=BookingResponse)
@@ -207,5 +263,4 @@ async def process_floor_queues_endpoint(_: bool = Depends(verify_api_key)):
         result = await process_floor_queues()
         return result
     except Exception as e:
-        logger.error(f"Error in process_floor_queues_endpoint: {e}")
-        raise HTTPException(status_code=500, detail="Failed to process floor queues")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, X, KeyRound, AlertTriangle } from 'lucide-react'
 import { format } from "date-fns";
-import type { AdminBookingDetail } from "@/shared/types";
+import type { AdminBookingDetail } from "@/types/booking";
 import {
   Dialog,
   DialogContent,
@@ -138,7 +138,6 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
           variant="destructive"
           className="w-full"
         >
-          <X className="mr-2 h-4 w-4" />
           {isCancelling ? 'Cancelling...' : 'Confirm'}
         </Button>
       </div>
@@ -192,30 +191,15 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
         );
       case 'active':
         return (
-          <>
-            {booking?.key_number ? (
-              <Button 
-                variant="outline" 
-                className="w-full flex items-center justify-start h-12 font-normal"
-                onClick={handleConfirmReturn}
-                disabled={isConfirmingReturn}
-              >
-                <CalendarDays className="mr-2 h-4 w-4" />
-                {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
-              </Button>
-            ) : (
-              <p className="text-sm text-grey">This locker has no key to return.</p>
-            )}
-            <Button 
-              variant="outline" 
-              className="w-full flex items-center justify-start h-12 font-normal"
-              onClick={handleCancelClick}
-              disabled={isCancelling}
-            >
-              <X className="mr-2 h-4 w-4" />
-              {isCancelling ? 'Cancelling...' : 'Cancel Booking'}
-            </Button>
-          </>
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-start h-12 font-normal"
+            onClick={handleCancelClick}
+            disabled={isCancelling}
+          >
+            <X className="mr-2 h-4 w-4" />
+            {isCancelling ? 'Cancelling...' : 'Cancel Booking'}
+          </Button>
         );
       case 'expired':
         return (

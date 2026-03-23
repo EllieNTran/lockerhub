@@ -33,9 +33,9 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
   }, []);
 
   const legend = [
-    { classes: 'border-success bg-success/30', label: 'Available' },
-    { classes: 'border-error bg-error/30', label: 'Occupied' },
-    { classes: 'border-pending bg-pending/30', label: 'Maintenance' },
+    { classes: 'border-green bg-green/30', label: 'Available' },
+    { classes: 'border-red bg-red/30', label: 'Occupied' },
+    { classes: 'border-orange bg-orange/30', label: 'Maintenance' },
     { classes: 'border-secondary bg-secondary/30', label: 'Selected' },
   ];
 

@@ -28,19 +28,19 @@
   --color-white: #FFFFFF;
 
   /* Success Green */
-  --color-success: #4DC089;
-  --color-success-foreground: #DCF2E6;
-  --color-success-outline: #A4E1C4;
+  --color-green: #4DC089;
+  --color-green-foreground: #DCF2E6;
+  --color-green-outline: #A4E1C4;
 
   /* Pending Orange */
-  --color-pending: #FF9C00;
-  --color-pending-foreground: #FFF6EA;
-  --color-pending-outline: #FFC975;
+  --color-orange: #FF9C00;
+  --color-orange-foreground: #FFF6EA;
+  --color-orange-outline: #FFC975;
 
   /* Error Red */
-  --color-error: #F10015;
-  --color-error-foreground: #FFE9EB;
-  --color-error-outline: #F87580;
+  --color-red: #F10015;
+  --color-red-foreground: #FFE9EB;
+  --color-red-outline: #F87580;
 
   /* Purple */
   --color-purple: #7706F2;

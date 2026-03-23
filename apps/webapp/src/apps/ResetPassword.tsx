@@ -85,7 +85,7 @@ const ResetPassword = () => {
           <Card className="w-full max-w-md">
             <CardHeader className="space-y-1">
               <div className="flex items-center justify-center mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-error">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red">
                   <Lock className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -115,7 +115,7 @@ const ResetPassword = () => {
           <Card className="w-full max-w-md">
             <CardHeader className="space-y-1">
               <div className="flex items-center justify-center mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-success">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green">
                   <KeyRound className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -158,7 +158,7 @@ const ResetPassword = () => {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="rounded-lg bg-error/15 p-3 text-sm text-error">
+                <div className="rounded-lg bg-red/15 p-3 text-sm text-red">
                   {error}
                 </div>
               )}

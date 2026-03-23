@@ -5,7 +5,7 @@ import Heading from "@/components/Heading";
 import StatCard from "../components/StatCard";
 import ManageBookingDialog from "../components/ManageBookingDialog";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import StatusBadge from "@/components/StatusBadge";
 import KeyStatus from "../components/KeyStatus";
 import type { KeyStatus as KeyStatusType } from "@/types/key";
@@ -21,7 +21,7 @@ import {
 import { useAllBookings } from "@/services/admin";
 import { useFloors } from "@/services/bookings";
 import { formatDateRange } from "@/utils/date-format";
-import type { AdminBookingDetail } from "@/shared/types";
+import type { AdminBookingDetail } from "@/types/booking";
 import StaffTooltip from "../components/StaffTooltip";
 
 const ITEMS_PER_PAGE = 12;
@@ -200,7 +200,7 @@ const Bookings = () => {
                       </TableCell>
                       <TableCell>{booking.locker_number}</TableCell>
                       <TableCell>Floor {booking.floor_number}</TableCell>
-                      <TableCell className="text-xs">{formatDateRange(booking.start_date, booking.end_date)}</TableCell>
+                      <TableCell>{formatDateRange(booking.start_date, booking.end_date)}</TableCell>
                       <TableCell>
                         <StatusBadge 
                           status={booking.booking_status} 

@@ -29,6 +29,12 @@ WHERE booking_id = $1
 RETURNING booking_id, status
 """
 
+UPDATE_LOCKER_STATUS_QUERY = """
+UPDATE lockerhub.lockers
+SET status = 'occupied', updated_at = CURRENT_TIMESTAMP
+WHERE locker_id = $1
+"""
+
 
 async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
     """Confirm that a key has been handed over to a user.
@@ -61,6 +67,8 @@ async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
             if not key:
                 logger.warning("Key not found for locker")
                 raise ValueError("Key not found for this locker")
+
+            await connection.execute(UPDATE_LOCKER_STATUS_QUERY, booking["locker_id"])
 
             updated_booking = await connection.fetchrow(
                 UPDATE_BOOKING_STATUS_QUERY, booking_id

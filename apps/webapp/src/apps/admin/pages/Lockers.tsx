@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAllLockers } from "@/services/admin";
 import { useFloors } from "@/services/bookings";
-import type { Locker } from "@/shared/types";
+import type { Locker } from "@/types/locker";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -96,7 +96,7 @@ const Lockers = () => {
             title="Lockers"
             description="View, search and update locker statuses."
           />
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button variant="highlight" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="mr-1 h-4 w-4" />
             Create Locker
           </Button>

@@ -227,7 +227,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="floor">
-              Floor <span className="text-error">*</span>
+              Floor <span className="text-red">*</span>
             </Label>
             <Select
               value={floorId}
@@ -249,7 +249,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
 
           <div className="space-y-2">
             <Label htmlFor="lockerNumber">
-              Locker Number <span className="text-error">*</span>
+              Locker Number <span className="text-red">*</span>
             </Label>
             <Input
               id="lockerNumber"
@@ -259,10 +259,10 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
               disabled={isPending || !floorId}
             />
             {lockerNumberError && (
-              <p className="text-xs text-error">{lockerNumberError}</p>
+              <p className="text-xs text-red">{lockerNumberError}</p>
             )}
             {!lockerNumberError && lockerPrefix && lockerNumber.length > `${lockerPrefix}-`.length && (
-              <p className="text-xs text-success">✓ Locker number is available</p>
+              <p className="text-xs text-green">✓ Locker number is available</p>
             )}
             {!lockerNumberError && !lockerPrefix && (
               <p className="text-xs text-grey">
@@ -278,7 +278,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
 
           <div className="space-y-2">
             <Label htmlFor="keyNumber">
-              Key Number <span className="text-error">*</span>
+              Key Number <span className="text-red">*</span>
             </Label>
             <Input
               id="keyNumber"
@@ -288,10 +288,10 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
               disabled={isPending}
             />
             {keyNumberError && (
-              <p className="text-xs text-error">{keyNumberError}</p>
+              <p className="text-xs text-red">{keyNumberError}</p>
             )}
             {!keyNumberError && keyNumber.trim().length > 0 && (
-              <p className="text-xs text-success">✓ Key number is available</p>
+              <p className="text-xs text-green">✓ Key number is available</p>
             )}
           </div>
 

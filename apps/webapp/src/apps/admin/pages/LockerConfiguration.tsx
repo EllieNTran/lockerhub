@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Save, RotateCcw } from 'lucide-react'
 import AdminLayout from '../layout/AdminLayout'
 import { Button } from '@/components/ui/button'
-import ZoomControls from '@/shared/components/ZoomControls'
+import ZoomControls from '@/components/ZoomControls'
 import {
   Select,
   SelectContent,
@@ -12,9 +12,9 @@ import {
 } from '@/components/ui/select'
 import { toast } from '@/components/ui/sonner'
 import { useAllLockers, useUpdateLockerCoordinates } from '@/services/admin'
-import { FloorLayoutRenderer, getFloorLayout } from '@/shared/components/floor-layouts'
+import { FloorLayoutRenderer, getFloorLayout } from '@/components/floor-layouts'
 import type { Locker } from '@/types/locker'
-import { getZoneFromLockerNumber, getFloorFromLockerNumber } from '@/shared/utils/locker-parser'
+import { getZoneFromLockerNumber, getFloorFromLockerNumber } from '@/utils/locker-parser'
 import { useFloors } from "@/services/bookings";
 import { DraggableLocker } from '../components/DraggableLocker'
 import Heading from '@/components/Heading'

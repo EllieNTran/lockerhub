@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/shared/utils/cn";
+import { cn } from "@/utils/cn";
 
 export type CalendarProps = {
   selected?: Date;

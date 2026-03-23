@@ -83,7 +83,7 @@ const Home = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-dark-blue">Notifications</h3>
               {unreadCount > 0 && (
-                <Badge className="bg-error text-white text-xs hover:bg-error">
+                <Badge className="bg-red text-white text-xs hover:bg-red">
                   {unreadCount} new
                 </Badge>
               )}

@@ -1,7 +1,7 @@
 import { Lock, ShieldCheck, User } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router";
 import { useEffect, useState } from "react";
-import { cn } from "@/shared/utils/cn";
+import { cn } from "@/utils/cn";
 import { Switch } from "@/components/ui/switch";
 import { useViewMode } from "../context/ViewModeContext";
 

@@ -41,6 +41,7 @@ describe('Notification Services', () => {
         .mockResolvedValueOnce(createMockQueryResult([mockNotification])) // INSERT notification
         .mockResolvedValueOnce(undefined) // COMMIT
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
 
       const result = await createNotification(validNotificationRequest)
@@ -69,6 +70,7 @@ describe('Notification Services', () => {
         .mockResolvedValueOnce(createMockQueryResult([{ user_id: sampleUserId }])) // INSERT user_notifications
         .mockResolvedValueOnce(undefined) // COMMIT
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
 
       const result = await createNotification(userScopedNotificationRequest)
@@ -98,6 +100,7 @@ describe('Notification Services', () => {
         .mockResolvedValueOnce(createMockQueryResult([mockNotification])) // INSERT
         .mockResolvedValueOnce(undefined) // COMMIT
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
 
       const result = await createNotification(departmentRequest)
@@ -120,6 +123,7 @@ describe('Notification Services', () => {
         .mockResolvedValueOnce(undefined) // BEGIN
         .mockRejectedValueOnce(new Error('Database error')) // INSERT fails
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
 
       await expect(createNotification(validNotificationRequest)).rejects.toThrow('Database error')
@@ -143,7 +147,7 @@ describe('Notification Services', () => {
         { user_id: sampleUserId, notification_id: sampleNotificationId },
       ])
 
-      vi.spyOn(db, 'query').mockResolvedValue(mockResult as any)
+      vi.spyOn(db, 'query').mockResolvedValue(mockResult)
 
       const result = await markAsRead({
         userId: sampleUserId,
@@ -166,7 +170,7 @@ describe('Notification Services', () => {
        */
       const mockResult = createMockQueryResult([])
 
-      vi.spyOn(db, 'query').mockResolvedValue(mockResult as any)
+      vi.spyOn(db, 'query').mockResolvedValue(mockResult)
 
       const result = await markAsRead({
         userId: sampleUserId,
@@ -210,8 +214,8 @@ describe('Notification Services', () => {
       const mockCountResult = createMockQueryResult([{ count: '1' }])
 
       vi.spyOn(db, 'query')
-        .mockResolvedValueOnce(createMockQueryResult(mockNotifications) as any)
-        .mockResolvedValueOnce(mockCountResult as any)
+        .mockResolvedValueOnce(createMockQueryResult(mockNotifications))
+        .mockResolvedValueOnce(mockCountResult)
 
       const result = await getUserNotifications({ userId: sampleUserId })
 
@@ -226,8 +230,8 @@ describe('Notification Services', () => {
        * Mock database returns empty result.
        */
       vi.spyOn(db, 'query')
-        .mockResolvedValueOnce(createMockQueryResult([]) as any)
-        .mockResolvedValueOnce(createMockQueryResult([{ count: '0' }]) as any)
+        .mockResolvedValueOnce(createMockQueryResult([]))
+        .mockResolvedValueOnce(createMockQueryResult([{ count: '0' }]))
 
       const result = await getUserNotifications({ userId: sampleUserId })
 
@@ -245,8 +249,8 @@ describe('Notification Services', () => {
       ]
 
       vi.spyOn(db, 'query')
-        .mockResolvedValueOnce(createMockQueryResult(mockNotifications) as any)
-        .mockResolvedValueOnce(createMockQueryResult([{ count: '1' }]) as any)
+        .mockResolvedValueOnce(createMockQueryResult(mockNotifications))
+        .mockResolvedValueOnce(createMockQueryResult([{ count: '1' }]))
 
       const result = await getUserNotifications({
         userId: sampleUserId,

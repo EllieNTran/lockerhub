@@ -201,7 +201,7 @@ const BookLocker = () => {
             {startDate && endDate && (
               <>
                 {" · "}
-                <span className="text-success font-medium">{availableCount} available</span>
+                <span className="text-green font-medium">{availableCount} available</span>
                 {" · "}
                 <span className="text-grey">{floorLockers.length} total</span>
               </>

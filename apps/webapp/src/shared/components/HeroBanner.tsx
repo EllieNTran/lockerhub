@@ -1,5 +1,5 @@
 import { Building2 } from "lucide-react";
-import { getGreeting } from "@/shared/utils/get-greeting";
+import { getGreeting } from "@/utils/get-greeting";
 
 interface HeroBannerProps {
   subtitle: string;

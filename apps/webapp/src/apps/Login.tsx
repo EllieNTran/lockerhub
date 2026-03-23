@@ -110,7 +110,7 @@ const Login = () => {
           <form onSubmit={showForgotPassword ? handleForgotPassword : handleSubmit}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="rounded-lg bg-error/15 p-3 text-sm text-error">
+                <div className="rounded-lg bg-red/15 p-3 text-sm text-red">
                   {error}
                   {showActivationPrompt && (
                     <div className="mt-3">
@@ -128,7 +128,7 @@ const Login = () => {
                 </div>
               )}
               {resetSuccess && (
-                <div className="rounded-lg bg-success/15 p-3 text-sm text-success">
+                <div className="rounded-lg bg-green/15 p-3 text-sm text-green">
                   {resetSuccess}
                 </div>
               )}

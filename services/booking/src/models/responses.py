@@ -50,6 +50,43 @@ class ExtendBookingResponse(BaseModel):
     status: str
 
 
+class CreateSpecialRequestResponse(BaseModel):
+    """Response model for a special request."""
+
+    request_id: int
+
+
+class SpecialRequestResponse(BaseModel):
+    """Response model for a special request."""
+
+    request_id: int
+    user_id: UUID
+    floor_id: UUID
+    locker_id: Optional[UUID] = None
+    start_date: date
+    end_date: Optional[date] = None
+    request_type: str
+    justification: str
+    status: str
+    created_at: datetime
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[UUID] = None
+    floor_number: str
+    locker_number: Optional[str] = None
+
+
+class SpecialRequestsListResponse(BaseModel):
+    """Response model for a list of special requests."""
+
+    requests: List[SpecialRequestResponse]
+
+
+class DeleteSpecialRequestResponse(BaseModel):
+    """Response model for deleting a special request."""
+
+    request_id: int
+
+
 class JoinFloorQueueResponse(BaseModel):
     """Response model for joining a floor queue."""
 
