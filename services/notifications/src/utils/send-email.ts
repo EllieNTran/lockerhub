@@ -5,6 +5,7 @@ import { fromEnv } from '../constants'
 const resend = new Resend(fromEnv('RESEND_API_KEY'))
 
 const sendEmail = async (
+  // @ts-expect-error - recipientEmail will be used in production
   recipientEmail: string,
   variables: Record<string, string | number>,
   templateId: string,

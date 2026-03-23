@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 /**
  * Get ordinal suffix for a day number (1st, 2nd, 3rd, 4th, etc.)
@@ -57,4 +57,12 @@ export function formatDateRange(startDate: Date | string, endDate: Date | string
   }
 
   return `${startMonth} ${startDay}${startOrdinal}, ${startYear} – ${endMonth} ${endDay}${endOrdinal}, ${endYear}`;
+}
+
+/**
+ * Format how long ago a date was (e.g., "5 days ago", "2 months ago")
+ */
+export function formatTimeAgo(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return formatDistanceToNow(d, { addSuffix: true });
 }

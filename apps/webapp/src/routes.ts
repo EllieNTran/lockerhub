@@ -8,8 +8,9 @@ export default [
 
   route("user", "apps/user/pages/Home.tsx"),
   route("user/book", "apps/user/pages/BookLocker.tsx"),
-  route("user/my-bookings", "apps/user/pages/MyBookings.tsx"),
-  route("user/special-request", "apps/user/pages/SpecialRequest.tsx"),
+  route("user/my-bookings", "apps/user/pages/Bookings.tsx"),
+  route("user/special-request", "apps/user/pages/SpecialRequests.tsx"),
+  route("user/special-request/new", "apps/user/pages/NewSpecialRequest.tsx"),
   route("user/return-key", "apps/user/pages/ReturnKey.tsx"),
 
   route("admin", "apps/admin/pages/Home.tsx"),

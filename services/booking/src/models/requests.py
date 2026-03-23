@@ -63,3 +63,21 @@ class JoinFloorQueueRequest(BaseModel):
         if "start_date" in info.data and v < info.data["start_date"]:
             raise ValueError("end_date cannot be before start_date")
         return v
+
+
+class CreateSpecialRequestRequest(BaseModel):
+    """Request model for creating a special request."""
+
+    floor_id: UUID = Field(..., description="ID of the floor for the special request")
+    locker_id: Optional[UUID] = Field(None, description="Optional preferred locker ID")
+    start_date: date = Field(..., description="Start date of the request")
+    end_date: Optional[date] = Field(None, description="End date (None for permanent)")
+    justification: str = Field(..., description="Justification for the special request")
+
+    @field_validator("end_date")
+    @classmethod
+    def validate_end_date(cls, v: Optional[date], info) -> Optional[date]:
+        """Ensure end_date is not before start_date if provided."""
+        if v and "start_date" in info.data and v < info.data["start_date"]:
+            raise ValueError("end_date cannot be before start_date")
+        return v

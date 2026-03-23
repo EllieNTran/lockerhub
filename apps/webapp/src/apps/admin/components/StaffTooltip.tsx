@@ -4,10 +4,10 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/shared/components/ui/tooltip";
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import type { AdminBookingDetail } from "@/shared/types";
-import { toast } from "@/shared/components/ui/sonner";
+import type { AdminBookingDetail } from "@/types/booking";
+import { toast } from "@/components/ui/sonner";
 
 const StaffTooltip = ({ booking }: { booking: AdminBookingDetail }) => {
   const [copied, setCopied] = useState(false);

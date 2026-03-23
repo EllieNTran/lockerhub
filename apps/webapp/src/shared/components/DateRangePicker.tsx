@@ -1,6 +1,6 @@
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/shared/utils/cn";
+import { cn } from "@/utils/cn";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ interface DateRangePickerProps {
   maxDaysRange?: number;
   className?: string;
   labelClassName?: string;
+  disableEndDate?: boolean;
 }
 
 export const DateRangePicker = ({
@@ -32,6 +33,7 @@ export const DateRangePicker = ({
   maxDaysRange,
   className,
   labelClassName,
+  disableEndDate = false,
 }: DateRangePickerProps) => {
   const handleStartDateChange = (date: Date | undefined) => {
     onStartDateChange(date);
@@ -109,6 +111,7 @@ export const DateRangePicker = ({
           <PopoverTrigger asChild>
             <Button
               variant="outline"
+              disabled={disableEndDate}
               className={cn(
                 "w-full justify-start text-left font-normal",
                 !endDate && "text-grey"

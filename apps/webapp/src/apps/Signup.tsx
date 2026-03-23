@@ -134,7 +134,7 @@ const Signup = () => {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="rounded-lg bg-error/15 p-3 text-sm text-error">
+                <div className="rounded-lg bg-red/15 p-3 text-sm text-red">
                   {error}
                 </div>
               )}
@@ -199,10 +199,10 @@ const Signup = () => {
                     />
                   </div>
                   {staffNumberError && (
-                    <p className="text-xs text-error">{staffNumberError}</p>
+                    <p className="text-xs text-red">{staffNumberError}</p>
                   )}
                   {!staffNumberError && formData.staffNumber.length === 8 && (
-                    <p className="text-xs text-success">✓ Staff number is available</p>
+                    <p className="text-xs text-green">✓ Staff number is available</p>
                   )}
                 </div>
                 

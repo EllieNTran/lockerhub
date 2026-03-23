@@ -34,29 +34,3 @@ Unit tests focus on individual services in isolation with mocked dependencies.
 ### Integration Tests
 
 Integration tests use `supertest` to test HTTP endpoints end-to-end.
-
-## Test Coverage
-
-The test suite covers:
-
-### Authentication Services (`auth.test.ts`)
-- ✅ User signup with validation
-- ✅ Email conflict handling
-- ✅ Pre-registered user handling
-- ✅ User login with credentials
-- ✅ Invalid password handling
-- ✅ Token refresh flow
-- ✅ User logout
-
-### User Services (`users.test.ts`)
-- ✅ Find user by email
-- ✅ Find user by ID
-- ✅ Create new user
-- ✅ Database error handling
-
-### Route Integration (`routes.test.ts`)
-- ✅ POST /auth/signup endpoint
-- ✅ POST /auth/login endpoint
-- ✅ POST /auth/refresh endpoint
-- ✅ POST /auth/logout endpoint
-- ✅ GET /auth/.well-known/jwks.json endpoint

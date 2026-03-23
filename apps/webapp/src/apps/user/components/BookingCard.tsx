@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { CalendarDays, CalendarPlus, CircleX, MapPin } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import type { BookingStatus } from "@/types/booking";
-import { Button } from "@/shared/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 interface BookingCardProps {
   booking: {
@@ -71,7 +71,7 @@ const BookingCard = ({ booking, variant = "small", onExtend, onCancel }: Booking
             <CalendarPlus className="h-3 w-3" />
             Extend
           </Button>
-          <Button variant="outline" size="sm" textColor="text-error" onClick={onCancel} className="text-xs">
+          <Button variant="outline" size="sm" textColor="text-red" onClick={onCancel} className="text-xs">
             <CircleX className="h-3 w-3" />
             Cancel
           </Button>

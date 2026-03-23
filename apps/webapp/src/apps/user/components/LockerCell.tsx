@@ -1,8 +1,8 @@
-import { cn } from "@/shared/utils/cn";
+import { cn } from "@/utils/cn";
 import type { Locker, AvailableLocker } from "@/types/locker";
 import { Lock, LockOpen } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getLockerDisplayNumber } from "@/shared/utils/locker-parser";
+import { getLockerDisplayNumber } from "@/utils/locker-parser";
 
 interface LockerCellProps {
   locker: Locker | AvailableLocker;
@@ -33,11 +33,11 @@ const LockerCell = ({ locker, isSelected, onSelect }: LockerCellProps) => {
             isSelected &&
               "border-secondary-outline bg-secondary-foreground text-secondary scale-105 shadow-md cursor-pointer animate-pulse-soft",
             !isSelected && isAvailable && !isMaintenance &&
-              "border-success-outline bg-success-foreground text-success hover:bg-success-foreground/50 hover:border-success hover:scale-105 cursor-pointer",
+              "border-green-outline bg-green-foreground text-green hover:bg-green-foreground/50 hover:border-green hover:scale-105 cursor-pointer",
             !isAvailable && !isMaintenance &&
-              "border-error-outline bg-error-foreground text-error cursor-not-allowed opacity-70",
+              "border-red-outline bg-red-foreground text-red cursor-not-allowed opacity-70",
             isMaintenance &&
-              "border-pending-outline bg-pending-foreground text-pending cursor-not-allowed opacity-70"
+              "border-orange-outline bg-orange-foreground text-orange cursor-not-allowed opacity-70"
           )}
         >
           {!isAvailable || isMaintenance ? (

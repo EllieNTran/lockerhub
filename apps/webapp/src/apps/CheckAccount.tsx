@@ -58,8 +58,8 @@ const CheckAccount = () => {
       return (
         <div className="rounded-lg border border-grey/20 p-4 space-y-8">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/15">
-              <CheckCircle className="h-5 w-5 text-success" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green/15">
+              <CheckCircle className="h-5 w-5 text-green" />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-dark-blue">Account Not Found</h3>
@@ -138,7 +138,7 @@ const CheckAccount = () => {
           <form onSubmit={handleCheck}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="rounded-lg bg-error/15 p-3 text-sm text-error">
+                <div className="rounded-lg bg-red/15 p-3 text-sm text-red">
                   {error}
                 </div>
               )}

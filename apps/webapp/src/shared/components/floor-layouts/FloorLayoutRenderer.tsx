@@ -2,7 +2,7 @@ import type { FloorLayout } from './types'
 import { Corridor } from './components/Corridor'
 import { Landmark } from './components/Landmark'
 import { Zone } from './components/Zone'
-import { getZoneFromLockerNumber } from '@/shared/utils/locker-parser'
+import { getZoneFromLockerNumber } from '@/utils/locker-parser'
 import type { Locker } from '@/types/locker'
 
 interface FloorLayoutRendererProps {

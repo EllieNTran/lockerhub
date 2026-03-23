@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { User } from '@/shared/types';
+import type { User } from '@/types/user';
 
 /**
  * Get all users

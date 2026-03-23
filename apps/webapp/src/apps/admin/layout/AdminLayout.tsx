@@ -11,9 +11,9 @@ import {
   BarChart3,
   MapPinPen,
 } from "lucide-react";
-import { cn } from "@/shared/utils/cn";
+import { cn } from "@/utils/cn";
 import Header from "@/components/Header";
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const navItems = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard, end: true },

@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { CalendarDays, Wrench, CircleCheckBig, KeyRound, AlertTriangle, Search } from 'lucide-react'
 import { format } from "date-fns";
-import type { Locker } from "@/shared/types";
+import type { Locker } from "@/types/locker";
 import type { User } from "@/types/user";
-import { cn } from "@/shared/utils/cn";
+import { cn } from "@/utils/cn";
 import {
   Dialog,
   DialogContent,
@@ -334,7 +334,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="keyNumber">
-            Key Number <span className="text-error">*</span>
+            Key Number <span className="text-red">*</span>
           </Label>
           <Input
             id="keyNumber"
@@ -344,10 +344,10 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             disabled={createLockerKeyMutation.isPending}
           />
           {keyNumberError && (
-            <p className="text-xs text-error">{keyNumberError}</p>
+            <p className="text-xs text-red">{keyNumberError}</p>
           )}
           {!keyNumberError && keyNumber.trim().length > 0 && (
-            <p className="text-xs text-success">✓ Key number is available</p>
+            <p className="text-xs text-green">✓ Key number is available</p>
           )}
         </div>
 

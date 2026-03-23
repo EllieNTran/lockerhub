@@ -1,5 +1,5 @@
 import type { Locker, AvailableLocker } from "@/types/locker";
-import { getZoneFromLockerNumber } from "@/shared/utils/locker-parser";
+import { getZoneFromLockerNumber } from "@/utils/locker-parser";
 import { useMemo } from "react";
 
 interface ListViewProps {
@@ -59,11 +59,11 @@ const ListView = ({ lockers, selectedLockerId, onSelectLocker }: ListViewProps) 
           const getStatusColors = (status: string) => {
             switch (status) {
               case 'available':
-                return 'bg-success-foreground text-success border-success-outline';
+                return 'bg-green-foreground text-green border-green-outline';
               case 'maintenance':
-                return 'bg-pending-foreground text-pending border-pending-outline';
+                return 'bg-orange-foreground text-orange border-orange-outline';
               default:
-                return 'bg-error-foreground text-error border-error-outline';
+                return 'bg-red-foreground text-red border-red-outline';
             }
           };
           

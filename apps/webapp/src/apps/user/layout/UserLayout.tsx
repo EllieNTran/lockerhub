@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Header from "@/components/Header";
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface LayoutProps {
   children: ReactNode;
