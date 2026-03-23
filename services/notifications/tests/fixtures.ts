@@ -142,3 +142,123 @@ export const validActivationEmail = {
   name: 'Jane Smith',
   activationLink: 'http://localhost:3001/activate?token=xyz789',
 }
+
+/**
+ * Sample booking notification data
+ */
+export const validBookingConfirmation = {
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  lockerNumber: 'DL10-01-05',
+  floorNumber: '10',
+  startDate: '2026-03-24',
+  endDate: '2026-03-28',
+  userBookingsPath: '/user/bookings',
+  adminBookingsPath: '/admin/bookings',
+}
+
+export const validBookingCancellation = {
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  lockerNumber: 'DL10-01-05',
+  floorNumber: '10',
+  startDate: '2026-03-24',
+  endDate: '2026-03-28',
+  keyStatus: 'available',
+  keyNumber: 'K10-001',
+  adminBookingsPath: '/admin/bookings',
+}
+
+export const validBookingExtension = {
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  lockerNumber: 'DL10-01-05',
+  floorNumber: '10',
+  originalEndDate: '2026-03-28',
+  newEndDate: '2026-04-04',
+  userBookingsPath: '/user/bookings',
+  adminBookingsPath: '/admin/bookings',
+}
+
+export const validKeyReturnReminder = {
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  lockerNumber: 'DL10-01-05',
+  floorNumber: '10',
+  startDate: '2026-03-24',
+  endDate: '2026-03-28',
+  keyNumber: 'K10-001',
+  keyReturnPath: '/user/bookings',
+}
+
+export const validOverdueKeyReturn = {
+  adminId: sampleUserId,
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  lockerNumber: 'DL10-01-05',
+  floorNumber: '10',
+  startDate: '2026-03-24',
+  endDate: '2026-03-28',
+  keyNumber: 'K10-001',
+  keyReturnPath: '/user/bookings',
+}
+
+/**
+ * Sample waitlist notification data
+ */
+export const validWaitlistJoined = {
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  floorNumber: '10',
+  startDate: '2026-03-24',
+  endDate: '2026-03-28',
+}
+
+export const validWaitlistRemoved = {
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  floorNumber: '10',
+  startDate: '2026-03-24',
+  endDate: '2026-03-28',
+}
+
+/**
+ * Sample special request notification data
+ */
+export const validSpecialRequestSubmitted = {
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  floorNumber: '10',
+  endDate: '2026-04-24',
+  requestId: 123,
+  userSpecialRequestsPath: '/user/special-request',
+  adminSpecialRequestsPath: '/admin/special-requests',
+}
+
+export const validSpecialRequestApproved = {
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  floorNumber: '10',
+  endDate: '2026-04-24',
+  requestId: 123,
+  userSpecialRequestsPath: '/user/special-request',
+}
+
+export const validSpecialRequestRejected = {
+  userId: sampleUserId,
+  email: 'test@example.com',
+  name: 'John Doe',
+  floorNumber: '10',
+  endDate: '2026-04-24',
+  requestId: 123,
+  userSpecialRequestsPath: '/user/special-request',
+}

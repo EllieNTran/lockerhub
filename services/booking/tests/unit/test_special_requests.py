@@ -1,7 +1,7 @@
 """Unit tests for special request services."""
 
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 from datetime import date, datetime, timedelta
 from uuid import UUID
 
@@ -47,8 +47,17 @@ class TestCreateSpecialRequest:
         request_id = 123
 
         mock_db.fetchval.return_value = request_id
+        mock_db.fetchrow.return_value = {
+            "email": "test@example.com",
+            "first_name": "Test User",
+            "floor_number": "10",
+        }
 
-        with patch("src.services.create_special_request.db", mock_db):
+        with patch("src.services.create_special_request.db", mock_db), patch(
+            "src.services.create_special_request.NotificationsServiceClient"
+        ) as mock_notifications:
+            mock_notifications.return_value.post = AsyncMock(return_value=None)
+
             result = await create_special_request(
                 str(sample_user_id),
                 str(sample_floor_id),
@@ -59,6 +68,7 @@ class TestCreateSpecialRequest:
 
         assert result.request_id == request_id
         assert mock_db.fetchval.call_count == 1
+        assert mock_db.fetchrow.call_count == 1
         # Verify the query was called with correct parameters
         call_args = mock_db.fetchval.call_args[0]
         assert call_args[1] == str(sample_user_id)
@@ -80,8 +90,17 @@ class TestCreateSpecialRequest:
         request_id = 124
 
         mock_db.fetchval.return_value = request_id
+        mock_db.fetchrow.return_value = {
+            "email": "test@example.com",
+            "first_name": "Test User",
+            "floor_number": "10",
+        }
 
-        with patch("src.services.create_special_request.db", mock_db):
+        with patch("src.services.create_special_request.db", mock_db), patch(
+            "src.services.create_special_request.NotificationsServiceClient"
+        ) as mock_notifications:
+            mock_notifications.return_value.post = AsyncMock(return_value=None)
+
             result = await create_special_request(
                 str(sample_user_id),
                 str(sample_floor_id),
@@ -109,8 +128,17 @@ class TestCreateSpecialRequest:
         request_id = 125
 
         mock_db.fetchval.return_value = request_id
+        mock_db.fetchrow.return_value = {
+            "email": "test@example.com",
+            "first_name": "Test User",
+            "floor_number": "10",
+        }
 
-        with patch("src.services.create_special_request.db", mock_db):
+        with patch("src.services.create_special_request.db", mock_db), patch(
+            "src.services.create_special_request.NotificationsServiceClient"
+        ) as mock_notifications:
+            mock_notifications.return_value.post = AsyncMock(return_value=None)
+
             result = await create_special_request(
                 str(sample_user_id),
                 str(sample_floor_id),
@@ -137,7 +165,11 @@ class TestCreateSpecialRequest:
         today = date.today()
         mock_db.fetchval.side_effect = Exception("Database error")
 
-        with patch("src.services.create_special_request.db", mock_db):
+        with patch("src.services.create_special_request.db", mock_db), patch(
+            "src.services.create_special_request.NotificationsServiceClient"
+        ) as mock_notifications:
+            mock_notifications.return_value.post = AsyncMock(return_value=None)
+
             with pytest.raises(Exception, match="Database error"):
                 await create_special_request(
                     str(sample_user_id),
