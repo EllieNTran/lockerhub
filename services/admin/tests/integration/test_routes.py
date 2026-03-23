@@ -149,7 +149,8 @@ class TestLockerRoutes:
         }
 
         with patch(
-            "src.routes.lockers.get_locker_availability_statistics", AsyncMock(return_value=mock_stats)
+            "src.routes.lockers.get_locker_availability_statistics",
+            AsyncMock(return_value=mock_stats),
         ):
             response = await test_client.get("/admin/lockers/stats")
 
@@ -176,7 +177,9 @@ class TestLockerRoutes:
             "src.routes.lockers.mark_locker_maintenance",
             AsyncMock(return_value=mock_result),
         ):
-            response = await test_client.post(f"/admin/lockers/{str(locker_id)}/maintenance")
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/maintenance"
+            )
 
         assert response.status_code == 200
         data = response.json()
@@ -365,7 +368,9 @@ class TestBookingRoutes:
         with patch(
             "src.routes.bookings.cancel_booking", AsyncMock(return_value=mock_result)
         ):
-            response = await test_client.post(f"/admin/bookings/{str(booking_id)}/cancel")
+            response = await test_client.post(
+                f"/admin/bookings/{str(booking_id)}/cancel"
+            )
 
         assert response.status_code == 200
         data = response.json()
@@ -387,7 +392,8 @@ class TestBookingRoutes:
         }
 
         with patch(
-            "src.routes.bookings.confirm_key_handover", AsyncMock(return_value=mock_result)
+            "src.routes.bookings.confirm_key_handover",
+            AsyncMock(return_value=mock_result),
         ):
             response = await test_client.post(
                 f"/admin/bookings/{str(booking_id)}/handover"
@@ -412,9 +418,12 @@ class TestBookingRoutes:
         }
 
         with patch(
-            "src.routes.bookings.confirm_key_return", AsyncMock(return_value=mock_result)
+            "src.routes.bookings.confirm_key_return",
+            AsyncMock(return_value=mock_result),
         ):
-            response = await test_client.post(f"/admin/bookings/{str(booking_id)}/return")
+            response = await test_client.post(
+                f"/admin/bookings/{str(booking_id)}/return"
+            )
 
         assert response.status_code == 200
         data = response.json()

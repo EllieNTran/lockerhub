@@ -249,6 +249,7 @@ def sample_user_data(sample_user_id):
         "is_active": True,
     }
 
+
 # Helper functions for test data generation
 def create_booking_dict(**overrides):
     """Create a booking dictionary with optional overrides."""

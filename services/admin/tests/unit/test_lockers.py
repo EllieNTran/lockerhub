@@ -291,6 +291,7 @@ class TestReportLostKey:
             ):
                 await report_lost_key(str(sample_locker_id))
 
+
 @pytest.mark.unit
 class TestOrderReplacementKey:
     """Tests for order_replacement_key service."""
@@ -359,7 +360,8 @@ class TestGetAllLockers:
 
     @pytest.mark.asyncio
     async def test_get_all_lockers_success(
-        self, mock_db,
+        self,
+        mock_db,
     ):
         """Test retrieving all lockers.
 
@@ -384,7 +386,8 @@ class TestGetAllKeys:
 
     @pytest.mark.asyncio
     async def test_get_all_keys_success(
-        self, mock_db,
+        self,
+        mock_db,
     ):
         """Test retrieving all keys.
 
@@ -408,9 +411,7 @@ class TestUpdateLockerCoordinates:
     """Tests for update_locker_coordinates service."""
 
     @pytest.mark.asyncio
-    async def test_update_locker_coordinates_success(
-        self, mock_db, sample_locker_id
-    ):
+    async def test_update_locker_coordinates_success(self, mock_db, sample_locker_id):
         """Test updating locker coordinates.
 
         Verifies that updating a locker's x and y coordinates succeeds and

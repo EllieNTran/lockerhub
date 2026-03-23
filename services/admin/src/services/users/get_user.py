@@ -25,7 +25,7 @@ async def get_user(user_id: str) -> UserDetailResponse:
 
     Returns:
         The details of the specified user.
-        
+
     Raises:
         ValueError: If user is not found.
     """

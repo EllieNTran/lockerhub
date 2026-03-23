@@ -13,7 +13,7 @@ class TestGetAuditLogs:
     @pytest.mark.asyncio
     async def test_get_audit_logs_first_page_success(self, mock_db):
         """Test retrieving first page of audit logs.
-        
+
         Verifies that fetching the first page of audit logs returns correct
         pagination data including logs, total count, current page, and total pages.
         """
@@ -64,7 +64,7 @@ class TestGetAuditLogs:
     @pytest.mark.asyncio
     async def test_get_audit_logs_second_page(self, mock_db):
         """Test retrieving second page of audit logs.
-        
+
         Verifies that fetching the second page uses correct offset calculation
         and returns proper pagination metadata.
         """
@@ -99,7 +99,7 @@ class TestGetAuditLogs:
     @pytest.mark.asyncio
     async def test_get_audit_logs_empty(self, mock_db):
         """Test retrieving audit logs when none exist.
-        
+
         Verifies that fetching audit logs from an empty database returns
         an empty list with correct pagination data showing 0 total and 0 pages.
         """
@@ -120,7 +120,7 @@ class TestGetAuditLogs:
     @pytest.mark.asyncio
     async def test_get_audit_logs_single_page(self, mock_db):
         """Test retrieving audit logs that fit in single page.
-        
+
         Verifies that when total logs are less than the limit, pagination
         correctly shows 1 page.
         """
@@ -154,7 +154,7 @@ class TestGetAuditLogs:
     @pytest.mark.asyncio
     async def test_get_audit_logs_custom_limit(self, mock_db):
         """Test retrieving audit logs with custom limit.
-        
+
         Verifies that using a custom limit value correctly affects pagination
         calculations and the number of pages.
         """
@@ -191,7 +191,7 @@ class TestGetAuditLogs:
     @pytest.mark.asyncio
     async def test_get_audit_logs_system_action(self, mock_db):
         """Test retrieving audit logs with system actions.
-        
+
         Verifies that system-generated audit logs without a user_id are correctly
         handled with user_name as None.
         """
@@ -226,7 +226,7 @@ class TestGetAuditLogs:
     @pytest.mark.asyncio
     async def test_get_audit_logs_default_parameters(self, mock_db):
         """Test retrieving audit logs with default parameters.
-        
+
         Verifies that calling get_audit_logs without parameters uses default
         values of page=1 and limit=12.
         """
@@ -245,7 +245,7 @@ class TestGetAuditLogs:
     @pytest.mark.asyncio
     async def test_get_audit_logs_last_page_partial(self, mock_db):
         """Test retrieving last page with partial results.
-        
+
         Verifies that pagination correctly handles the last page when it contains
         fewer items than the limit.
         """
@@ -280,7 +280,7 @@ class TestGetAuditLogs:
     @pytest.mark.asyncio
     async def test_get_audit_logs_various_actions(self, mock_db):
         """Test audit logs with various action types.
-        
+
         Verifies that different audit action types (CREATE, UPDATE, DELETE, SYSTEM)
         are correctly returned in the logs.
         """
