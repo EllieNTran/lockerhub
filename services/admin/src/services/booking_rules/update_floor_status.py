@@ -199,6 +199,6 @@ async def update_floor_status(
 
     except ValueError:
         raise
-    except Exception as e:
-        logger.error(f"Error updating floor status: {e}")
+    except Exception:
+        logger.error("Error updating floor status")
         raise

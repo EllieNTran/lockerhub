@@ -56,6 +56,6 @@ async def get_all_floors() -> AllFloorsResponse:
             floor_list.append(FloorResponse(**floor_dict))
 
         return AllFloorsResponse(floors=floor_list)
-    except Exception as e:
-        logger.error(f"Error retrieving floors: {e}")
+    except Exception:
+        logger.error("Error retrieving floors")
         raise
