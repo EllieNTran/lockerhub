@@ -1,5 +1,5 @@
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isSameDay, addDays } from 'date-fns';
 import { cn } from '@/utils/cn';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useBookingRule } from '@/services/bookings';
 
 interface DateRangePickerProps {
   startDate: Date | undefined;
@@ -17,10 +18,10 @@ interface DateRangePickerProps {
   onEndDateChange: (date: Date | undefined) => void;
   disableWeekends?: boolean;
   disablePastDates?: boolean;
-  maxDaysRange?: number;
   className?: string;
   labelClassName?: string;
   disableEndDate?: boolean;
+  disableRules?: boolean;
 }
 
 export const DateRangePicker = ({
@@ -28,13 +29,33 @@ export const DateRangePicker = ({
   endDate,
   onStartDateChange,
   onEndDateChange,
-  disableWeekends = false,
-  disablePastDates = false,
-  maxDaysRange,
+  disableWeekends = true,
+  disablePastDates = true,
   className,
   labelClassName,
   disableEndDate = false,
+  disableRules = false,
 }: DateRangePickerProps) => {
+  const { data: maxDurationRule } = useBookingRule('max_duration');
+  const { data: advanceBookingWindowRule } = useBookingRule('advance_booking_window');
+  const { data: sameDayBookingsRule } = useBookingRule('same_day_bookings');
+
+  const getTodayNormalized = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  };
+
+  const getMaxFutureDate = () => {
+    if (!advanceBookingWindowRule?.value) return null;
+    return addDays(getTodayNormalized(), advanceBookingWindowRule.value);
+  };
+
+  const isWeekend = (date: Date) => {
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  };
+
   const handleStartDateChange = (date: Date | undefined) => {
     onStartDateChange(date);
     if (date && endDate && date > endDate) {
@@ -43,35 +64,44 @@ export const DateRangePicker = ({
   };
 
   const isStartDateDisabled = (date: Date) => {
-    if (disablePastDates) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (date < today) return true;
+    if (disablePastDates && date < getTodayNormalized()) return true;
+    
+    if (!disableRules) {
+      const maxFutureDate = getMaxFutureDate();
+      if (maxFutureDate && date > maxFutureDate) return true;
     }
-    if (disableWeekends && (date.getDay() === 0 || date.getDay() === 6)) return true;
+      
+    if (disableWeekends && isWeekend(date)) return true;
+    
     return false;
   };
 
   const isEndDateDisabled = (date: Date) => {
     if (!startDate) {
-      if (disablePastDates) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (date < today) return true;
+      if (disablePastDates && date < getTodayNormalized()) return true;
+
+      if (!disableRules) {
+        const maxFutureDate = getMaxFutureDate();
+        if (maxFutureDate && date > maxFutureDate) return true;
       }
-      if (disableWeekends && (date.getDay() === 0 || date.getDay() === 6)) return true;
+        
+      if (disableWeekends && isWeekend(date)) return true;
+      
       return false;
     }
 
     if (date < startDate) return true;
 
-    if (maxDaysRange) {
-      const maxEndDate = new Date(startDate);
-      maxEndDate.setDate(startDate.getDate() + maxDaysRange);
-      if (date > maxEndDate) return true;
+    if (!disableRules) {
+      if (sameDayBookingsRule?.value === 0 && isSameDay(date, startDate)) return true;
+
+      if (maxDurationRule?.value) {
+        const maxEndDate = addDays(startDate, maxDurationRule.value - 1);
+        if (date > maxEndDate) return true;
+      }
     }
 
-    if (disableWeekends && (date.getDay() === 0 || date.getDay() === 6)) return true;
+    if (disableWeekends && isWeekend(date)) return true;
 
     return false;
   };

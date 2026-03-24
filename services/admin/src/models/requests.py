@@ -53,6 +53,13 @@ class UpdateFloorStatusRequest(BaseModel):
     """Request model for updating floor status."""
 
     status: str = Field(..., description="Status: 'open' or 'closed'")
+    start_date: Optional[date] = Field(
+        None, description="Start date for scheduled closure (only when closing)"
+    )
+    end_date: Optional[date] = Field(
+        None, description="End date for scheduled closure (only when closing)"
+    )
+    reason: Optional[str] = Field(None, description="Reason for closure")
 
     @field_validator("status")
     @classmethod

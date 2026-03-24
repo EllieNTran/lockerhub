@@ -1,5 +1,6 @@
 import { apiClient } from '@/services/apiClient';
 import { getUserIdFromToken } from '@/services/auth/services/tokens';
+import type { EntityType, NotificationScope, NotificationType } from '@/shared/types/notification';
 
 export interface SendOverdueKeyReturnReminderRequest {
   userId: string;
@@ -18,9 +19,18 @@ export interface SendOverdueKeyReturnReminderResponse {
   message: string;
 }
 
-/**
- * Send overdue key return reminder notification
- */
+export interface SendNotificationRequest {
+  title: string
+  adminTitle?: string
+  caption?: string
+  type?: NotificationType
+  entityType?: EntityType
+  scope: NotificationScope
+  userIds?: string[]
+  departmentId?: string
+  floorId?: string
+}
+
 export async function sendOverdueKeyReturnReminder(
   data: SendOverdueKeyReturnReminderRequest
 ): Promise<SendOverdueKeyReturnReminderResponse> {
@@ -37,4 +47,17 @@ export async function sendOverdueKeyReturnReminder(
       ...data,
     }
   );
+}
+
+export async function sendNotification(data: SendNotificationRequest) {
+  const adminId = getUserIdFromToken();
+
+  if (!adminId) {
+    throw new Error('Admin ID not found in token');
+  }
+
+  return apiClient.post('/notifications', {
+    createdBy: adminId,
+    ...data,
+  });
 }

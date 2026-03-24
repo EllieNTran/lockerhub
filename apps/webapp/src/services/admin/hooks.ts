@@ -26,13 +26,14 @@ import {
   createLocker,
   createLockerKey,
   getAllKeys,
+  getAllFloors,
 } from './index';
 import type {
   CreateAdminBookingData,
   ReviewRequestData,
-  UpdateBookingRuleData,
-  UpdateFloorStatusData,
+  UpdateBookingRulesData,
   GetAuditLogsParams,
+  UpdateFloorStatusData,
 } from './index';
 
 // Dashboard Hooks
@@ -40,14 +41,12 @@ export const useDashboardStats = () =>
   useQuery({
     queryKey: ['dashboardStats'],
     queryFn: getDashboardStats,
-    staleTime: 30 * 1000, // 30 seconds
   });
 
 export const useFloorsUtilization = () =>
   useQuery({
     queryKey: ['floorsUtilization'],
     queryFn: getFloorsUtilization,
-    staleTime: 30 * 1000,
   });
 
 export const useRecentActivity = () =>
@@ -126,7 +125,6 @@ export const useLockerStats = () =>
   useQuery({
     queryKey: ['lockerStats'],
     queryFn: getLockerStats,
-    staleTime: 30 * 1000,
   });
 
 export const useMarkLockerMaintenance = () => {
@@ -251,14 +249,13 @@ export const useBookingRules = () =>
   useQuery({
     queryKey: ['bookingRules'],
     queryFn: getBookingRules,
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
 export const useUpdateBookingRules = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (rules: UpdateBookingRuleData[]) => updateBookingRules(rules),
+    mutationFn: (data: UpdateBookingRulesData) => updateBookingRules(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookingRules'] });
     },
@@ -272,11 +269,20 @@ export const useUpdateFloorStatus = () => {
     mutationFn: ({ floorId, data }: { floorId: string; data: UpdateFloorStatusData }) =>
       updateFloorStatus(floorId, data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminFloors'] });
+      queryClient.invalidateQueries({ queryKey: ['floors'] });
       queryClient.invalidateQueries({ queryKey: ['floorsUtilization'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+      queryClient.invalidateQueries({ queryKey: ['recentActivity'] });
     },
   });
 };
+
+export const useAllFloors = () =>
+  useQuery({
+    queryKey: ['adminFloors'],
+    queryFn: getAllFloors,
+  });
 
 // Audit Logs Hooks
 export const useAuditLogs = (params?: GetAuditLogsParams) =>

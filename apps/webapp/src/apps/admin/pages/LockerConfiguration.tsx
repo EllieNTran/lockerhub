@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Save, RotateCcw } from 'lucide-react'
+import { Save, RotateCcw, LoaderCircle } from 'lucide-react'
 import AdminLayout from '../layout/AdminLayout'
 import { Button } from '@/components/ui/button'
 import ZoomControls from '@/components/ZoomControls'
@@ -252,16 +252,6 @@ const LockerConfiguration = () => {
     setHasChanges(false)
   }
 
-  if (lockersLoading || floorsLoading) {
-    return (
-      <AdminLayout>
-        <div className="flex items-center justify-center h-96">
-          <p className="text-grey">Loading...</p>
-        </div>
-      </AdminLayout>
-    )
-  }
-
   return (
     <AdminLayout>
       <div className="w-full space-y-6">
@@ -321,69 +311,76 @@ const LockerConfiguration = () => {
             )}
           </p>
 
-          <div
-            ref={containerRef}
-            className="relative overflow-hidden rounded-lg border-2 border-grey-outline bg-floor-grey select-none"
-            style={{ height: 600, cursor: isPanning ? 'grabbing' : 'grab' }}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onWheel={handleWheel}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
-          >
-            {layout ? (
-              <div
-                className={`absolute left-1/2 top-1/2 ${!isPanning ? 'transition-transform duration-100' : ''}`}
-                style={{
-                  width: layout.dimensions.width,
-                  height: layout.dimensions.height,
-                  transform: `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) scale(${scale})`,
-                }}
-              >
-                <FloorLayoutRenderer
-                  layout={layout}
-                  lockers={floorLockers}
-                  onSelectLocker={() => {}}
-                  LockerComponent={() => null}
-                >
-                  {/* Render draggable lockers */}
-                  {floorLockers.map((locker) => {
-                    const zoneId = getZoneFromLockerNumber(locker.locker_number)
-                    const zone = layout.zones.find(z => z.id === zoneId)
-                    
-                    if (!zone) return null
-
-                    const absoluteX = zone.x + (locker.x_coordinate || 0)
-                    const absoluteY = zone.y + (locker.y_coordinate || 0)
-
-                    return (
-                      <div
-                        key={locker.locker_id}
-                        style={{
-                          position: 'absolute',
-                          left: `${absoluteX}px`,
-                          top: `${absoluteY}px`,
-                        }}
-                      >
-                        <DraggableLocker
-                          locker={locker}
-                          scale={scale}
-                          onDragStart={handleDragStart(locker.locker_id)}
-                          onDragEnd={handleDragEnd}
-                        />
-                      </div>
-                    )
-                  })}
-                </FloorLayoutRenderer>
-              </div>
+          {lockersLoading || floorsLoading ? (
+            <div className="flex flex-col items-center justify-center h-150 gap-4">
+              <LoaderCircle className="h-12 w-12 animate-spin text-grey" />
+              <p className="text-grey">Loading...</p>
+            </div>
             ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-grey">No layout configured for this floor</p>
-              </div>
-            )}
-          </div>
+            <div
+              ref={containerRef}
+              className="relative overflow-hidden rounded-lg border-2 border-grey-outline bg-floor-grey select-none"
+              style={{ height: 600, cursor: isPanning ? 'grabbing' : 'grab' }}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onWheel={handleWheel}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+            >
+              {layout ? (
+                <div
+                  className={`absolute left-1/2 top-1/2 ${!isPanning ? 'transition-transform duration-100' : ''}`}
+                  style={{
+                    width: layout.dimensions.width,
+                    height: layout.dimensions.height,
+                    transform: `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) scale(${scale})`,
+                  }}
+                >
+                  <FloorLayoutRenderer
+                    layout={layout}
+                    lockers={floorLockers}
+                    onSelectLocker={() => {}}
+                    LockerComponent={() => null}
+                  >
+                    {/* Render draggable lockers */}
+                    {floorLockers.map((locker) => {
+                      const zoneId = getZoneFromLockerNumber(locker.locker_number)
+                      const zone = layout.zones.find(z => z.id === zoneId)
+                      
+                      if (!zone) return null
+
+                      const absoluteX = zone.x + (locker.x_coordinate || 0)
+                      const absoluteY = zone.y + (locker.y_coordinate || 0)
+
+                      return (
+                        <div
+                          key={locker.locker_id}
+                          style={{
+                            position: 'absolute',
+                            left: `${absoluteX}px`,
+                            top: `${absoluteY}px`,
+                          }}
+                        >
+                          <DraggableLocker
+                            locker={locker}
+                            scale={scale}
+                            onDragStart={handleDragStart(locker.locker_id)}
+                            onDragEnd={handleDragEnd}
+                          />
+                        </div>
+                      )
+                    })}
+                  </FloorLayoutRenderer>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-grey">No layout configured for this floor</p>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="mt-4 text-xs text-grey">
             <p>Drag lockers to reposition them. Click and drag the canvas to pan. Use mouse wheel or zoom controls to zoom in/out. Changes are zone-relative.</p>

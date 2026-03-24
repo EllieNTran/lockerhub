@@ -161,9 +161,6 @@ const BookLocker = () => {
               endDate={endDate}
               onStartDateChange={setStartDate}
               onEndDateChange={setEndDate}
-              disableWeekends={true}
-              disablePastDates={true}
-              maxDaysRange={2}
               labelClassName="text-xs font-medium text-grey"
             />
 

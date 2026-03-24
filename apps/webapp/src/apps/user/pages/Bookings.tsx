@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useUserBookings, useExtendBooking, useCancelBooking } from '@/services/bookings';
+import { useUserBookings, useExtendBooking, useCancelBooking, useBookingRule } from '@/services/bookings';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,10 +22,6 @@ import type { Booking } from '@/types/booking';
 const BOOKINGS_PER_PAGE = 12;
 
 const MyBookings = () => {
-  const { data: bookingsData, isLoading: isLoadingBookings } = useUserBookings();
-  const extendBooking = useExtendBooking();
-  const cancelBooking = useCancelBooking();
-  
   const [extendOpen, setExtendOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -37,11 +33,16 @@ const MyBookings = () => {
     all: 1,
   });
 
+  const { data: bookingsData, isLoading: isLoadingBookings } = useUserBookings();
+  const extendBooking = useExtendBooking();
+  const cancelBooking = useCancelBooking();
+  const { data: extensionRule } = useBookingRule('max_extension');
+
   const getExtensionOptions = (currentEndDate: string) => {
     const options: Date[] = [];
     let currentDate = new Date(currentEndDate);
     
-    while (options.length < 3) {
+    while (options.length < (extensionRule?.value || 1)) {
       currentDate = addDays(currentDate, 1);
       if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
         options.push(new Date(currentDate));
@@ -108,9 +109,9 @@ const MyBookings = () => {
     if (!bookingsData) return [];
     if (status === 'all') return bookingsData;
     if (status === 'expired') {
-      return bookingsData.filter(b => b.status === 'completed' || b.status === 'cancelled' || b.status === 'expired');
+      return bookingsData.filter(b => b.booking_status === 'completed' || b.booking_status === 'cancelled' || b.booking_status === 'expired');
     }
-    return bookingsData.filter(b => b.status === status);
+    return bookingsData.filter(b => b.booking_status === status);
   };
 
   const getPaginatedBookings = (status: string) => {

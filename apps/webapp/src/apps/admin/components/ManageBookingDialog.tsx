@@ -228,6 +228,24 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
             </Button>
           </>
         );
+      case 'cancelled':
+        return (
+          <>
+            {booking?.key_number && booking?.key_status == 'with_employee' ? (
+              <Button 
+                variant="outline" 
+                className="w-full flex items-center justify-start h-12 font-normal"
+                onClick={handleConfirmReturn}
+                disabled={isConfirmingReturn}
+              >
+                <CalendarDays className="mr-2 h-4 w-4" />
+                {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
+              </Button>
+            ) : (
+              <p className="text-sm text-grey">This locker has no key to return.</p>
+            )}
+          </>
+        );
       default:
         return (
           <p className="text-sm text-grey">No actions available</p>

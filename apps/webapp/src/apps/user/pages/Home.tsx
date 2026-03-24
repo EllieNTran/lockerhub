@@ -32,7 +32,7 @@ const Home = () => {
   const { data: bookingsData, isLoading: isLoadingBookings } = useUserBookings();
 
   const upcomingBookings = bookingsData?.filter((b) => {
-    const isActiveOrUpcoming = b.status === 'active' || b.status === 'upcoming';
+    const isActiveOrUpcoming = b.booking_status === 'active' || b.booking_status === 'upcoming';
     const monthFromNow = new Date();
     monthFromNow.setDate(monthFromNow.getDate() + 30);
     const isWithinMonth = new Date(b.start_date) <= monthFromNow;

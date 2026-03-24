@@ -96,7 +96,7 @@ router.post(
   '/',
   validate(createNotificationSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { title, adminTitle, caption, type, scope, createdBy, userIds, departmentId, floorId } =
+    const { title, adminTitle, caption, type, entityType, scope, createdBy, userIds, departmentId, floorId } =
       req.body as CreateNotificationRequest
 
     const result = await createNotification({
@@ -104,6 +104,7 @@ router.post(
       adminTitle,
       caption,
       type,
+      entityType,
       scope,
       createdBy,
       userIds,

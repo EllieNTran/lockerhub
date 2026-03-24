@@ -1,10 +1,8 @@
 """Update booking rules."""
 
-from typing import List
-
 from src.logger import logger
 from src.connectors.db import db
-from src.models.responses import BookingRuleResponse
+from src.models.responses import BookingRuleResponse, AllBookingRulesResponse
 
 UPDATE_RULE_QUERY = """
 UPDATE lockerhub.booking_rules
@@ -22,7 +20,7 @@ async def update_booking_rules(
     max_extension: int = None,
     advance_booking_window: int = None,
     allow_same_day_bookings: bool = None,
-) -> List[BookingRuleResponse]:
+) -> AllBookingRulesResponse:
     """Update booking rules.
 
     Args:
@@ -56,11 +54,8 @@ async def update_booking_rules(
                     if result:
                         updated_rules.append(BookingRuleResponse(**dict(result)))
 
-            logger.info(
-                f"Updated {len(updated_rules)} booking rule(s) by user {user_id}"
-            )
-            return updated_rules
-
+            logger.info(f"Updated {len(updated_rules)} booking rule(s)")
+            return AllBookingRulesResponse(rules=updated_rules)
     except Exception:
-        logger.error(f"Error updating booking rules: {e}")
+        logger.error("Error updating booking rules")
         raise

@@ -17,7 +17,7 @@ class BookingResponse(BaseModel):
     floor_number: str
     start_date: date
     end_date: Optional[date] = None
-    status: str
+    booking_status: str
     special_request_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
@@ -164,3 +164,14 @@ class FloorsResponse(BaseModel):
     """Response model for list of floors."""
 
     floors: List[FloorResponse]
+
+
+class BookingRuleResponse(BaseModel):
+    """Response model for a booking rule."""
+
+    booking_rule_id: UUID
+    name: str
+    value: int
+    rule_type: str
+
+    model_config = ConfigDict(from_attributes=True)

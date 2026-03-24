@@ -7,6 +7,7 @@ import {
   cancelBooking,
   deleteBooking,
   getBookingById,
+  getBookingRule,
 } from './services/user-bookings'
 import { joinFloorQueue } from './services/waiting-list'
 import { getFloors } from './services/floors'
@@ -182,3 +183,13 @@ export const useDeleteSpecialRequest = () => {
     },
   })
 }
+
+/**
+ * Fetch a booking rule by type
+ */
+export const useBookingRule = (ruleType: string) =>
+  useQuery({
+    queryKey: ['bookingRule', ruleType],
+    queryFn: () => getBookingRule(ruleType),
+    enabled: !!ruleType,
+  })

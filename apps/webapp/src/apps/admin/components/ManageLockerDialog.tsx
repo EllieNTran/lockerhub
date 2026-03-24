@@ -312,9 +312,6 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
           endDate={endDate}
           onStartDateChange={setStartDate}
           onEndDateChange={setEndDate}
-          disableWeekends={true}
-          disablePastDates={true}
-          maxDaysRange={2}
         />
 
         <Button 

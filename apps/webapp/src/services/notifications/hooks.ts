@@ -6,6 +6,8 @@ import {
 import {
   sendOverdueKeyReturnReminder,
   type SendOverdueKeyReturnReminderRequest,
+  type SendNotificationRequest,
+  sendNotification,
 } from './services/admin-notifications';
 
 /**
@@ -40,5 +42,14 @@ export const useSendOverdueKeyReturnReminder = () => {
   return useMutation({
     mutationFn: (data: SendOverdueKeyReturnReminderRequest) =>
       sendOverdueKeyReturnReminder(data),
+  });
+};
+
+/**
+ * Send a notification
+ */
+export const useSendNotification = () => {
+  return useMutation({
+    mutationFn: (data: SendNotificationRequest) => sendNotification(data),
   });
 };

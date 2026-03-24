@@ -46,8 +46,7 @@ function decodeJWT(token: string): Record<string, unknown> | null {
         .join('')
     );
     return JSON.parse(jsonPayload);
-  } catch (error) {
-    console.error('Failed to decode JWT:', error);
+  } catch {
     return null;
   }
 }

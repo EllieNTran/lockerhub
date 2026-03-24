@@ -56,6 +56,7 @@ export const bookingCancellationSchema = z.object({
     'awaiting_return',
     'lost',
     'awaiting_replacement',
+    'N/A',
   ]),
   keyNumber: z.string(),
   adminBookingsPath: z.string(),

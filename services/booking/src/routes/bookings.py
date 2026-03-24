@@ -18,6 +18,7 @@ from src.models.requests import (
 from src.models.responses import (
     BookingResponse,
     BookingListResponse,
+    BookingRuleResponse,
     CreateBookingResponse,
     CreateSpecialRequestResponse,
     SpecialRequestsListResponse,
@@ -44,6 +45,7 @@ from src.services.process_floor_queues import process_floor_queues
 from src.services.create_special_request import create_special_request
 from src.services.get_user_special_requests import get_user_special_requests
 from src.services.delete_special_request import delete_special_request
+from src.services.get_booking_rule import get_booking_rule
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -70,8 +72,7 @@ async def create_booking_endpoint(
 async def get_user_bookings_endpoint(current_user: dict = Depends(get_current_user)):
     """Get all bookings for the current user."""
     try:
-        bookings = await get_user_bookings(current_user["user_id"])
-        return BookingListResponse(bookings=bookings)
+        return await get_user_bookings(current_user["user_id"])
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve bookings")
 
@@ -80,9 +81,7 @@ async def get_user_bookings_endpoint(current_user: dict = Depends(get_current_us
 async def get_floors_endpoint(_: dict = Depends(get_current_user)):
     """Get all open floors with their IDs and numbers."""
     try:
-        floors = await get_floors()
-        logger.info("Floors fetched")
-        return FloorsResponse(floors=floors)
+        return await get_floors()
     except Exception:
         logger.error("Error in get_floors_endpoint")
         raise HTTPException(status_code=500, detail="Failed to retrieve floors")
@@ -132,6 +131,19 @@ async def get_special_requests_endpoint(current_user: dict = Depends(get_current
         raise HTTPException(
             status_code=500, detail="Failed to retrieve special requests"
         )
+
+
+@router.get("/booking-rule/{rule_type}", response_model=BookingRuleResponse)
+async def get_booking_rule_endpoint(rule_type: str):
+    """Get a booking rule by type."""
+    try:
+        rule = await get_booking_rule(rule_type)
+        if rule:
+            return rule
+        else:
+            raise HTTPException(status_code=404, detail="Booking rule not found")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to retrieve booking rule")
 
 
 @router.get("/{booking_id}", response_model=BookingResponse)
