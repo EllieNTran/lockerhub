@@ -16,18 +16,19 @@ class TestGetBookingRules:
         names, values, and rule types.
         """
         from src.services.booking_rules.get_booking_rules import get_booking_rules
+        from uuid import uuid4
 
         rules = [
             {
-                "booking_rule_id": 1,
+                "booking_rule_id": uuid4(),
                 "name": "Maximum Booking Duration",
-                "value": "30",
+                "value": 30,
                 "rule_type": "max_duration",
             },
             {
-                "booking_rule_id": 2,
+                "booking_rule_id": uuid4(),
                 "name": "Maximum Extension",
-                "value": "7",
+                "value": 7,
                 "rule_type": "max_extension",
             },
         ]
@@ -36,13 +37,11 @@ class TestGetBookingRules:
         with patch("src.services.booking_rules.get_booking_rules.db", mock_db):
             result = await get_booking_rules()
 
-            assert len(result) == 2
-            assert result[0].booking_rule_id == 1
-            assert result[0].name == "Maximum Booking Duration"
-            assert result[0].value == "30"
-            assert result[0].rule_type == "max_duration"
-            assert result[1].booking_rule_id == 2
-            assert result[1].name == "Maximum Extension"
+            assert len(result.rules) == 2
+            assert result.rules[0].name == "Maximum Booking Duration"
+            assert result.rules[0].value == 30
+            assert result.rules[0].rule_type == "max_duration"
+            assert result.rules[1].name == "Maximum Extension"
 
     @pytest.mark.asyncio
     async def test_get_booking_rules_empty(self, mock_db):
@@ -57,7 +56,7 @@ class TestGetBookingRules:
         with patch("src.services.booking_rules.get_booking_rules.db", mock_db):
             result = await get_booking_rules()
 
-            assert len(result) == 0
+            assert len(result.rules) == 0
 
 
 @pytest.mark.unit
@@ -74,11 +73,12 @@ class TestUpdateBookingRules:
         and returns the updated rule details.
         """
         from src.services.booking_rules.update_booking_rules import update_booking_rules
+        from uuid import uuid4
 
         mock_db_connection.fetchrow.return_value = {
-            "booking_rule_id": 1,
+            "booking_rule_id": uuid4(),
             "name": "Maximum Booking Duration",
-            "value": "45",
+            "value": 45,
             "rule_type": "max_duration",
         }
 
@@ -88,10 +88,9 @@ class TestUpdateBookingRules:
                 max_booking_duration=45,
             )
 
-            assert len(result) == 1
-            assert result[0].booking_rule_id == 1
-            assert result[0].value == "45"
-            assert result[0].rule_type == "max_duration"
+            assert len(result.rules) == 1
+            assert result.rules[0].value == 45
+            assert result.rules[0].rule_type == "max_duration"
 
     @pytest.mark.asyncio
     async def test_update_multiple_rules(
@@ -103,24 +102,25 @@ class TestUpdateBookingRules:
         and returns the complete list of updated rules.
         """
         from src.services.booking_rules.update_booking_rules import update_booking_rules
+        from uuid import uuid4
 
         mock_db_connection.fetchrow.side_effect = [
             {
-                "booking_rule_id": 1,
+                "booking_rule_id": uuid4(),
                 "name": "Maximum Booking Duration",
-                "value": "45",
+                "value": 45,
                 "rule_type": "max_duration",
             },
             {
-                "booking_rule_id": 2,
+                "booking_rule_id": uuid4(),
                 "name": "Maximum Extension",
-                "value": "14",
+                "value": 14,
                 "rule_type": "max_extension",
             },
             {
-                "booking_rule_id": 3,
+                "booking_rule_id": uuid4(),
                 "name": "Advance Booking Window",
-                "value": "60",
+                "value": 60,
                 "rule_type": "advance_booking_window",
             },
         ]
@@ -133,13 +133,13 @@ class TestUpdateBookingRules:
                 advance_booking_window=60,
             )
 
-            assert len(result) == 3
-            assert result[0].rule_type == "max_duration"
-            assert result[0].value == "45"
-            assert result[1].rule_type == "max_extension"
-            assert result[1].value == "14"
-            assert result[2].rule_type == "advance_booking_window"
-            assert result[2].value == "60"
+            assert len(result.rules) == 3
+            assert result.rules[0].rule_type == "max_duration"
+            assert result.rules[0].value == 45
+            assert result.rules[1].rule_type == "max_extension"
+            assert result.rules[1].value == 14
+            assert result.rules[2].rule_type == "advance_booking_window"
+            assert result.rules[2].value == 60
 
     @pytest.mark.asyncio
     async def test_update_boolean_rule(
@@ -151,11 +151,12 @@ class TestUpdateBookingRules:
         the boolean value to integer and updates the rule.
         """
         from src.services.booking_rules.update_booking_rules import update_booking_rules
+        from uuid import uuid4
 
         mock_db_connection.fetchrow.return_value = {
-            "booking_rule_id": 4,
+            "booking_rule_id": uuid4(),
             "name": "Allow Same Day Bookings",
-            "value": "1",
+            "value": 1,
             "rule_type": "same_day_bookings",
         }
 
@@ -165,9 +166,9 @@ class TestUpdateBookingRules:
                 allow_same_day_bookings=True,
             )
 
-            assert len(result) == 1
-            assert result[0].rule_type == "same_day_bookings"
-            assert result[0].value == "1"
+            assert len(result.rules) == 1
+            assert result.rules[0].rule_type == "same_day_bookings"
+            assert result.rules[0].value == 1
 
     @pytest.mark.asyncio
     async def test_update_no_rules(self, mock_db, sample_user_id):
@@ -181,7 +182,7 @@ class TestUpdateBookingRules:
         with patch("src.services.booking_rules.update_booking_rules.db", mock_db):
             result = await update_booking_rules(user_id=sample_user_id)
 
-            assert len(result) == 0
+            assert len(result.rules) == 0
 
 
 @pytest.mark.unit
@@ -202,26 +203,36 @@ class TestUpdateFloorStatus:
         mock_db_connection.fetchrow.side_effect = [
             {
                 "floor_id": sample_floor_id,
-                "number": "10",
+                "floor_number": "10",
                 "status": "open",
             },
             {
                 "floor_id": sample_floor_id,
-                "number": "10",
+                "floor_number": "10",
                 "status": "closed",
             },
         ]
+        mock_db_connection.fetch.return_value = []  # No affected bookings
+        mock_db_connection.execute.return_value = None
 
         with patch("src.services.booking_rules.update_floor_status.db", mock_db):
-            result = await update_floor_status(
-                floor_id=str(sample_floor_id),
-                status="closed",
-                user_id=str(sample_user_id),
-            )
+            from unittest.mock import AsyncMock
 
-            assert result.floor_id == sample_floor_id
-            assert result.floor_number == "10"
-            assert result.status == "closed"
+            with patch(
+                "src.services.booking_rules.update_floor_status.NotificationsServiceClient"
+            ) as mock_notif:
+                mock_notif_instance = AsyncMock()
+                mock_notif.return_value = mock_notif_instance
+
+                result = await update_floor_status(
+                    floor_id=str(sample_floor_id),
+                    status="closed",
+                    user_id=str(sample_user_id),
+                )
+
+                assert str(result.floor_id) == str(sample_floor_id)
+                assert result.floor_number == "10"
+                assert result.status == "closed"
 
     @pytest.mark.asyncio
     async def test_update_floor_status_to_open(
@@ -237,26 +248,37 @@ class TestUpdateFloorStatus:
         mock_db_connection.fetchrow.side_effect = [
             {
                 "floor_id": sample_floor_id,
-                "number": "10",
+                "floor_number": "10",
                 "status": "closed",
             },
             {
                 "floor_id": sample_floor_id,
-                "number": "10",
+                "floor_number": "10",
                 "status": "open",
             },
         ]
+        mock_db_connection.execute.return_value = (
+            None  # For DELETE_ACTIVE_CLOSURES_QUERY
+        )
 
         with patch("src.services.booking_rules.update_floor_status.db", mock_db):
-            result = await update_floor_status(
-                floor_id=str(sample_floor_id),
-                status="open",
-                user_id=str(sample_user_id),
-            )
+            from unittest.mock import AsyncMock
 
-            assert result.floor_id == sample_floor_id
-            assert result.floor_number == "10"
-            assert result.status == "open"
+            with patch(
+                "src.services.booking_rules.update_floor_status.NotificationsServiceClient"
+            ) as mock_notif:
+                mock_notif_instance = AsyncMock()
+                mock_notif.return_value = mock_notif_instance
+
+                result = await update_floor_status(
+                    floor_id=str(sample_floor_id),
+                    status="open",
+                    user_id=str(sample_user_id),
+                )
+
+                assert str(result.floor_id) == str(sample_floor_id)
+                assert result.floor_number == "10"
+                assert result.status == "open"
 
     @pytest.mark.asyncio
     async def test_update_floor_status_floor_not_found(
@@ -268,13 +290,14 @@ class TestUpdateFloorStatus:
         raises a ValueError with the message 'Floor not found'.
         """
         from src.services.booking_rules.update_floor_status import update_floor_status
+        from uuid import uuid4
 
         mock_db_connection.fetchrow.return_value = None
 
         with patch("src.services.booking_rules.update_floor_status.db", mock_db):
             with pytest.raises(ValueError, match="Floor not found"):
                 await update_floor_status(
-                    floor_id="non-existent-id",
+                    floor_id=str(uuid4()),
                     status="closed",
-                    user_id=sample_user_id,
+                    user_id=str(sample_user_id),
                 )

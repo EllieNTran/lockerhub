@@ -170,8 +170,6 @@ const NewSpecialRequest = () => {
                   endDate={isPermanent ? undefined : endDate}
                   onStartDateChange={setStartDate}
                   onEndDateChange={setEndDate}
-                  disableWeekends={true}
-                  disablePastDates={true}
                   disableEndDate={isPermanent}
                 />
                 <div className="flex items-center space-x-2 mt-3">

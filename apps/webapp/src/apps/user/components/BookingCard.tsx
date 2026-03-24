@@ -39,8 +39,8 @@ const BookingCard = ({ booking, variant = 'small', onExtend, onCancel }: Booking
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{booking.locker_number}</span>
             <StatusBadge
-              color={statusColors[booking.status]}
-              status={booking.status}
+              color={statusColors[booking.booking_status]}
+              status={booking.booking_status}
             />
             {booking.special_request_id && (
               <StatusBadge
@@ -65,7 +65,7 @@ const BookingCard = ({ booking, variant = 'small', onExtend, onCancel }: Booking
           </div>
         </div>
       </div>
-      {isLarge && (booking.status === 'active' || booking.status === 'upcoming') && (
+      {isLarge && (booking.booking_status === 'active' || booking.booking_status === 'upcoming') && (
         <div className="flex gap-3">
           {!booking.special_request_id && (
             <Button variant="outline" size="sm" textColor="text-dark-blue" onClick={onExtend} className="text-xs">

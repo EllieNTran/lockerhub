@@ -307,7 +307,8 @@ class TestConfirmKeyReturn:
 
         with patch("src.services.bookings.confirm_key_return.db", mock_db):
             with pytest.raises(
-                ValueError, match="Booking must be 'active' to confirm RETURN"
+                ValueError,
+                match="Booking must be 'active' or 'cancelled' to confirm RETURN",
             ):
                 await confirm_key_return(str(sample_booking_id))
 

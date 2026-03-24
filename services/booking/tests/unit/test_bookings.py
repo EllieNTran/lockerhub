@@ -145,17 +145,23 @@ class TestGetUserBookings:
         from src.services.get_user_bookings import get_user_bookings
 
         bookings = [
-            create_booking_dict(user_id=sample_user_id, status="active"),
-            create_booking_dict(user_id=sample_user_id, status="upcoming"),
-            create_booking_dict(user_id=sample_user_id, status="completed"),
+            create_booking_dict(
+                user_id=sample_user_id, status="active", booking_status="active"
+            ),
+            create_booking_dict(
+                user_id=sample_user_id, status="upcoming", booking_status="upcoming"
+            ),
+            create_booking_dict(
+                user_id=sample_user_id, status="completed", booking_status="completed"
+            ),
         ]
         mock_db.fetch.return_value = bookings
 
         with patch("src.services.get_user_bookings.db", mock_db):
             result = await get_user_bookings(str(sample_user_id))
 
-        assert len(result) == 3
-        assert all(booking.user_id == sample_user_id for booking in result)
+        assert len(result.bookings) == 3
+        assert all(booking.user_id == sample_user_id for booking in result.bookings)
 
     @pytest.mark.asyncio
     async def test_get_user_bookings_empty(self, mock_db, sample_user_id):
@@ -171,7 +177,7 @@ class TestGetUserBookings:
         with patch("src.services.get_user_bookings.db", mock_db):
             result = await get_user_bookings(str(sample_user_id))
 
-        assert result == []
+        assert len(result.bookings) == 0
 
 
 class TestCancelBooking:
@@ -197,6 +203,7 @@ class TestCancelBooking:
             booking_id=sample_booking_id,
             user_id=sample_user_id,
             status="active",
+            booking_status="active",
             key_status="awaiting_handover",
         )
         mock_db_connection.fetchrow.return_value = booking_data
@@ -231,7 +238,12 @@ class TestCancelBooking:
 
     @pytest.mark.asyncio
     async def test_cancel_booking_already_cancelled(
-        self, mock_db_connection, mock_db, sample_user_id, sample_booking_id
+        self,
+        mock_db_connection,
+        mock_db,
+        mock_notifications_client,
+        sample_user_id,
+        sample_booking_id,
     ):
         """
         Verify error when cancelling already cancelled booking.
@@ -241,11 +253,17 @@ class TestCancelBooking:
         from src.services.cancel_booking import cancel_booking
 
         booking_data = create_booking_dict(
-            booking_id=sample_booking_id, user_id=sample_user_id, status="cancelled"
+            booking_id=sample_booking_id,
+            user_id=sample_user_id,
+            status="cancelled",
+            booking_status="cancelled",
         )
         mock_db_connection.fetchrow.return_value = booking_data
 
-        with patch("src.services.cancel_booking.db", mock_db):
+        with patch("src.services.cancel_booking.db", mock_db), patch(
+            "src.services.cancel_booking.NotificationsServiceClient",
+            return_value=mock_notifications_client,
+        ):
             with pytest.raises(ValueError, match="already cancelled"):
                 await cancel_booking(str(sample_user_id), str(sample_booking_id))
 
@@ -270,6 +288,7 @@ class TestCancelBooking:
             booking_id=sample_booking_id,
             user_id=sample_user_id,
             status="active",
+            booking_status="active",
             special_request_id=special_request_id,
             key_status="awaiting_handover",  # Set to trigger key reset
         )
@@ -313,6 +332,7 @@ class TestCancelBooking:
             booking_id=sample_booking_id,
             user_id=sample_user_id,
             status="active",
+            booking_status="active",
             special_request_id=None,
             key_status="awaiting_handover",
         )
