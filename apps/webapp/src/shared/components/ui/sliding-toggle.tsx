@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 interface SlidingToggleOption<T extends string> {
   value: T;

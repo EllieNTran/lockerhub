@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from "react";
-import type { Locker, AvailableLocker } from "@/types/locker";
-import LockerCell from "./LockerCell";
-import { FloorLayoutRenderer, getFloorLayout } from "@/components/floor-layouts";
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import type { Locker, AvailableLocker } from '@/types/locker';
+import LockerCell from './LockerCell';
+import { FloorLayoutRenderer, getFloorLayout } from '@/components/floor-layouts';
 
 interface FloorPlanProps {
   lockers: (Locker | AvailableLocker)[];
@@ -71,7 +71,7 @@ const FloorPlan = ({
   }, [scale, setScale]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if ((e.target as HTMLElement).closest("button[data-locker]")) return;
+    if ((e.target as HTMLElement).closest('button[data-locker]')) return;
     setIsDragging(true);
     dragStart.current = { x: e.clientX, y: e.clientY };
     translateStart.current = { ...translate };

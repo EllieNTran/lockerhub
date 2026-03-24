@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { NavLink } from "react-router";
+import type { ReactNode } from 'react';
+import { NavLink } from 'react-router';
 import {
   LayoutDashboard,
   Lock,
@@ -10,20 +10,20 @@ import {
   ShieldCheck,
   BarChart3,
   MapPinPen,
-} from "lucide-react";
-import { cn } from "@/utils/cn";
-import Header from "@/components/Header";
-import ProtectedRoute from "@/components/ProtectedRoute";
+} from 'lucide-react';
+import { cn } from '@/utils/cn';
+import Header from '@/components/Header';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const navItems = [
-  { label: "Dashboard", to: "/admin", icon: LayoutDashboard, end: true },
-  { label: "Bookings", to: "/admin/bookings", icon: CalendarCheck },
-  { label: "Lockers", to: "/admin/lockers", icon: Lock },
-  { label: "Special Requests", to: "/admin/special-requests", icon: FileText },
-  { label: "Analytics", to: "/admin/analytics", icon: BarChart3 },
-  { label: "Audit Logs", to: "/admin/audit", icon: ClipboardList },
-  { label: "Booking Rules", to: "/admin/rules", icon: Settings },
-  { label: "Locker Configuration", to: "/admin/locker-configuration", icon: MapPinPen },
+  { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, end: true },
+  { label: 'Bookings', to: '/admin/bookings', icon: CalendarCheck },
+  { label: 'Lockers', to: '/admin/lockers', icon: Lock },
+  { label: 'Special Requests', to: '/admin/special-requests', icon: FileText },
+  { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
+  { label: 'Audit Logs', to: '/admin/audit', icon: ClipboardList },
+  { label: 'Booking Rules', to: '/admin/rules', icon: Settings },
+  { label: 'Locker Configuration', to: '/admin/locker-configuration', icon: MapPinPen },
 ];
 
 interface AdminLayoutProps {
@@ -54,10 +54,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                     isActive
-                      ? "bg-primary text-white"
-                      : "text-grey hover:bg-muted hover:text-dark-blue"
+                      ? 'bg-primary text-white'
+                      : 'text-grey hover:bg-muted hover:text-dark-blue'
                   )
                 }
               >
@@ -69,7 +69,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         </aside>
 
         <main className="flex-1 overflow-auto">
-          <div className="w-full max-w-[1200px] mx-auto px-14 py-10">
+          <div className="w-full max-w-[1200px] mx-auto p-12">
             {children}
           </div>
         </main>

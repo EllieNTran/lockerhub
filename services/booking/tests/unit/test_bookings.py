@@ -249,6 +249,86 @@ class TestCancelBooking:
             with pytest.raises(ValueError, match="already cancelled"):
                 await cancel_booking(str(sample_user_id), str(sample_booking_id))
 
+    @pytest.mark.asyncio
+    async def test_cancel_booking_with_special_request(
+        self,
+        mock_db_connection,
+        mock_db,
+        mock_notifications_client,
+        sample_user_id,
+        sample_booking_id,
+    ):
+        """
+        Verify that cancelling a booking also cancels associated special request.
+        Mock database returns booking with special_request_id.
+        Verify special request status is updated to cancelled.
+        """
+        from src.services.cancel_booking import cancel_booking
+
+        special_request_id = 123
+        booking_data = create_booking_dict(
+            booking_id=sample_booking_id,
+            user_id=sample_user_id,
+            status="active",
+            special_request_id=special_request_id,
+            key_status="awaiting_handover",  # Set to trigger key reset
+        )
+        mock_db_connection.fetchrow.return_value = booking_data
+        mock_db_connection.fetchval.return_value = sample_booking_id
+
+        with patch("src.services.cancel_booking.db", mock_db), patch(
+            "src.services.cancel_booking.NotificationsServiceClient",
+            return_value=mock_notifications_client,
+        ):
+            result = await cancel_booking(str(sample_user_id), str(sample_booking_id))
+
+        assert result.booking_id == sample_booking_id
+        # Verify special request cancellation was called
+        assert (
+            mock_db_connection.execute.call_count == 3
+        )  # Cancel request + reset key + reset locker
+        # First execute call should be for cancelling the special request
+        first_execute_call = mock_db_connection.execute.call_args_list[0]
+        assert "UPDATE lockerhub.requests" in first_execute_call[0][0]
+        assert "SET status = 'cancelled'" in first_execute_call[0][0]
+        assert first_execute_call[0][1] == special_request_id
+
+    @pytest.mark.asyncio
+    async def test_cancel_booking_without_special_request(
+        self,
+        mock_db_connection,
+        mock_db,
+        mock_notifications_client,
+        sample_user_id,
+        sample_booking_id,
+    ):
+        """
+        Verify that cancelling a booking without special request works correctly.
+        Mock database returns booking with no special_request_id.
+        Verify only key and locker resets are executed.
+        """
+        from src.services.cancel_booking import cancel_booking
+
+        booking_data = create_booking_dict(
+            booking_id=sample_booking_id,
+            user_id=sample_user_id,
+            status="active",
+            special_request_id=None,
+            key_status="awaiting_handover",
+        )
+        mock_db_connection.fetchrow.return_value = booking_data
+        mock_db_connection.fetchval.return_value = sample_booking_id
+
+        with patch("src.services.cancel_booking.db", mock_db), patch(
+            "src.services.cancel_booking.NotificationsServiceClient",
+            return_value=mock_notifications_client,
+        ):
+            result = await cancel_booking(str(sample_user_id), str(sample_booking_id))
+
+        assert result.booking_id == sample_booking_id
+        # Should only have 2 execute calls (reset key + reset locker), no special request cancellation
+        assert mock_db_connection.execute.call_count == 2
+
 
 class TestExtendBooking:
     """Tests for the extend_booking service."""

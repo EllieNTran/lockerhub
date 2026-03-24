@@ -1,5 +1,5 @@
-import { Building2 } from "lucide-react";
-import { getGreeting } from "@/utils/get-greeting";
+import { Building2 } from 'lucide-react';
+import { getGreeting } from '@/utils/get-greeting';
 
 interface HeroBannerProps {
   subtitle: string;
@@ -8,7 +8,7 @@ interface HeroBannerProps {
   location?: string;
 }
 
-const HeroBanner = ({ subtitle, statLabel, statValue, location = "Canary Wharf, London Office" }: HeroBannerProps) => {
+const HeroBanner = ({ subtitle, statLabel, statValue, location = 'Canary Wharf, London Office' }: HeroBannerProps) => {
   return (
     <div className="mb-8 rounded-2xl bg-gradient-to-br from-primary via-primary to-secondary px-8 py-10 text-white relative overflow-hidden shadow-sm">
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-secondary/20" />

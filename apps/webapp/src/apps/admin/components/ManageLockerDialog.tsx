@@ -1,41 +1,41 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { CalendarDays, Wrench, CircleCheckBig, KeyRound, AlertTriangle, Search } from 'lucide-react'
-import { format } from "date-fns";
-import type { Locker } from "@/types/locker";
-import type { User } from "@/types/user";
-import { cn } from "@/utils/cn";
+import { format } from 'date-fns';
+import type { Locker } from '@/types/locker';
+import type { User } from '@/types/user';
+import { cn } from '@/utils/cn';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { DateRangePicker } from "@/components/DateRangePicker";
-import StatusBadge from "@/components/StatusBadge";
-import { useMarkLockerMaintenance, useReportLostKey, useOrderReplacementKey, useMarkLockerAvailable, useAllUsers, useCreateAdminBooking, useCreateLockerKey, useAllKeys } from "@/services/admin";
-import { toast } from "sonner";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { DateRangePicker } from '@/components/DateRangePicker';
+import StatusBadge from '@/components/StatusBadge';
+import { useMarkLockerMaintenance, useReportLostKey, useOrderReplacementKey, useMarkLockerAvailable, useAllUsers, useCreateAdminBooking, useCreateLockerKey, useAllKeys } from '@/services/admin';
+import { toast } from 'sonner';
 import type { AxiosError } from 'axios';
 
 interface ManageLockerDialogProps {
   locker: Locker,
   isOpen: boolean,
   onOpenChange: (open: boolean) => void,
-  statusColor: "green" | "brightBlue" | "red" | "purple" | "blue" | "pink",
+  statusColor: 'green' | 'brightBlue' | 'red' | 'purple' | 'blue' | 'pink',
 }
 
 const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: ManageLockerDialogProps) => {
   const [showMaintenanceOptions, setShowMaintenanceOptions] = useState(false);
   const [showManualBooking, setShowManualBooking] = useState(false);
   const [showCreateKey, setShowCreateKey] = useState(false);
-  const [keyNumber, setKeyNumber] = useState("");
-  const [keyNumberError, setKeyNumberError] = useState("");
-  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [keyNumber, setKeyNumber] = useState('');
+  const [keyNumberError, setKeyNumberError] = useState('');
+  const [userSearchQuery, setUserSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -55,9 +55,9 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       setShowMaintenanceOptions(false);
       setShowManualBooking(false);
       setShowCreateKey(false);
-      setKeyNumber("");
-      setKeyNumberError("");
-      setUserSearchQuery("");
+      setKeyNumber('');
+      setKeyNumberError('');
+      setUserSearchQuery('');
       setSelectedUser(null);
       setShowUserDropdown(false);
       setStartDate(undefined);
@@ -67,7 +67,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
 
   useEffect(() => {
     if (!keyNumber.trim()) {
-      setKeyNumberError("");
+      setKeyNumberError('');
       return;
     }
 
@@ -77,9 +77,9 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       );
       
       if (keyExists) {
-        setKeyNumberError("A key with this number already exists");
+        setKeyNumberError('A key with this number already exists');
       } else {
-        setKeyNumberError("");
+        setKeyNumberError('');
       }
     };
 
@@ -138,7 +138,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
   const handleInputFocus = () => {
     setShowUserDropdown(true);
     if (selectedUser) {
-      setUserSearchQuery("");
+      setUserSearchQuery('');
     }
   };
 
@@ -225,9 +225,9 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       setShowMaintenanceOptions(false);
       setShowManualBooking(false);
       setShowCreateKey(false);
-      setKeyNumber("");
-      setKeyNumberError("");
-      setUserSearchQuery("");
+      setKeyNumber('');
+      setKeyNumberError('');
+      setUserSearchQuery('');
       setSelectedUser(null);
       setShowUserDropdown(false);
       setStartDate(undefined);
@@ -282,8 +282,8 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
           </div>
           {showUserDropdown && (
             <ScrollArea className={cn(
-              "rounded-md border border-grey-outline",
-              filteredUsers.length > 0 ? "h-[200px]" : "h-auto"
+              'rounded-md border border-grey-outline',
+              filteredUsers.length > 0 ? 'h-[200px]' : 'h-auto'
             )}>
               {usersLoading ? (
                 <div className="p-4 text-sm text-grey text-center">Loading users...</div>

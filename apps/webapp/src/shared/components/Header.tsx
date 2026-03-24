@@ -1,9 +1,9 @@
-import { Lock, ShieldCheck, User } from "lucide-react";
-import { NavLink, useNavigate, useLocation } from "react-router";
-import { useEffect, useState } from "react";
-import { cn } from "@/utils/cn";
-import { Switch } from "@/components/ui/switch";
-import { useViewMode } from "../context/ViewModeContext";
+import { Lock, ShieldCheck, User } from 'lucide-react';
+import { NavLink, useNavigate, useLocation } from 'react-router';
+import { useEffect, useState } from 'react';
+import { cn } from '@/utils/cn';
+import { Switch } from '@/components/ui/switch';
+import { useViewMode } from '../context/ViewModeContext';
 
 type HeaderProps = {
   showNav?: boolean;
@@ -14,21 +14,21 @@ const Header = ({ showNav = true }: HeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isAdminRoute = location.pathname.startsWith("/admin");
+  const isAdminRoute = location.pathname.startsWith('/admin');
   const [userRole, setUserRole] = useState<string | null>(null);
-  const canAccessAdmin = userRole === "admin";
+  const canAccessAdmin = userRole === 'admin';
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setUserRole(localStorage.getItem("userRole"));
+    if (typeof window !== 'undefined') {
+      setUserRole(localStorage.getItem('userRole'));
     }
   }, []);
 
   useEffect(() => {
-    if (isAdminRoute && viewMode !== "admin") {
-      setViewMode("admin");
-    } else if (!isAdminRoute && viewMode !== "user") {
-      setViewMode("user");
+    if (isAdminRoute && viewMode !== 'admin') {
+      setViewMode('admin');
+    } else if (!isAdminRoute && viewMode !== 'user') {
+      setViewMode('user');
     }
   }, [isAdminRoute, viewMode, setViewMode]);
 
@@ -37,18 +37,18 @@ const Header = ({ showNav = true }: HeaderProps) => {
       return;
     }
     
-    setViewMode(checked ? "admin" : "user");
+    setViewMode(checked ? 'admin' : 'user');
     if (checked) {
-      navigate("/admin");
+      navigate('/admin');
     } else {
-      navigate("/user");
+      navigate('/user');
     }
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "text-sm font-medium transition-colors hover:text-primary-foreground",
-      isActive ? "text-primary-foreground" : "text-primary-foreground/60"
+      'text-sm font-medium transition-colors hover:text-primary-foreground',
+      isActive ? 'text-primary-foreground' : 'text-primary-foreground/60'
     );
 
   return (
@@ -83,8 +83,8 @@ const Header = ({ showNav = true }: HeaderProps) => {
           <div className="flex items-center gap-3">
             {canAccessAdmin && (
               <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
-                <User className={cn("h-3.5 w-3.5 transition-colors", !isAdmin ? "text-white" : "text-primary-foreground/80")} />
-                <span className={cn("text-xs transition-colors", !isAdmin ? "text-white font-medium" : "text-primary-foreground/80")}>
+                <User className={cn('h-3.5 w-3.5 transition-colors', !isAdmin ? 'text-white' : 'text-primary-foreground/80')} />
+                <span className={cn('text-xs transition-colors', !isAdmin ? 'text-white font-medium' : 'text-primary-foreground/80')}>
                   User
                 </span>
                 <Switch
@@ -92,8 +92,8 @@ const Header = ({ showNav = true }: HeaderProps) => {
                   onCheckedChange={handleToggle}
                   className="data-[state=checked]:bg-secondary data-[state=unchecked]:bg-white/20"
                 />
-                <ShieldCheck className={cn("h-3.5 w-3.5 transition-colors", isAdmin ? "text-white" : "text-primary-foreground/80")} />
-                <span className={cn("text-xs transition-colors", isAdmin ? "text-white font-medium" : "text-primary-foreground/80")}>
+                <ShieldCheck className={cn('h-3.5 w-3.5 transition-colors', isAdmin ? 'text-white' : 'text-primary-foreground/80')} />
+                <span className={cn('text-xs transition-colors', isAdmin ? 'text-white font-medium' : 'text-primary-foreground/80')}>
                   Admin
                 </span>
               </div>

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState } from 'react';
 
-type ViewMode = "user" | "admin";
+type ViewMode = 'user' | 'admin';
 
 interface ViewModeContextType {
   viewMode: ViewMode;
@@ -9,7 +9,7 @@ interface ViewModeContextType {
 }
 
 const ViewModeContext = createContext<ViewModeContextType>({
-  viewMode: "user",
+  viewMode: 'user',
   setViewMode: () => {},
   isAdmin: false,
 });
@@ -18,11 +18,11 @@ const ViewModeContext = createContext<ViewModeContextType>({
 export const useViewMode = () => useContext(ViewModeContext);
 
 export const ViewModeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [viewMode, setViewMode] = useState<ViewMode>("user");
+  const [viewMode, setViewMode] = useState<ViewMode>('user');
 
   return (
     <ViewModeContext.Provider
-      value={{ viewMode, setViewMode, isAdmin: viewMode === "admin" }}
+      value={{ viewMode, setViewMode, isAdmin: viewMode === 'admin' }}
     >
       {children}
     </ViewModeContext.Provider>

@@ -234,7 +234,7 @@ export const useAllSpecialRequests = () =>
 
 export const useReviewSpecialRequest = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ requestId, data }: { requestId: string; data: ReviewRequestData }) =>
       reviewSpecialRequest(requestId, data),

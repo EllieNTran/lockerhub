@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, FileText, KeyRound, Layers, Lock, ShieldCheck, Users, XCircle, Clock } from "lucide-react";
+import { BookOpen, CalendarDays, FileText, KeyRound, Layers, Lock, ShieldCheck, Users, XCircle, Clock } from 'lucide-react';
 
 export type ActivityType = 'booking' | 'return' | 'admin' | 'cancel' | 'request' | 'waiting_list';
 
@@ -19,7 +19,7 @@ const createColorScheme = (color: string) => ({
   border: `border-${color}-outline/30`,
   iconBg: `bg-${color}-foreground`,
   iconColor: `text-${color}`,
-  dot: "bg-secondary",
+  dot: 'bg-secondary',
 });
 
 const activityIcon: Record<ActivityType, typeof Lock> = {
@@ -32,12 +32,12 @@ const activityIcon: Record<ActivityType, typeof Lock> = {
 };
 
 const activityColors: Record<ActivityType, ReturnType<typeof createColorScheme>> = {
-  booking: createColorScheme("purple"),
-  return: createColorScheme("secondary"),
-  admin: createColorScheme("primary"),
-  cancel: createColorScheme("error"),
-  request: createColorScheme("pink"),
-  waiting_list: createColorScheme("baby-blue"),
+  booking: createColorScheme('purple'),
+  return: createColorScheme('secondary'),
+  admin: createColorScheme('primary'),
+  cancel: createColorScheme('error'),
+  request: createColorScheme('pink'),
+  waiting_list: createColorScheme('baby-blue'),
 };
 
 const RecentActivity = ({ activities }: RecentActivityProps) => {
@@ -49,7 +49,7 @@ const RecentActivity = ({ activities }: RecentActivityProps) => {
           Recent Activity
         </h3>
       </div>
-      <div className={activities.length === 0 ? "flex-1 flex items-center justify-center mb-10" : "space-y-4"}>
+      <div className={activities.length === 0 ? 'flex-1 flex items-center justify-center mb-10' : 'space-y-4'}>
         {activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center">
             <Layers className="h-8 w-8 text-grey/40 mb-2" />
@@ -58,7 +58,7 @@ const RecentActivity = ({ activities }: RecentActivityProps) => {
         ) : (
           activities.map((item) => {
             const Icon = activityIcon[item.type] || BookOpen;
-            const colors = activityColors[item.type] || createColorScheme("primary");
+            const colors = activityColors[item.type] || createColorScheme('primary');
             return (
               <div key={item.id} className="flex items-start gap-3">
                 <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${colors.iconBg} ${colors.iconColor}`}>

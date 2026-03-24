@@ -2,10 +2,11 @@ import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
+export default [
   { ignores: ['dist/', 'build/', 'node_modules/', 'coverage/'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx,js}'],
     languageOptions: {
       ecmaVersion: 'latest',
@@ -32,4 +33,4 @@ export default tseslint.config(
       'eol-last': ['error', 'always'],
     },
   },
-)
+]

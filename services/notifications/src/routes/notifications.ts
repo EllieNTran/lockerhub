@@ -515,6 +515,7 @@ router.post(
       floorNumber,
       endDate,
       requestId,
+      reason,
       userSpecialRequestsPath,
     } = req.body
 
@@ -525,6 +526,7 @@ router.post(
       floorNumber,
       endDate,
       requestId,
+      reason,
       userSpecialRequestsPath,
     )
 

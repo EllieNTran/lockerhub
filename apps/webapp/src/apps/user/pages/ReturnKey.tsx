@@ -1,31 +1,31 @@
-import { Mail, KeyRound, BrushCleaning, MapPin } from "lucide-react";
-import UserLayout from "../layout/UserLayout";
-import Heading from "@/components/Heading";
+import { Mail, KeyRound, BrushCleaning, MapPin } from 'lucide-react';
+import UserLayout from '../layout/UserLayout';
+import Heading from '@/components/Heading';
 
 const steps = [
   {
     icon: Mail,
-    title: "1. Check Your Reminder Email",
+    title: '1. Check Your Reminder Email',
     description:
-      "You should have received a reminder email on the day your booking ends. This includes your locker details and key number—please refer to it for reference.",
+      'You should have received a reminder email on the day your booking ends. This includes your locker details and key number—please refer to it for reference.',
   },
   {
     icon: BrushCleaning,
-    title: "2. Empty Your Locker",
+    title: '2. Empty Your Locker',
     description:
-      "Remove all personal belongings from your locker before your booking ends. Ensure the locker is left clean and empty.",
+      'Remove all personal belongings from your locker before your booking ends. Ensure the locker is left clean and empty.',
   },
   {
     icon: KeyRound,
-    title: "3. Locate Your Key",
+    title: '3. Locate Your Key',
     description:
-      "Make sure you have your assigned locker key ready for return. Double-check the key number matches the details in the email.",
+      'Make sure you have your assigned locker key ready for return. Double-check the key number matches the details in the email.',
   },
   {
     icon: MapPin,
-    title: "4. Visit the Key Return Point",
+    title: '4. Visit the Key Return Point',
     description:
-      "Head to the drop-off box near the lifts on the 5th Floor. Key returns are accepted Monday-Friday, 8:00 AM - 6:00 PM.",
+      'Head to the drop-off box near the lifts on the 5th Floor. Key returns are accepted Monday-Friday, 8:00 AM - 6:00 PM.',
   },
 ];
 

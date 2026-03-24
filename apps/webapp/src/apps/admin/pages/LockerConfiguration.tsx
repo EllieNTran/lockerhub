@@ -15,7 +15,7 @@ import { useAllLockers, useUpdateLockerCoordinates } from '@/services/admin'
 import { FloorLayoutRenderer, getFloorLayout } from '@/components/floor-layouts'
 import type { Locker } from '@/types/locker'
 import { getZoneFromLockerNumber, getFloorFromLockerNumber } from '@/utils/locker-parser'
-import { useFloors } from "@/services/bookings";
+import { useFloors } from '@/services/bookings';
 import { DraggableLocker } from '../components/DraggableLocker'
 import Heading from '@/components/Heading'
 

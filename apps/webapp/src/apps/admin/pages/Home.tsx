@@ -2,14 +2,14 @@ import {
   CalendarDays,
   FileText,
   Lock,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import AdminLayout from "../layout/AdminLayout";
-import HeroBanner from "@/components/HeroBanner";
-import StatCard from "../components/StatCard";
-import LockerUtilisation from "../components/LockerUtilisation";
-import RecentActivity, { type ActivityItem } from "../components/RecentActivity";
-import { useDashboardStats, useFloorsUtilization, useRecentActivity } from "@/services/admin/hooks";
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import AdminLayout from '../layout/AdminLayout';
+import HeroBanner from '@/components/HeroBanner';
+import StatCard from '../components/StatCard';
+import LockerUtilisation from '../components/LockerUtilisation';
+import RecentActivity, { type ActivityItem } from '../components/RecentActivity';
+import { useDashboardStats, useFloorsUtilization, useRecentActivity } from '@/services/admin/hooks';
 
 const AdminHome = () => {
   const { data: dashboardStats } = useDashboardStats();

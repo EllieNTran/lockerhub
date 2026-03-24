@@ -1,5 +1,5 @@
-import { TrendingUp } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { TrendingUp } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 interface FloorStat {
   name: string;
@@ -23,7 +23,7 @@ const LockerUtilisation = ({ floorStats, totalLockers }: LockerUtilisationProps)
         </h3>
         <span className="text-xs text-grey">{totalLockers} total</span>
       </div>
-      <div className={floorStats.length === 0 ? "flex-1 flex items-center justify-center mb-10" : "space-y-3"}>
+      <div className={floorStats.length === 0 ? 'flex-1 flex items-center justify-center mb-10' : 'space-y-3'}>
         {floorStats.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center">
             <TrendingUp className="h-8 w-8 text-grey/40 mb-2" />
@@ -35,7 +35,7 @@ const LockerUtilisation = ({ floorStats, totalLockers }: LockerUtilisationProps)
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium text-dark-blue">{f.name}</span>
                 <span className="text-grey">
-                  {f.occupied}/{f.total} &bull;{" "}
+                  {f.occupied}/{f.total} &bull;{' '}
                   {f.pct}%
                 </span>
               </div>

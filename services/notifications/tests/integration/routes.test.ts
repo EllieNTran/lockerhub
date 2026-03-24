@@ -825,6 +825,7 @@ describe('Notification Routes Integration Tests', () => {
         validSpecialRequestRejected.floorNumber,
         validSpecialRequestRejected.endDate,
         validSpecialRequestRejected.requestId,
+        validSpecialRequestRejected.reason,
         validSpecialRequestRejected.userSpecialRequestsPath,
       )
     })
@@ -843,6 +844,29 @@ describe('Notification Routes Integration Tests', () => {
         })
 
       expect(response.status).toBe(200)
+    })
+
+    it('should pass rejection reason to the service', async () => {
+      /**
+       * Verify that rejection reason is properly passed to the service.
+       */
+      vi.mocked(specialRequestService.notifySpecialRequestRejected).mockResolvedValue(undefined)
+
+      const response = await request(app)
+        .post('/notifications/special-request/rejected')
+        .send(validSpecialRequestRejected)
+
+      expect(response.status).toBe(200)
+      expect(specialRequestService.notifySpecialRequestRejected).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        validSpecialRequestRejected.reason,
+        expect.anything(),
+      )
     })
 
     it('should return 500 on service error', async () => {

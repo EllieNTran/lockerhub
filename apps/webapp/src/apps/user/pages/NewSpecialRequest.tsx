@@ -1,31 +1,31 @@
-import { useNavigate, Link } from "react-router";
-import { useState, useEffect } from "react";
-import UserLayout from "../layout/UserLayout";
-import { ArrowLeft, FileText, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { DateRangePicker } from "@/components/DateRangePicker";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useNavigate, Link } from 'react-router';
+import { useState, useEffect, type SetStateAction } from 'react';
+import UserLayout from '../layout/UserLayout';
+import { ArrowLeft, FileText, Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { TextArea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { DateRangePicker } from '@/components/DateRangePicker';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { format, differenceInDays } from "date-fns";
-import { toast } from "@/components/ui/sonner";
-import { useFloors, useAvailableLockers, useCreateSpecialRequest } from "@/services/bookings";
+} from '@/components/ui/select';
+import { format, differenceInDays } from 'date-fns';
+import { toast } from '@/components/ui/sonner';
+import { useFloors, useAvailableLockers, useCreateSpecialRequest } from '@/services/bookings';
 
 const NewSpecialRequest = () => {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [isPermanent, setIsPermanent] = useState(false);
-  const [selectedFloorId, setSelectedFloorId] = useState<string>("");
-  const [selectedLockerId, setSelectedLockerId] = useState<string>("");
-  const [justification, setJustification] = useState("");
+  const [selectedFloorId, setSelectedFloorId] = useState<string>('');
+  const [selectedLockerId, setSelectedLockerId] = useState<string>('');
+  const [justification, setJustification] = useState('');
   const [isDateRangeTooShort, setIsDateRangeTooShort] = useState(false);
 
   const { data: floors = [], isLoading: floorsLoading } = useFloors();
@@ -55,12 +55,12 @@ const NewSpecialRequest = () => {
   useEffect(() => {
     if (isPermanent) {
       setEndDate(undefined);
-      setSelectedLockerId("");
+      setSelectedLockerId('');
     }
   }, [isPermanent]);
 
   useEffect(() => {
-    setSelectedLockerId("");
+    setSelectedLockerId('');
   }, [selectedFloorId]);
 
   useEffect(() => {
@@ -76,12 +76,12 @@ const NewSpecialRequest = () => {
     e.preventDefault();
 
     if (!selectedFloorId) {
-      toast.error("Please select a floor");
+      toast.error('Please select a floor');
       return;
     }
 
     if (!startDate) {
-      toast.error("Please select a start date");
+      toast.error('Please select a start date');
       return;
     }
 
@@ -91,7 +91,7 @@ const NewSpecialRequest = () => {
     }
 
     if (!justification.trim()) {
-      toast.error("Please provide a justification");
+      toast.error('Please provide a justification');
       return;
     }
 
@@ -105,14 +105,14 @@ const NewSpecialRequest = () => {
       },
       {
         onSuccess: () => {
-          toast.success("Special request submitted successfully!", {
-            description: "You will be notified when your request is reviewed.",
+          toast.success('Special request submitted successfully!', {
+            description: 'You will be notified when your request is reviewed.',
           });
-          navigate("/user/special-request");
+          navigate('/user/special-request');
         },
         onError: (error: Error) => {
-          toast.error(error.message || "Failed to submit special request", {
-            description: "Please try again later.",
+          toast.error(error.message || 'Failed to submit special request', {
+            description: 'Please try again later.',
           });
         },
       }
@@ -125,7 +125,7 @@ const NewSpecialRequest = () => {
         <main className="container max-w-3xl px-6 py-8 mx-auto -mt-8">
           <Button
             variant="link"
-            onClick={() => navigate("/user/special-request")}
+            onClick={() => navigate('/user/special-request')}
             className="mb-4 -ml-4"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -189,10 +189,10 @@ const NewSpecialRequest = () => {
                 </div>
                 {isDateRangeTooShort && (
                   <p className="text-xs text-red mt-4">
-                    Booking period is 3 days or less. Please use the{" "}
+                    Booking period is 3 days or less. Please use the{' '}
                     <Link to="/user/book" className="underline font-medium hover:text-red/80">
                       Book a Locker
-                    </Link>{" "}
+                    </Link>{' '}
                     page instead.
                   </p>
                 )}
@@ -202,7 +202,7 @@ const NewSpecialRequest = () => {
                 <Label htmlFor="locker">
                   Preferred Locker <span className="font-normal text-grey">(optional)</span>
                 </Label>
-                <Select value={selectedLockerId || "none"} onValueChange={(value) => setSelectedLockerId(value === "none" ? "" : value)}>
+                <Select value={selectedLockerId || 'none'} onValueChange={(value) => setSelectedLockerId(value === 'none' ? '' : value)}>
                   <SelectTrigger id="locker">
                     <SelectValue placeholder="No preference" />
                   </SelectTrigger>
@@ -223,11 +223,11 @@ const NewSpecialRequest = () => {
                 <Label htmlFor="justification">
                   Justification <span className="text-red">*</span>
                 </Label>
-                <Textarea
+                <TextArea
                   id="justification"
                   placeholder="Explain why you need an extended or permanent locker allocation..."
                   value={justification}
-                  onChange={(e) => setJustification(e.target.value)}
+                  onChange={(e: { target: { value: SetStateAction<string>; }; }) => setJustification(e.target.value)}
                   rows={4}
                   className="resize-none"
                 />
@@ -240,7 +240,7 @@ const NewSpecialRequest = () => {
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={() => navigate("/user/special-request")}
+                  onClick={() => navigate('/user/special-request')}
                   disabled={isPending}
                   className="flex-1"
                 >
@@ -253,7 +253,7 @@ const NewSpecialRequest = () => {
                   className="flex-1"
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  {isPending ? "Submitting..." : "Submit Request"}
+                  {isPending ? 'Submitting...' : 'Submit Request'}
                 </Button>
               </div>
             </form>

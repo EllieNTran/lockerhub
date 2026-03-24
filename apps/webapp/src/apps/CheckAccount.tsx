@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import { Mail, Search, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/sonner";
-import { useCheckAccount, useRequestPasswordReset } from "@/services/auth";
+import { useState } from 'react';
+import { Link } from 'react-router';
+import { Mail, Search, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import Header from '@/components/Header';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/sonner';
+import { useCheckAccount, useRequestPasswordReset } from '@/services/auth';
 
 type AccountStatus = {
   exists: boolean;
@@ -18,16 +18,16 @@ type AccountStatus = {
 };
 
 const CheckAccount = () => {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const checkAccountMutation = useCheckAccount();
   const requestPasswordResetMutation = useRequestPasswordReset();
 
   const handleCheck = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setAccountStatus(null);
 
     checkAccountMutation.mutate(email, {
@@ -35,7 +35,7 @@ const CheckAccount = () => {
         setAccountStatus(result);
       },
       onError: (err) => {
-        setError(err instanceof Error ? err.message : "Failed to check account status.");
+        setError(err instanceof Error ? err.message : 'Failed to check account status.');
       },
     });
   };
@@ -43,10 +43,10 @@ const CheckAccount = () => {
   const handleRequestActivation = async () => {
     requestPasswordResetMutation.mutate(email, {
       onSuccess: () => {
-        toast.success("Activation link has been sent to your email. Please check your inbox.");
+        toast.success('Activation link has been sent to your email. Please check your inbox.');
       },
       onError: (err) => {
-        toast.error(err instanceof Error ? err.message : "Failed to send activation email.");
+        toast.error(err instanceof Error ? err.message : 'Failed to send activation email.');
       },
     });
   };
@@ -95,7 +95,7 @@ const CheckAccount = () => {
             disabled={requestPasswordResetMutation.isPending}
             className="w-full"
           >
-            {requestPasswordResetMutation.isPending ? "Sending..." : "Send Activation Email"}
+            {requestPasswordResetMutation.isPending ? 'Sending...' : 'Send Activation Email'}
           </Button>
         </div>
       );
@@ -162,7 +162,7 @@ const CheckAccount = () => {
             <CardFooter className="flex flex-col space-y-4">
               {!accountStatus && (
                 <Button type="submit" className="w-full" disabled={checkAccountMutation.isPending}>
-                  {checkAccountMutation.isPending ? "Checking..." : "Check Account Status"}
+                  {checkAccountMutation.isPending ? 'Checking...' : 'Check Account Status'}
                 </Button>
               )}
               {accountStatus && (
@@ -172,15 +172,15 @@ const CheckAccount = () => {
                   className="w-full hover:bg-secondary hover:text-white hover:border-secondary"
                   onClick={() => {
                     setAccountStatus(null);
-                    setEmail("");
-                    setError("");
+                    setEmail('');
+                    setError('');
                   }}
                 >
                   Check Another Email
                 </Button>
               )}
               <p className="text-sm text-center text-grey">
-                Want to create a new account?{" "}
+                Want to create a new account?{' '}
                 <Link to="/signup" className="text-primary hover:underline font-medium">
                   Sign up
                 </Link>

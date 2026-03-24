@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from 'react-router';
 import {
   ArrowRight,
   Bell,
@@ -6,18 +6,18 @@ import {
   FileText,
   KeyRound,
   CalendarPlus,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import UserLayout from "../layout/UserLayout";
-import QuickActionCard from "@/apps/user/components/QuickActionCard";
-import NotificationCard from "@/apps/user/components/NotificationCard";
-import BookingCard from "@/apps/user/components/BookingCard";
-import HeroBanner from "@/components/HeroBanner";
-import { useUserNotifications, useMarkNotificationAsRead } from "@/services/notifications";
-import { getUserIdFromToken } from "@/services/auth";
-import { useUserBookings } from "@/services/bookings";
-import type { Notification } from "@/types/notification";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import UserLayout from '../layout/UserLayout';
+import QuickActionCard from '@/apps/user/components/QuickActionCard';
+import NotificationCard from '@/apps/user/components/NotificationCard';
+import BookingCard from '@/apps/user/components/BookingCard';
+import HeroBanner from '@/components/HeroBanner';
+import { useUserNotifications, useMarkNotificationAsRead } from '@/services/notifications';
+import { getUserIdFromToken } from '@/services/auth';
+import { useUserBookings } from '@/services/bookings';
+import type { Notification } from '@/types/notification';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -48,33 +48,34 @@ const Home = () => {
   return (
     <UserLayout>
       <div className="w-full">
-        <HeroBanner
-          subtitle="Easily book, view, and manage all your locker bookings"
-          statLabel="Bookings"
-          statValue={upcomingBookings.length}
-        />
-
+        <div className="mt-3">
+          <HeroBanner
+            subtitle="Easily book, view, and manage all your locker bookings"
+            statLabel="Bookings"
+            statValue={upcomingBookings.length}
+          />
+        </div>
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <QuickActionCard
             icon={CalendarPlus}
             title="Book a Locker"
             subtitle="Up to 3 days"
             color="purple"
-            onClick={() => navigate("/user/book")}
+            onClick={() => navigate('/user/book')}
           />
           <QuickActionCard
             icon={FileText}
             title="Special Request"
             subtitle="Extended / permanent booking"
             color="pink"
-            onClick={() => navigate("/user/special-request")}
+            onClick={() => navigate('/user/special-request')}
           />
           <QuickActionCard
             icon={KeyRound}
             title="Return Key"
             subtitle="View return instructions"
             color="secondary"
-            onClick={() => navigate("/user/return-key")}
+            onClick={() => navigate('/user/return-key')}
           />
         </div>
 
@@ -117,7 +118,7 @@ const Home = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate("/user/my-bookings")}
+                  onClick={() => navigate('/user/my-bookings')}
                   className="text-xs text-grey hover:text-dark-blue"
                 >
                   View All
@@ -125,7 +126,7 @@ const Home = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate("/user/book")}
+                  onClick={() => navigate('/user/book')}
                   className="text-xs text-secondary hover:bg-secondary hover:text-white"
                 >
                   New Booking

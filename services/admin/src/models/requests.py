@@ -28,6 +28,9 @@ class ReviewSpecialRequestRequest(BaseModel):
     """Request model for reviewing a special request."""
 
     status: str = Field(..., description="Status: 'approved' or 'rejected'")
+    reason: Optional[str] = Field(
+        None, description="Reason for rejection (required if rejecting)"
+    )
 
     @field_validator("status")
     @classmethod
@@ -35,6 +38,14 @@ class ReviewSpecialRequestRequest(BaseModel):
         """Ensure status is valid."""
         if v not in ("approved", "rejected"):
             raise ValueError("Status must be 'approved' or 'rejected'")
+        return v
+
+    @field_validator("reason")
+    @classmethod
+    def validate_reason(cls, v: Optional[str], info) -> Optional[str]:
+        """Ensure reason is provided when rejecting."""
+        if "status" in info.data and info.data["status"] == "rejected" and not v:
+            raise ValueError("Reason is required when rejecting a request")
         return v
 
 

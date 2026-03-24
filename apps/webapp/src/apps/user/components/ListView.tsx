@@ -1,6 +1,6 @@
-import type { Locker, AvailableLocker } from "@/types/locker";
-import { getZoneFromLockerNumber } from "@/utils/locker-parser";
-import { useMemo } from "react";
+import type { Locker, AvailableLocker } from '@/types/locker';
+import { getZoneFromLockerNumber } from '@/utils/locker-parser';
+import { useMemo } from 'react';
 
 interface ListViewProps {
   lockers: (Locker | AvailableLocker)[];

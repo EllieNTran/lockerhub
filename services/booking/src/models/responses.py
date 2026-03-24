@@ -73,6 +73,7 @@ class SpecialRequestResponse(BaseModel):
     reviewed_by: Optional[UUID] = None
     floor_number: str
     locker_number: Optional[str] = None
+    reason: Optional[str] = None
 
 
 class SpecialRequestsListResponse(BaseModel):
