@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, X, KeyRound, AlertTriangle } from 'lucide-react'
-import { format } from "date-fns";
-import type { AdminBookingDetail } from "@/types/booking";
+import { format } from 'date-fns';
+import type { AdminBookingDetail } from '@/types/booking';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import StatusBadge from "@/components/StatusBadge";
-import { toast } from "sonner";
-import { useConfirmHandover, useConfirmReturn, useCancelBooking } from "@/services/admin";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import StatusBadge from '@/components/StatusBadge';
+import { toast } from 'sonner';
+import { useConfirmHandover, useConfirmReturn, useCancelBooking } from '@/services/admin';
 import { useSendOverdueKeyReturnReminder } from '@/services/notifications';
 import type { AxiosError } from 'axios';
 
@@ -20,7 +20,7 @@ interface ManageBookingDialogProps {
   booking: AdminBookingDetail,
   isOpen: boolean,
   onOpenChange: (open: boolean) => void,
-  statusColor: "green" | "brightBlue" | "red" | "purple" | "blue" | "pink" | "grey",
+  statusColor: 'green' | 'brightBlue' | 'red' | 'purple' | 'blue' | 'pink' | 'grey',
 }
 
 const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: ManageBookingDialogProps) => {

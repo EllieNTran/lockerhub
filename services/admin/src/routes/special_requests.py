@@ -22,8 +22,7 @@ async def get_all_special_requests_endpoint(
 ):
     """Get all special requests."""
     try:
-        requests = await get_all_special_requests()
-        return AllSpecialRequestsResponse(requests=requests)
+        return await get_all_special_requests()
     except Exception:
         raise HTTPException(
             status_code=500, detail="Failed to retrieve special requests"
@@ -39,11 +38,13 @@ async def review_special_request_endpoint(
     """Review a special request (approve/reject)."""
     try:
         await review_special_request(
-            request.status, current_user["user_id"], request_id
+            request.status, current_user["user_id"], request_id, request.reason
         )
         return ReviewSpecialRequestResponse(
             request_id=request_id,
             message=f"Special request {request.status}",
         )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to review special request")

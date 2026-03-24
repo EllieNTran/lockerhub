@@ -18,6 +18,7 @@ SELECT
     r.created_at,
     r.reviewed_at,
     r.reviewed_by,
+    r.reason,
     f.floor_number,
     l.locker_number
 FROM lockerhub.requests r

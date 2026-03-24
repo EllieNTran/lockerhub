@@ -260,5 +260,6 @@ export const validSpecialRequestRejected = {
   floorNumber: '10',
   endDate: '2026-04-24',
   requestId: 123,
+  reason: 'Request does not meet the criteria for extended allocation',
   userSpecialRequestsPath: '/user/special-request',
 }

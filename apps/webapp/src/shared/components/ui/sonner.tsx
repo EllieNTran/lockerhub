@@ -1,29 +1,29 @@
-import { useTheme } from "next-themes";
-import { Toaster as Sonner, toast } from "sonner";
+import { useTheme } from 'next-themes';
+import { Toaster as Sonner, toast } from 'sonner';
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  const { theme = 'system' } = useTheme();
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={theme as ToasterProps['theme']}
       className="toaster group"
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-dark-blue group-[.toaster]:border-primary-outline group-[.toaster]:shadow-lg",
-          title: "group-[.toast]:!text-current group-[.toast]:font-semibold text-md",
+            'group toast group-[.toaster]:bg-background group-[.toaster]:text-dark-blue group-[.toaster]:border-primary-outline group-[.toaster]:shadow-lg',
+          title: 'group-[.toast]:!text-current group-[.toast]:font-semibold text-md',
           success:
-            "group toast group-[.toaster]:!bg-green-foreground/80 group-[.toaster]:!text-green group-[.toaster]:!border-green-outline group-[.toaster]:shadow-lg",
+            'group toast group-[.toaster]:!bg-green-foreground/80 group-[.toaster]:!text-green group-[.toaster]:!border-green-outline group-[.toaster]:shadow-lg',
           error:
-            "group toast group-[.toaster]:!bg-red-foreground/80 group-[.toaster]:!text-red group-[.toaster]:!border-red-outline group-[.toaster]:shadow-lg",
+            'group toast group-[.toaster]:!bg-red-foreground/80 group-[.toaster]:!text-red group-[.toaster]:!border-red-outline group-[.toaster]:shadow-lg',
           info:
-            "group toast group-[.toaster]:!bg-primary-foreground/80 group-[.toaster]:!text-primary group-[.toaster]:!border-primary-outline group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:!text-dark-blue/80",
-          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-background",
+            'group toast group-[.toaster]:!bg-primary-foreground/80 group-[.toaster]:!text-primary group-[.toaster]:!border-primary-outline group-[.toaster]:shadow-lg',
+          description: 'group-[.toast]:!text-dark-blue/80',
+          actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
+          cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-background',
         },
       }}
       {...props}

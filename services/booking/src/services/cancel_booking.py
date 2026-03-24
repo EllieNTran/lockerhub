@@ -10,6 +10,7 @@ SELECT
     b.user_id, 
     b.status,
     b.locker_id,
+    b.special_request_id,
     u.email, 
     u.first_name, 
     l.locker_number, 
@@ -32,6 +33,12 @@ SET status = 'cancelled',
     updated_at = CURRENT_TIMESTAMP
 WHERE booking_id = $1
 RETURNING booking_id
+"""
+
+CANCEL_SPECIAL_REQUEST_QUERY = """
+UPDATE lockerhub.requests
+SET status = 'cancelled'
+WHERE request_id = $1
 """
 
 RESET_KEY_QUERY = """
@@ -75,6 +82,14 @@ async def cancel_booking(user_id: str, booking_id: str) -> UpdateBookingResponse
                 raise ValueError("Booking is already cancelled")
 
             cancelled_id = await connection.fetchval(CANCEL_BOOKING_QUERY, booking_id)
+
+            if booking["special_request_id"]:
+                await connection.execute(
+                    CANCEL_SPECIAL_REQUEST_QUERY, booking["special_request_id"]
+                )
+                logger.info(
+                    f"Cancelled special request {booking['special_request_id']} associated with booking"
+                )
 
             if booking["key_status"] == "awaiting_handover":
                 await connection.execute(RESET_KEY_QUERY, booking["locker_id"])

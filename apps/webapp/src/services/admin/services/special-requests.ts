@@ -3,6 +3,7 @@ import type { Request } from '@/types/request';
 
 export interface ReviewRequestData {
   status: 'approved' | 'rejected';
+  reason?: string;
   admin_notes?: string;
   approved_start_date?: string;
   approved_end_date?: string;

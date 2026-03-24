@@ -4,7 +4,10 @@ from typing import List
 
 from src.logger import logger
 from src.connectors.db import db
-from src.models.responses import SpecialRequestDetailResponse
+from src.models.responses import (
+    SpecialRequestDetailResponse,
+    AllSpecialRequestsResponse,
+)
 
 GET_ALL_SPECIAL_REQUESTS_QUERY = """
 SELECT 
@@ -24,7 +27,8 @@ SELECT
     r.status,
     r.created_at,
     r.reviewed_at,
-    r.reviewed_by
+    r.reviewed_by,
+    r.reason
 FROM lockerhub.requests r
 INNER JOIN lockerhub.users u ON r.user_id = u.user_id
 LEFT JOIN lockerhub.departments d ON u.department_id = d.department_id
@@ -42,7 +46,7 @@ ORDER BY
 """
 
 
-async def get_all_special_requests() -> List[SpecialRequestDetailResponse]:
+async def get_all_special_requests() -> AllSpecialRequestsResponse:
     """Get all special requests.
 
     Returns:
@@ -51,7 +55,9 @@ async def get_all_special_requests() -> List[SpecialRequestDetailResponse]:
     try:
         result = await db.fetch(GET_ALL_SPECIAL_REQUESTS_QUERY)
         logger.info("Retrieved special requests")
-        return [SpecialRequestDetailResponse(**dict(row)) for row in result]
+        return AllSpecialRequestsResponse(
+            requests=[SpecialRequestDetailResponse(**dict(row)) for row in result]
+        )
     except Exception:
         logger.error("Error fetching special requests")
         raise

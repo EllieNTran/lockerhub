@@ -1,5 +1,5 @@
-import AdminLayout from "../layout/AdminLayout";
-import Heading from "@/components/Heading";
+import AdminLayout from '../layout/AdminLayout';
+import Heading from '@/components/Heading';
 
 const LockerAnalytics = () => {
   return (

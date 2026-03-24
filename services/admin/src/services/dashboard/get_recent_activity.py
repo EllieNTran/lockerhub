@@ -23,7 +23,7 @@ SELECT
 FROM lockerhub.notifications n
 LEFT JOIN lockerhub.users u ON n.created_by = u.user_id
 ORDER BY n.created_at DESC
-LIMIT 7
+LIMIT 9
 """
 
 

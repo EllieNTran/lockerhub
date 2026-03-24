@@ -169,13 +169,14 @@ class SpecialRequestDetailResponse(BaseModel):
     locker_id: Optional[UUID]
     booking_id: Optional[UUID]
     start_date: date
-    end_date: date
+    end_date: Optional[date] = None
     request_type: str
     justification: Optional[str]
     status: str
     created_at: datetime
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[UUID]
+    reason: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -546,38 +546,46 @@ class TestSpecialRequestRoutes:
     async def test_get_all_special_requests(self, test_client):
         """
         Verify retrieval of all special requests.
-        Mock service returns list of requests.
+        Mock service returns AllSpecialRequestsResponse object.
         Expect 200 status with requests array.
         """
+        from src.models.responses import (
+            AllSpecialRequestsResponse,
+            SpecialRequestDetailResponse,
+        )
+
         user_id = uuid4()
         today = date.today()
         now = datetime.now()
 
-        mock_requests = [
-            {
-                "request_id": 1,
-                "user_id": user_id,
-                "employee_name": "John Doe",
-                "staff_number": "12345",
-                "department_name": "Engineering",
-                "floor_id": None,
-                "floor_number": None,
-                "locker_id": None,
-                "booking_id": None,
-                "start_date": today,
-                "end_date": today + timedelta(days=7),
-                "request_type": "extension",
-                "justification": "Need extra time",
-                "status": "pending",
-                "created_at": now,
-                "reviewed_at": None,
-                "reviewed_by": None,
-            }
-        ]
+        mock_response = AllSpecialRequestsResponse(
+            requests=[
+                SpecialRequestDetailResponse(
+                    request_id=1,
+                    user_id=user_id,
+                    employee_name="John Doe",
+                    staff_number="12345",
+                    department_name="Engineering",
+                    floor_id=None,
+                    floor_number=None,
+                    locker_id=None,
+                    booking_id=None,
+                    start_date=today,
+                    end_date=today + timedelta(days=7),
+                    request_type="extension",
+                    justification="Need extra time",
+                    status="pending",
+                    created_at=now,
+                    reviewed_at=None,
+                    reviewed_by=None,
+                    reason=None,
+                )
+            ]
+        )
 
         with patch(
             "src.routes.special_requests.get_all_special_requests",
-            AsyncMock(return_value=mock_requests),
+            AsyncMock(return_value=mock_response),
         ):
             response = await test_client.get("/admin/special-requests")
 

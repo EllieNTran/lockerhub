@@ -1,8 +1,8 @@
-import { cn } from "@/utils/cn";
-import type { Locker, AvailableLocker } from "@/types/locker";
-import { Lock, LockOpen } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getLockerDisplayNumber } from "@/utils/locker-parser";
+import { cn } from '@/utils/cn';
+import type { Locker, AvailableLocker } from '@/types/locker';
+import { Lock, LockOpen } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { getLockerDisplayNumber } from '@/utils/locker-parser';
 
 interface LockerCellProps {
   locker: Locker | AvailableLocker;
@@ -15,9 +15,9 @@ const LockerCell = ({ locker, isSelected, onSelect }: LockerCellProps) => {
 
   const isAvailable = isAvailableLocker 
     ? (locker as AvailableLocker).is_available 
-    : locker.status === "available";
+    : locker.status === 'available';
   
-  const isMaintenance = locker.status === "maintenance";
+  const isMaintenance = locker.status === 'maintenance';
   const isClickable = (isAvailable && !isMaintenance) || isSelected;
   const displayNumber = getLockerDisplayNumber(locker.locker_number);
 
@@ -29,15 +29,15 @@ const LockerCell = ({ locker, isSelected, onSelect }: LockerCellProps) => {
           disabled={!isClickable}
           onClick={() => isClickable && onSelect(locker)}
           className={cn(
-            "relative flex h-12 w-12 flex-col items-center justify-center rounded-lg border-2 transition-all duration-200 text-xs font-medium",
+            'relative flex h-12 w-12 flex-col items-center justify-center rounded-lg border-2 transition-all duration-200 text-xs font-medium',
             isSelected &&
-              "border-secondary-outline bg-secondary-foreground text-secondary scale-105 shadow-md cursor-pointer animate-pulse-soft",
+              'border-secondary-outline bg-secondary-foreground text-secondary scale-105 shadow-md cursor-pointer animate-pulse-soft',
             !isSelected && isAvailable && !isMaintenance &&
-              "border-green-outline bg-green-foreground text-green hover:bg-green-foreground/50 hover:border-green hover:scale-105 cursor-pointer",
+              'border-green-outline bg-green-foreground text-green hover:bg-green-foreground/50 hover:border-green hover:scale-105 cursor-pointer',
             !isAvailable && !isMaintenance &&
-              "border-red-outline bg-red-foreground text-red cursor-not-allowed opacity-70",
+              'border-red-outline bg-red-foreground text-red cursor-not-allowed opacity-70',
             isMaintenance &&
-              "border-orange-outline bg-orange-foreground text-orange cursor-not-allowed opacity-70"
+              'border-orange-outline bg-orange-foreground text-orange cursor-not-allowed opacity-70'
           )}
         >
           {!isAvailable || isMaintenance ? (
@@ -53,8 +53,8 @@ const LockerCell = ({ locker, isSelected, onSelect }: LockerCellProps) => {
         <p className="text-primary">
           {locker.location ? `${locker.location} · ` : ''}
           <span className="capitalize">
-            {isAvailableLocker && !isAvailable && locker.status === "available"
-              ? "Booked"
+            {isAvailableLocker && !isAvailable && locker.status === 'available'
+              ? 'Booked'
               : locker.status}
           </span>
         </p>

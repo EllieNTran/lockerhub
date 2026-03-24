@@ -69,6 +69,7 @@ describe('Special Request Notification Services', () => {
         testEmail,
         {
           NAME: testName,
+          REQUEST_ID: testRequestId,
           SPECIAL_REQUESTS_LINK: expect.stringContaining(userSpecialRequestsPath),
         },
         'special-request-user',
@@ -77,6 +78,7 @@ describe('Special Request Notification Services', () => {
       expect(sendEmail.default).toHaveBeenCalledWith(
         'fm@lockerhub.com',
         {
+          REQUEST_ID: testRequestId,
           ADMIN_SPECIAL_REQUESTS_LINK: expect.stringContaining(adminSpecialRequestsPath),
         },
         'special-request-admin',
@@ -204,6 +206,7 @@ describe('Special Request Notification Services', () => {
         testEmail,
         {
           NAME: testName,
+          REQUEST_ID: testRequestId,
           SPECIAL_REQUESTS_LINK: expect.stringContaining(userSpecialRequestsPath),
         },
         'special-request-approved-user',
@@ -285,6 +288,7 @@ describe('Special Request Notification Services', () => {
         testFloorNumber,
         endDate,
         testRequestId,
+        'Request does not meet criteria',
         userSpecialRequestsPath,
       )
 
@@ -303,6 +307,8 @@ describe('Special Request Notification Services', () => {
         testEmail,
         {
           NAME: testName,
+          REQUEST_ID: testRequestId,
+          REASON: 'Request does not meet criteria',
           SPECIAL_REQUESTS_LINK: expect.stringContaining(userSpecialRequestsPath),
         },
         'special-request-rejected-user',
@@ -329,6 +335,7 @@ describe('Special Request Notification Services', () => {
         testFloorNumber,
         null,
         testRequestId,
+        'Request does not meet criteria',
         userSpecialRequestsPath,
       )
 
@@ -336,6 +343,40 @@ describe('Special Request Notification Services', () => {
         expect.objectContaining({
           caption: expect.stringContaining('permanent'),
         }),
+      )
+    })
+
+    it('should include reason in email template data', async () => {
+      /**
+       * Verify reason is included in the email template data.
+       */
+      const testReason = 'Does not meet eligibility requirements'
+
+      vi.spyOn(notifications, 'createNotification').mockResolvedValue({
+        success: true,
+        notification_id: 'notif-131',
+        message: 'Notification created successfully',
+      })
+      vi.spyOn(sendEmail, 'default').mockResolvedValue(undefined)
+
+      await notifySpecialRequestRejected(
+        sampleUserId,
+        testEmail,
+        testName,
+        testFloorNumber,
+        '2026-04-30',
+        testRequestId,
+        testReason,
+        userSpecialRequestsPath,
+      )
+
+      expect(sendEmail.default).toHaveBeenCalledWith(
+        testEmail,
+        expect.objectContaining({
+          REASON: testReason,
+        }),
+        'special-request-rejected-user',
+        'Special Request Rejected',
       )
     })
 
@@ -359,6 +400,7 @@ describe('Special Request Notification Services', () => {
           testFloorNumber,
           '2026-04-30',
           testRequestId,
+          'Request does not meet criteria',
           userSpecialRequestsPath,
         ),
       ).rejects.toThrow('Email template not found')

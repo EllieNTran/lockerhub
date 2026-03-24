@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.requests (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     reviewed_at TIMESTAMP,
     reviewed_by UUID,
+    reason TEXT,
     CONSTRAINT fk_requests_user FOREIGN KEY (user_id) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_requests_floor FOREIGN KEY (floor_id) REFERENCES lockerhub.floors(floor_id) ON DELETE SET NULL,
     CONSTRAINT fk_requests_locker FOREIGN KEY (locker_id) REFERENCES lockerhub.lockers(locker_id) ON DELETE SET NULL,

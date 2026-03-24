@@ -10,8 +10,8 @@ export interface Booking {
   end_date: string | null
   status: BookingStatus
   special_request_id: number | null
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface AdminBookingDetail {

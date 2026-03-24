@@ -1,14 +1,14 @@
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/utils/cn";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Label } from "@/components/ui/label";
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/utils/cn';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from '@/components/ui/popover';
 
 interface DateRangePickerProps {
   startDate: Date | undefined;
@@ -77,7 +77,7 @@ export const DateRangePicker = ({
   };
 
   return (
-    <div className={cn("grid grid-cols-2 gap-4", className)}>
+    <div className={cn('grid grid-cols-2 gap-4', className)}>
       <div>
         <Label className={labelClassName}>Start Date</Label>
         <Popover>
@@ -85,12 +85,12 @@ export const DateRangePicker = ({
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal",
-                !startDate && "text-grey"
+                'w-full justify-start text-left font-normal',
+                !startDate && 'text-grey'
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {startDate ? format(startDate, "MMM d, yyyy") : "Pick a date"}
+              {startDate ? format(startDate, 'MMM d, yyyy') : 'Pick a date'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -113,12 +113,12 @@ export const DateRangePicker = ({
               variant="outline"
               disabled={disableEndDate}
               className={cn(
-                "w-full justify-start text-left font-normal",
-                !endDate && "text-grey"
+                'w-full justify-start text-left font-normal',
+                !endDate && 'text-grey'
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {endDate ? format(endDate, "MMM d, yyyy") : "Pick a date"}
+              {endDate ? format(endDate, 'MMM d, yyyy') : 'Pick a date'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">

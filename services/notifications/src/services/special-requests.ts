@@ -32,10 +32,12 @@ export const notifySpecialRequestSubmitted = async (
 
   const userTemplateData = {
     NAME: name,
+    REQUEST_ID: requestId,
     SPECIAL_REQUESTS_LINK: `${WEBAPP_URL}${userSpecialRequestsPath}`,
   }
 
   const adminTemplateData = {
+    REQUEST_ID: requestId,
     ADMIN_SPECIAL_REQUESTS_LINK: `${WEBAPP_URL}${adminSpecialRequestsPath}`,
   }
 
@@ -70,6 +72,7 @@ export const notifySpecialRequestApproved = async (
 
   const templateData = {
     NAME: name,
+    REQUEST_ID: requestId,
     SPECIAL_REQUESTS_LINK: `${WEBAPP_URL}${userSpecialRequestsPath}`,
   }
 
@@ -83,6 +86,7 @@ export const notifySpecialRequestRejected = async (
   floorNumber: string,
   endDate: string | null,
   requestId: number,
+  reason: string,
   userSpecialRequestsPath: string,
 ): Promise<void> => {
   const isPermanent = !endDate
@@ -101,6 +105,8 @@ export const notifySpecialRequestRejected = async (
 
   const templateData = {
     NAME: name,
+    REQUEST_ID: requestId,
+    REASON: reason,
     SPECIAL_REQUESTS_LINK: `${WEBAPP_URL}${userSpecialRequestsPath}`,
   }
 

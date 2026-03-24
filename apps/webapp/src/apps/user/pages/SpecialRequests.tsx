@@ -1,12 +1,12 @@
-import { useNavigate } from "react-router";
-import UserLayout from "../layout/UserLayout";
-import Heading from "@/components/Heading";
-import SpecialRequestCard from "../components/SpecialRequestCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
-import { useUserSpecialRequests, useDeleteSpecialRequest } from "@/services/bookings";
-import { toast } from "@/components/ui/sonner";
+import { useNavigate } from 'react-router';
+import UserLayout from '../layout/UserLayout';
+import Heading from '@/components/Heading';
+import SpecialRequestCard from '../../../shared/components/SpecialRequestCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FileText, Plus } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
+import { useUserSpecialRequests, useDeleteSpecialRequest } from '@/services/bookings';
+import { toast } from '@/components/ui/sonner';
 
 const SpecialRequests = () => {
   const navigate = useNavigate();
@@ -15,15 +15,16 @@ const SpecialRequests = () => {
   const mutation = useDeleteSpecialRequest();
 
   const tabs = [
-    { value: "pending", label: "Pending" },
-    { value: "approved", label: "Approved" },
-    { value: "rejected", label: "Rejected" },
-    { value: "all", label: "All" },
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'active', label: 'Active' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'all', label: 'All' },
   ];
 
   const filterRequests = (status: string) => {
     if (!requestsData) return [];
-    if (status === "all") return requestsData;
+    if (status === 'all') return requestsData;
     return requestsData.filter(r => r.status === status);
   };
 

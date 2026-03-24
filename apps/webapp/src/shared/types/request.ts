@@ -1,5 +1,5 @@
 export type RequestType = 'normal' | 'extension' | 'special'
-export type RequestStatus = 'pending' | 'queued' | 'approved' | 'rejected' | 'cancelled'
+export type RequestStatus = 'pending' | 'queued' | 'approved' | 'rejected' | 'cancelled' | 'active' | 'completed'
 
 export interface Request {
   request_id: number
@@ -17,4 +17,8 @@ export interface Request {
   reviewed_by?: string | null
   floor_number?: string | null
   locker_number?: string | null
+  employee_name?: string
+  staff_number?: string
+  department_name?: string | null
+  reason?: string | null
 }

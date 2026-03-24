@@ -1,17 +1,17 @@
-import { useNavigate } from "react-router";
-import { useState, useEffect } from "react";
-import UserLayout from "../layout/UserLayout";
-import { format } from "date-fns";
-import { Building2, CheckCircle2, Clock, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { DateRangePicker } from "@/components/DateRangePicker";
+import { useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import UserLayout from '../layout/UserLayout';
+import { format } from 'date-fns';
+import { Building2, CheckCircle2, Clock, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DateRangePicker } from '@/components/DateRangePicker';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -19,13 +19,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import SearchResults from "@/apps/user/components/SearchResults";
-import type { Locker, AvailableLocker } from "@/types/locker";
-import { toast } from "@/components/ui/sonner";
-import Heading from "@/components/Heading";
-import { useAvailableLockers, useFloors, useCreateBooking, useJoinFloorQueue } from "@/services/bookings";
+} from '@/components/ui/dialog';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import SearchResults from '@/apps/user/components/SearchResults';
+import type { Locker, AvailableLocker } from '@/types/locker';
+import { toast } from '@/components/ui/sonner';
+import Heading from '@/components/Heading';
+import { useAvailableLockers, useFloors, useCreateBooking, useJoinFloorQueue } from '@/services/bookings';
 
 const BookLocker = () => {
   const navigate = useNavigate();
@@ -172,7 +172,7 @@ const BookLocker = () => {
               <Select value={selectedFloorId} onValueChange={setSelectedFloorId} disabled={floorsLoading}>
                 <SelectTrigger className="w-[180px]">
                   <Building2 className="mr-2 h-4 w-4 text-grey" />
-                  <SelectValue placeholder={floorsLoading ? "Loading..." : "Select floor"} />
+                  <SelectValue placeholder={floorsLoading ? 'Loading...' : 'Select floor'} />
                 </SelectTrigger>
                 <SelectContent>
                   {floors.map((floor) => (
@@ -200,9 +200,9 @@ const BookLocker = () => {
             <span className="font-semibold text-dark-blue">Floor {selectedFloor?.floor_number}</span>
             {startDate && endDate && (
               <>
-                {" · "}
+                {' · '}
                 <span className="text-green font-medium">{availableCount} available</span>
-                {" · "}
+                {' · '}
                 <span className="text-grey">{floorLockers.length} total</span>
               </>
             )}
@@ -244,7 +244,7 @@ const BookLocker = () => {
                 className="shrink-0"
               >
                 <Clock className="mr-1.5 h-3.5 w-3.5" />
-                {isOnWaitlist ? "On Waiting List" : "Join Waiting List"}
+                {isOnWaitlist ? 'On Waiting List' : 'Join Waiting List'}
               </Button>
             </div>
             <TooltipProvider>
@@ -286,7 +286,7 @@ const BookLocker = () => {
             <div className="flex justify-between">
               <span className="text-grey">Period</span>
               <span className="font-medium">
-                {startDate && format(startDate, "MMM d")} — {endDate && format(endDate, "MMM d, yyyy")}
+                {startDate && format(startDate, 'MMM d')} — {endDate && format(endDate, 'MMM d, yyyy')}
               </span>
             </div>
           </div>
@@ -304,13 +304,12 @@ const BookLocker = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Waitlist Dialog */}
       <Dialog open={waitlistOpen} onOpenChange={setWaitlistOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Join Waiting List</DialogTitle>
             <DialogDescription>
-              You'll be notified when a locker becomes available on{" "}
+              You'll be notified when a locker becomes available on{' '}
               <strong>Floor {selectedFloor?.floor_number}</strong> for your selected dates.
             </DialogDescription>
           </DialogHeader>
@@ -322,7 +321,7 @@ const BookLocker = () => {
             <div className="flex justify-between">
               <span className="text-grey">Period</span>
               <span className="font-medium">
-                {startDate && format(startDate, "MMM d")} — {endDate && format(endDate, "MMM d, yyyy")}
+                {startDate && format(startDate, 'MMM d')} — {endDate && format(endDate, 'MMM d, yyyy')}
               </span>
             </div>
           </div>
