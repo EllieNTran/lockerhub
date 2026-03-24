@@ -128,9 +128,7 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
                 },
             )
 
-            logger.info(
-                f"Created booking {booking_id} for approved special request {request_id}"
-            )
+            logger.info("Created booking for approved special request")
         else:
             await notification_client.post(
                 "/special-request/rejected",
@@ -141,7 +139,7 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
                 },
             )
 
-            logger.info(f"Sent rejection notification for special request {request_id}")
+            logger.info("Sent rejection notification for special request")
 
         result = await db.fetch(
             REVIEW_SPECIAL_REQUEST_QUERY, status, reviewed_by, reason, request_id
