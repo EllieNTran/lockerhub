@@ -317,6 +317,7 @@ class TestBookingRoutes:
         """
         booking_id = uuid4()
         user_id = uuid4()
+        floor_id = uuid4()
         today = date.today()
 
         mock_bookings = [
@@ -329,6 +330,7 @@ class TestBookingRoutes:
                 "department_name": "Engineering",
                 "email": "john.doe@example.com",
                 "locker_number": "DL10-01-01",
+                "floor_id": floor_id,
                 "floor_number": "10",
                 "start_date": today,
                 "end_date": today + timedelta(days=7),
