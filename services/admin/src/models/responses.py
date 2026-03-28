@@ -31,6 +31,7 @@ class BookingDetailResponse(BaseModel):
     department_name: Optional[str]
     email: str
     locker_number: str
+    floor_id: UUID
     floor_number: str
     start_date: date
     end_date: Optional[date] = None

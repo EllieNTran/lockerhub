@@ -7,8 +7,7 @@ import SpecialRequestCard from '@/components/SpecialRequestCard';
 import { useAllSpecialRequests, useReviewSpecialRequest } from '@/services/admin';
 import Filters from '../components/Filters';
 
-const statusOptions = [
-  { value: 'all', label: 'All Statuses' },
+const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
   { value: 'approved', label: 'Approved' },
   { value: 'active', label: 'Active' },
@@ -40,7 +39,7 @@ const SpecialRequests = () => {
       request.employee_name?.toLowerCase().includes(query) ||
       request.staff_number?.toLowerCase().includes(query)
 
-    const matchesFloor = floorFilter === 'all' || request.floor_number === floorFilter
+    const matchesFloor = floorFilter === 'all' || request.floor_id === floorFilter
     const matchesStatus = statusFilter === 'all' || request.status === statusFilter
 
     return matchesSearch && matchesFloor && matchesStatus
@@ -72,7 +71,7 @@ const SpecialRequests = () => {
         </div>
 
         <Filters
-          statusOptions={statusOptions}
+          statusOptions={STATUS_OPTIONS}
           placeholder="Search by employee name or staff number..."
           searchQuery={searchQuery}
           floorFilter={floorFilter}

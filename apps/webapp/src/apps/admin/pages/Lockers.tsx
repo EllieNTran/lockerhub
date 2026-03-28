@@ -24,8 +24,7 @@ const statusColors = {
   reserved: 'purple',
 } as const;
 
-const statusOptions = [
-  { value: 'all', label: 'All Statuses' },
+const STATUS_OPTIONS = [
   { value: 'available', label: 'Available' },
   { value: 'occupied', label: 'Occupied' },
   { value: 'maintenance', label: 'Maintenance' },
@@ -53,7 +52,7 @@ const Lockers = () => {
       locker.locker_number?.toLowerCase().includes(query) ||
       locker.key_number?.toLowerCase().includes(query);
     
-    const matchesFloor = floorFilter === 'all' || locker.floor_number === floorFilter;
+    const matchesFloor = floorFilter === 'all' || locker.floor_id === floorFilter;
     const matchesStatus = statusFilter === 'all' || locker.locker_status === statusFilter;
     
     return matchesSearch && matchesFloor && matchesStatus;
@@ -93,7 +92,7 @@ const Lockers = () => {
         </div>
 
         <Filters
-          statusOptions={statusOptions}
+          statusOptions={STATUS_OPTIONS}
           placeholder="Search by locker number or key number..."
           searchQuery={searchQuery}
           floorFilter={floorFilter}

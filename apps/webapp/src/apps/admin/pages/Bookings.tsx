@@ -26,8 +26,7 @@ const statusColors = {
   expired: 'red',
 } as const;
 
-const statusOptions = [
-  { value: 'all', label: 'All Statuses' },
+const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
   { value: 'upcoming', label: 'Upcoming' },
   { value: 'completed', label: 'Completed' },
@@ -61,7 +60,7 @@ const Bookings = () => {
       booking.staff_number?.toLowerCase().includes(query) ||
       booking.locker_number?.toLowerCase().includes(query);
     
-    const matchesFloor = floorFilter === 'all' || booking.floor_number === floorFilter;
+    const matchesFloor = floorFilter === 'all' || booking.floor_id === floorFilter;
     const matchesStatus = statusFilter === 'all' || booking.booking_status === statusFilter;
     
     return matchesSearch && matchesFloor && matchesStatus;
@@ -90,7 +89,7 @@ const Bookings = () => {
         </div>
 
         <Filters
-          statusOptions={statusOptions}
+          statusOptions={STATUS_OPTIONS}
           placeholder="Search by employee, locker number or staff number..."
           searchQuery={searchQuery}
           floorFilter={floorFilter}

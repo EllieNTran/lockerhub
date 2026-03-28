@@ -9,16 +9,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useCreateLocker, useAllLockers, useAllKeys } from '@/services/admin';
 import { useFloors } from '@/services/bookings';
+import FloorDropdown from '@/shared/components/FloorDropdown';
 import { AxiosError } from 'axios';
 
 interface CreateLockerDialogProps {
@@ -52,7 +46,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
   const [keyNumberError, setKeyNumberError] = useState('');
 
   const { mutate: createLocker, isPending } = useCreateLocker();
-  const { data: floorsData = [], isLoading: floorsLoading } = useFloors();
+  const { data: floorsData = [] } = useFloors();
   const { data: lockersData = [] } = useAllLockers();
   const { data: keysData = [] } = useAllKeys();
 
@@ -229,22 +223,12 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
             <Label htmlFor="floor">
               Floor <span className="text-red">*</span>
             </Label>
-            <Select
+            <FloorDropdown
               value={floorId}
-              onValueChange={setFloorId}
-              disabled={isPending || floorsLoading}
-            >
-              <SelectTrigger id="floor">
-                <SelectValue placeholder="Select a floor first" />
-              </SelectTrigger>
-              <SelectContent>
-                {floorsData.map((floor) => (
-                  <SelectItem key={floor.floor_id} value={floor.floor_id}>
-                    Floor {floor.floor_number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={setFloorId}
+              showAllOption={false}
+              className="w-full justify-between text-grey"
+            />
           </div>
 
           <div className="space-y-2">

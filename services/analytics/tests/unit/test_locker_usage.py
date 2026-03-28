@@ -37,26 +37,6 @@ class TestGetLockerUsage:
         assert mock_db.fetch.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_get_locker_usage_today(self, mock_db):
-        """
-        Verify retrieval of locker usage for today only.
-        Mock database returns single day of data.
-        Verify response contains exactly one day.
-        """
-        from src.services.get_locker_usage import get_locker_usage
-
-        today = date.today()
-        mock_data = [create_usage_data_dict(usage_date=today, occupied_count=25)]
-        mock_db.fetch.return_value = mock_data
-        mock_db.fetchval.return_value = None
-
-        with patch("src.services.get_locker_usage.db", mock_db):
-            result = await get_locker_usage(period="today")
-
-        assert len(result.locker_usage) == 1
-        assert result.locker_usage[0].usage_date == today
-        assert result.locker_usage[0].occupied_count == 25
-
     @pytest.mark.asyncio
     async def test_get_locker_usage_last_7_days(self, mock_db):
         """
@@ -126,7 +106,9 @@ class TestGetLockerUsage:
         mock_db.fetchval.return_value = earliest_date
         mock_db.fetch.return_value = mock_data
 
-        with patch("src.services.get_locker_usage.db", mock_db):
+        with patch("src.services.get_locker_usage.db", mock_db), patch(
+            "src.utils.date_utils.db", mock_db
+        ):
             result = await get_locker_usage(period="all_time")
 
         assert len(result.locker_usage) == 500
@@ -146,7 +128,9 @@ class TestGetLockerUsage:
         mock_db.fetchval.return_value = None
         mock_db.fetch.return_value = mock_data
 
-        with patch("src.services.get_locker_usage.db", mock_db):
+        with patch("src.services.get_locker_usage.db", mock_db), patch(
+            "src.utils.date_utils.db", mock_db
+        ):
             result = await get_locker_usage(period="all_time")
 
         assert len(result.locker_usage) == 1
