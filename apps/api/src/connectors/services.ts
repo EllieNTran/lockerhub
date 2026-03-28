@@ -26,7 +26,7 @@ export const SERVICE_CONFIG = {
   analytics: {
     url: fromEnv('ANALYTICS_SERVICE_URL') || 'http://localhost:3007',
     prefix: '/analytics',
-  }
+  },
 } as const
 
 /**
