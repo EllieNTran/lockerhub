@@ -322,7 +322,7 @@ const BookingRules = () => {
           <DialogHeader>
             <DialogTitle className="text-xl">Edit Floor {selectedFloor?.floor_number} Access</DialogTitle>
             <DialogDescription>
-              Set a start date to schedule a closure (floor stays open until then). Leave dates empty to close immediately.
+              Close or open this floor for new bookings.
             </DialogDescription>
           </DialogHeader>
           
