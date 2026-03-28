@@ -1,7 +1,7 @@
 """Response models for admin endpoints."""
 
 from datetime import date, datetime
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -31,6 +31,7 @@ class BookingDetailResponse(BaseModel):
     department_name: Optional[str]
     email: str
     locker_number: str
+    floor_id: UUID
     floor_number: str
     start_date: date
     end_date: Optional[date] = None
@@ -169,13 +170,14 @@ class SpecialRequestDetailResponse(BaseModel):
     locker_id: Optional[UUID]
     booking_id: Optional[UUID]
     start_date: date
-    end_date: date
+    end_date: Optional[date] = None
     request_type: str
     justification: Optional[str]
     status: str
     created_at: datetime
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[UUID]
+    reason: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -204,25 +206,18 @@ class UpdateFloorStatusResponse(BaseModel):
 class BookingRuleResponse(BaseModel):
     """Response model for a single booking rule."""
 
-    booking_rule_id: int
+    booking_rule_id: UUID
     name: str
-    value: str
+    value: int
     rule_type: str
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class GetBookingRulesResponse(BaseModel):
-    """Response model for getting all booking rules."""
+class AllBookingRulesResponse(BaseModel):
+    """Response model for all booking rules."""
 
     rules: List[BookingRuleResponse]
-
-
-class UpdateBookingRulesResponse(BaseModel):
-    """Response model for updated booking rules."""
-
-    rules: List[BookingRuleResponse]
-    message: str = "Booking rules updated"
 
 
 class AuditLogResponse(BaseModel):
@@ -306,3 +301,21 @@ class RecentActivityResponse(BaseModel):
     """Response model for recent activity."""
 
     activities: List[NotificationResponse]
+
+
+class FloorResponse(BaseModel):
+    """Response model for a floor."""
+
+    floor_id: UUID
+    floor_number: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    total_lockers: int
+    closures: Optional[List[Dict[str, Any]]] = None
+
+
+class AllFloorsResponse(BaseModel):
+    """Response model for all floors."""
+
+    floors: List[FloorResponse]

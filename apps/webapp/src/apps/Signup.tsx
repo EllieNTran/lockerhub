@@ -1,34 +1,34 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router";
-import { Lock, Mail, Hash } from "lucide-react";
-import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router';
+import { Lock, Mail, Hash } from 'lucide-react';
+import Header from '@/components/Header';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   useDepartments, 
   useOffices, 
   useSignup, 
   useValidateStaffNumber 
-} from "@/services/auth";
+} from '@/services/auth';
 
 
 const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    staffNumber: "",
-    departmentId: "",
-    office: "",
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    staffNumber: '',
+    departmentId: '',
+    office: '',
   });
-  const [error, setError] = useState("");
-  const [staffNumberError, setStaffNumberError] = useState("");
+  const [error, setError] = useState('');
+  const [staffNumberError, setStaffNumberError] = useState('');
 
   const { data: departments = [], isLoading: isLoadingDepartments } = useDepartments();
   const { data: offices = [], isLoading: isLoadingOffices } = useOffices();
@@ -45,7 +45,7 @@ const Signup = () => {
             if (!result.available) {
               setStaffNumberError(result.message);
             } else {
-              setStaffNumberError("");
+              setStaffNumberError('');
             }
           },
           onError: () => {
@@ -53,7 +53,7 @@ const Signup = () => {
           },
         });
       } else {
-        setStaffNumberError("");
+        setStaffNumberError('');
       }
     };
 
@@ -67,21 +67,21 @@ const Signup = () => {
       ...formData,
       [name]: name === 'email' ? value.trim() : value,
     });
-    setError("");
+    setError('');
   };
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     // Validation
     const validations = [
-      { condition: formData.password !== formData.confirmPassword, message: "Passwords do not match" },
-      { condition: formData.password.length < 8, message: "Password must be at least 8 characters" },
-      { condition: formData.staffNumber.length !== 8, message: "Staff number must be exactly 8 characters" },
-      { condition: !!staffNumberError, message: "Please fix the staff number error before submitting" },
-      { condition: !formData.departmentId, message: "Please select a department" },
-      { condition: !formData.office, message: "Please select an office" },
+      { condition: formData.password !== formData.confirmPassword, message: 'Passwords do not match' },
+      { condition: formData.password.length < 8, message: 'Password must be at least 8 characters' },
+      { condition: formData.staffNumber.length !== 8, message: 'Staff number must be exactly 8 characters' },
+      { condition: !!staffNumberError, message: 'Please fix the staff number error before submitting' },
+      { condition: !formData.departmentId, message: 'Please select a department' },
+      { condition: !formData.office, message: 'Please select an office' },
     ];
 
     for (const { condition, message } of validations) {
@@ -103,10 +103,10 @@ const Signup = () => {
       },
       {
         onSuccess: () => {
-          navigate("/");
+          navigate('/');
         },
         onError: (err) => {
-          setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
+          setError(err instanceof Error ? err.message : 'Signup failed. Please try again.');
         },
       }
     );
@@ -125,7 +125,7 @@ const Signup = () => {
             </div>
             <CardTitle className="text-2xl font-bold text-center">Sign up</CardTitle>
             <p className="text-sm text-center text-grey mt-2">
-              Already registered?{" "}
+              Already registered?{' '}
               <Link to="/check-account" className="text-primary hover:underline font-medium">
                 Check your account status
               </Link>
@@ -134,7 +134,7 @@ const Signup = () => {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="rounded-lg bg-error/15 p-3 text-sm text-error">
+                <div className="rounded-lg bg-red/15 p-3 text-sm text-red">
                   {error}
                 </div>
               )}
@@ -199,10 +199,10 @@ const Signup = () => {
                     />
                   </div>
                   {staffNumberError && (
-                    <p className="text-xs text-error">{staffNumberError}</p>
+                    <p className="text-xs text-red">{staffNumberError}</p>
                   )}
                   {!staffNumberError && formData.staffNumber.length === 8 && (
-                    <p className="text-xs text-success">✓ Staff number is available</p>
+                    <p className="text-xs text-green">✓ Staff number is available</p>
                   )}
                 </div>
                 
@@ -274,10 +274,10 @@ const Signup = () => {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button type="submit" className="w-full" disabled={signupMutation.isPending || isLoadingMetadata || !!staffNumberError}>
-                {signupMutation.isPending ? "Creating account..." : "Create account"}
+                {signupMutation.isPending ? 'Creating account...' : 'Create account'}
               </Button>
               <p className="text-sm text-center text-grey">
-                Already have an account?{" "}
+                Already have an account?{' '}
                 <Link to="/" className="text-primary hover:underline font-medium">
                   Login
                 </Link>

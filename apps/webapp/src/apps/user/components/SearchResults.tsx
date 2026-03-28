@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import type { Locker, AvailableLocker } from "@/types/locker";
-import { RotateCcw, Map, List } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { SlidingToggle } from "@/components/ui/sliding-toggle";
-import ZoomControls from "@/components/ZoomControls";
-import FloorPlan from "./FloorPlan";
-import ListView from "./ListView";
+import { useState, useEffect } from 'react';
+import type { Locker, AvailableLocker } from '@/types/locker';
+import { RotateCcw, Map, List } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { SlidingToggle } from '@/components/ui/sliding-toggle';
+import ZoomControls from '@/components/ZoomControls';
+import FloorPlan from './FloorPlan';
+import ListView from './ListView';
 
 interface SearchResultsProps {
   lockers: (Locker | AvailableLocker)[];
@@ -13,34 +13,34 @@ interface SearchResultsProps {
   floorNumber?: string;
 }
 
-type ViewMode = "floor" | "list";
+type ViewMode = 'floor' | 'list';
 
-const STORAGE_KEY = "locker-view-mode";
+const STORAGE_KEY = 'locker-view-mode';
 
 const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsProps) => {
-  const [viewMode, setViewMode] = useState<ViewMode>("floor");
+  const [viewMode, setViewMode] = useState<ViewMode>('floor');
   const [selectedLockerId, setSelectedLockerId] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved === "floor" || saved === "list") {
+      if (saved === 'floor' || saved === 'list') {
         setViewMode(saved);
       }
     }
   }, []);
 
   const legend = [
-    { classes: 'border-success bg-success/30', label: 'Available' },
-    { classes: 'border-error bg-error/30', label: 'Occupied' },
-    { classes: 'border-pending bg-pending/30', label: 'Maintenance' },
+    { classes: 'border-green bg-green/30', label: 'Available' },
+    { classes: 'border-red bg-red/30', label: 'Occupied' },
+    { classes: 'border-orange bg-orange/30', label: 'Maintenance' },
     { classes: 'border-secondary bg-secondary/30', label: 'Selected' },
   ];
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, viewMode);
     }
   }, [viewMode]);
@@ -76,7 +76,7 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
         <h3 className="text-sm font-semibold text-dark-blue">Search Results</h3>
         <div className="flex items-center gap-2">
 
-          {viewMode === "floor" && (
+          {viewMode === 'floor' && (
             <>
               <div className="flex items-center gap-4 text-[11px] text-grey mr-4">
                 {legend.map(({ classes, label }) => (
@@ -103,8 +103,8 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
           <div className="ml-2 h-8">
             <SlidingToggle
               options={[
-                { value: "floor", label: "Floor", icon: <Map className="h-3.5 w-3.5" /> },
-                { value: "list", label: "List", icon: <List className="h-3.5 w-3.5" /> },
+                { value: 'floor', label: 'Floor', icon: <Map className="h-3.5 w-3.5" /> },
+                { value: 'list', label: 'List', icon: <List className="h-3.5 w-3.5" /> },
               ]}
               value={viewMode}
               onChange={setViewMode}
@@ -113,7 +113,7 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
         </div>
       </div>
 
-      {viewMode === "floor" ? (
+      {viewMode === 'floor' ? (
         <FloorPlan
           lockers={lockers}
           selectedLockerId={selectedLockerId}

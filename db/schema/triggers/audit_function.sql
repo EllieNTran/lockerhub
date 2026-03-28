@@ -16,7 +16,7 @@ BEGIN
             v_user_id := OLD.user_id;
             v_entity_id := OLD.booking_id;
         ELSIF TG_ARGV[0] = 'request' THEN
-            v_user_id := OLD.updated_by;
+            v_user_id := OLD.user_id; -- requests don't have updated_by, use user_id
             v_entity_id := NULL; -- request_id is INTEGER, not UUID
         ELSIF TG_ARGV[0] = 'booking_rule' THEN
             v_user_id := OLD.updated_by;

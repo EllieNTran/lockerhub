@@ -8,7 +8,7 @@ import {
   PaginationPrevious,
   PaginationFirst,
   PaginationLast,
-} from "@/components/ui/pagination";
+} from '@/components/ui/pagination';
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -21,7 +21,7 @@ const PaginationControls = ({
   currentPage,
   totalPages,
   onPageChange,
-  className = "mt-8",
+  className = 'mt-8',
 }: PaginationControlsProps) => {
   if (totalPages <= 1) return null;
 
@@ -63,7 +63,7 @@ const PaginationControls = ({
                 onPageChange(1);
               }
             }}
-            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
           />
         </PaginationItem>
         
@@ -76,7 +76,7 @@ const PaginationControls = ({
                 onPageChange(currentPage - 1);
               }
             }}
-            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
           />
         </PaginationItem>
         
@@ -115,7 +115,7 @@ const PaginationControls = ({
                 onPageChange(currentPage + 1);
               }
             }}
-            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
           />
         </PaginationItem>
         
@@ -128,7 +128,7 @@ const PaginationControls = ({
                 onPageChange(totalPages);
               }
             }}
-            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
           />
         </PaginationItem>
       </PaginationContent>

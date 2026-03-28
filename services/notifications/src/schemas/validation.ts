@@ -49,7 +49,15 @@ export const bookingCancellationSchema = z.object({
   floorNumber: z.string(),
   startDate: z.iso.date(),
   endDate: z.iso.date(),
-  keyStatus: z.string(),
+  keyStatus: z.enum([
+    'available',
+    'awaiting_handover',
+    'with_employee',
+    'awaiting_return',
+    'lost',
+    'awaiting_replacement',
+    'N/A',
+  ]),
   keyNumber: z.string(),
   adminBookingsPath: z.string(),
 })

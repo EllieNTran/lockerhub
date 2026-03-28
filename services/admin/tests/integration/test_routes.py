@@ -317,6 +317,7 @@ class TestBookingRoutes:
         """
         booking_id = uuid4()
         user_id = uuid4()
+        floor_id = uuid4()
         today = date.today()
 
         mock_bookings = [
@@ -329,6 +330,7 @@ class TestBookingRoutes:
                 "department_name": "Engineering",
                 "email": "john.doe@example.com",
                 "locker_number": "DL10-01-01",
+                "floor_id": floor_id,
                 "floor_number": "10",
                 "start_date": today,
                 "end_date": today + timedelta(days=7),
@@ -546,38 +548,46 @@ class TestSpecialRequestRoutes:
     async def test_get_all_special_requests(self, test_client):
         """
         Verify retrieval of all special requests.
-        Mock service returns list of requests.
+        Mock service returns AllSpecialRequestsResponse object.
         Expect 200 status with requests array.
         """
+        from src.models.responses import (
+            AllSpecialRequestsResponse,
+            SpecialRequestDetailResponse,
+        )
+
         user_id = uuid4()
         today = date.today()
         now = datetime.now()
 
-        mock_requests = [
-            {
-                "request_id": 1,
-                "user_id": user_id,
-                "employee_name": "John Doe",
-                "staff_number": "12345",
-                "department_name": "Engineering",
-                "floor_id": None,
-                "floor_number": None,
-                "locker_id": None,
-                "booking_id": None,
-                "start_date": today,
-                "end_date": today + timedelta(days=7),
-                "request_type": "extension",
-                "justification": "Need extra time",
-                "status": "pending",
-                "created_at": now,
-                "reviewed_at": None,
-                "reviewed_by": None,
-            }
-        ]
+        mock_response = AllSpecialRequestsResponse(
+            requests=[
+                SpecialRequestDetailResponse(
+                    request_id=1,
+                    user_id=user_id,
+                    employee_name="John Doe",
+                    staff_number="12345",
+                    department_name="Engineering",
+                    floor_id=None,
+                    floor_number=None,
+                    locker_id=None,
+                    booking_id=None,
+                    start_date=today,
+                    end_date=today + timedelta(days=7),
+                    request_type="extension",
+                    justification="Need extra time",
+                    status="pending",
+                    created_at=now,
+                    reviewed_at=None,
+                    reviewed_by=None,
+                    reason=None,
+                )
+            ]
+        )
 
         with patch(
             "src.routes.special_requests.get_all_special_requests",
-            AsyncMock(return_value=mock_requests),
+            AsyncMock(return_value=mock_response),
         ):
             response = await test_client.get("/admin/special-requests")
 
@@ -671,26 +681,31 @@ class TestBookingRulesRoutes:
         Mock service returns list of rules.
         Expect 200 status with rules array.
         """
-        mock_rules = [
-            {
-                "booking_rule_id": 1,
-                "name": "max_booking_duration",
-                "value": "90",
-                "rule_type": "duration",
-            },
-            {
-                "booking_rule_id": 2,
-                "name": "advance_booking_days",
-                "value": "30",
-                "rule_type": "advance",
-            },
-        ]
+        from src.models.responses import BookingRuleResponse, AllBookingRulesResponse
+        from uuid import uuid4
+
+        mock_rules = AllBookingRulesResponse(
+            rules=[
+                BookingRuleResponse(
+                    booking_rule_id=uuid4(),
+                    name="max_booking_duration",
+                    value=90,
+                    rule_type="duration",
+                ),
+                BookingRuleResponse(
+                    booking_rule_id=uuid4(),
+                    name="advance_booking_days",
+                    value=30,
+                    rule_type="advance",
+                ),
+            ]
+        )
 
         with patch(
             "src.routes.booking_rules.get_booking_rules",
             AsyncMock(return_value=mock_rules),
         ):
-            response = await test_client.get("/admin/booking-rules/")
+            response = await test_client.get("/admin/booking-rules")
 
         assert response.status_code == 200
         data = response.json()
@@ -703,14 +718,19 @@ class TestBookingRulesRoutes:
         Mock service returns updated rules.
         Expect 200 status with updated rules.
         """
-        mock_rules = [
-            {
-                "booking_rule_id": 1,
-                "name": "max_booking_duration",
-                "value": "120",
-                "rule_type": "duration",
-            }
-        ]
+        from src.models.responses import BookingRuleResponse, AllBookingRulesResponse
+        from uuid import uuid4
+
+        mock_rules = AllBookingRulesResponse(
+            rules=[
+                BookingRuleResponse(
+                    booking_rule_id=uuid4(),
+                    name="max_booking_duration",
+                    value=120,
+                    rule_type="duration",
+                )
+            ]
+        )
 
         with patch(
             "src.routes.booking_rules.update_booking_rules",
@@ -727,7 +747,6 @@ class TestBookingRulesRoutes:
         assert response.status_code == 200
         data = response.json()
         assert "rules" in data
-        assert "message" in data
 
     async def test_update_floor_status(self, test_client):
         """

@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState } from 'react';
 import { BriefcaseBusiness, Mail, Network, Copy, Check } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/shared/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import type { AdminBookingDetail } from "@/shared/types";
-import { toast } from "@/shared/components/ui/sonner";
+} from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import type { AdminBookingDetail } from '@/types/booking';
+import { toast } from '@/components/ui/sonner';
 
 const StaffTooltip = ({ booking }: { booking: AdminBookingDetail }) => {
   const [copied, setCopied] = useState(false);
@@ -43,8 +43,8 @@ const StaffTooltip = ({ booking }: { booking: AdminBookingDetail }) => {
             <p className="text-xs">{booking.staff_number}</p>
           </div>
           <div className="flex flex-col gap-2">
-            {renderDetail(<Network className="h-4 w-4" />, booking.capability_name || "N/A")}
-            {renderDetail(<BriefcaseBusiness className="h-4 w-4" />, booking.department_name || "N/A")}
+            {renderDetail(<Network className="h-4 w-4" />, booking.capability_name || 'N/A')}
+            {renderDetail(<BriefcaseBusiness className="h-4 w-4" />, booking.department_name || 'N/A')}
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
               <span className="text-xs font-light">{booking.email}</span>

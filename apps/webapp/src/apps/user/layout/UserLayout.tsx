@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
-import Header from "@/components/Header";
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import type { ReactNode } from 'react';
+import Header from '@/components/Header';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,7 +13,7 @@ export default function Layout({ children }: LayoutProps) {
         <Header />
         
         <main className="w-full flex justify-center px-6">
-          <div className="w-full max-w-[1200px] py-10">
+          <div className="w-full max-w-[1200px] py-10 -mt-4">
             {children}
           </div>
         </main>

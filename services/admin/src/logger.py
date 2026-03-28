@@ -1,4 +1,4 @@
-"""Logger configuration for booking service."""
+"""Logger configuration for admin service."""
 
 import logging
 import logging.config
@@ -8,7 +8,7 @@ from pydantic import BaseModel
 class LogConfig(BaseModel):
     """Configuration for the logger."""
 
-    LOGGER_NAME: str = "booking-service"
+    LOGGER_NAME: str = "admin-service"
     LOG_FORMAT: str = "%(levelprefix)s | %(asctime)s | %(message)s"
     LOG_LEVEL: str = "INFO"
 

@@ -57,9 +57,11 @@ async def confirm_key_return(booking_id: str) -> KeyReturnResponse:
                 logger.warning("Booking not found")
                 raise ValueError("Booking not found")
 
-            if booking["status"] != "active":
-                logger.warning("Booking is not in 'active' status")
-                raise ValueError("Booking must be 'active' to confirm RETURN")
+            if booking["status"] != "active" and booking["status"] != "cancelled":
+                logger.warning("Booking is not in 'active' or 'cancelled' status")
+                raise ValueError(
+                    "Booking must be 'active' or 'cancelled' to confirm RETURN"
+                )
 
             key = await connection.fetchrow(
                 UPDATE_KEY_STATUS_QUERY, booking["locker_id"]

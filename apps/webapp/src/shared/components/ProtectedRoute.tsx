@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
-  requiredRole: "admin" | "user";
+  requiredRole: 'admin' | 'user';
 };
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
@@ -11,8 +11,8 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setUserRole(localStorage.getItem("userRole"));
+    if (typeof window !== 'undefined') {
+      setUserRole(localStorage.getItem('userRole'));
     }
   }, []);
 
@@ -20,11 +20,11 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     if (userRole === null) return;
     
     if (!userRole) {
-      navigate("/", { replace: true });
+      navigate('/', { replace: true });
       return;
     }
-    if (requiredRole === "admin" && userRole !== "admin") {
-      navigate("/user", { replace: true });
+    if (requiredRole === 'admin' && userRole !== 'admin') {
+      navigate('/user', { replace: true });
     }
   }, [userRole, requiredRole, navigate]);
 
@@ -32,7 +32,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return null;
   }
 
-  if (requiredRole === "admin" && userRole !== "admin") {
+  if (requiredRole === 'admin' && userRole !== 'admin') {
     return null;
   }
 

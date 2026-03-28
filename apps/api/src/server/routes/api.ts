@@ -41,6 +41,7 @@ router.use(SERVICE_CONFIG.notifications.prefix, (req, res, next) => {
 const SERVICE_ROUTES = [
   { service: 'booking' as const, auth: true },
   { service: 'admin' as const, auth: true, role: 'admin' as const },
+  { service: 'analytics' as const, auth: true, role: 'admin' as const },
 ]
 
 SERVICE_ROUTES.forEach((route) => {

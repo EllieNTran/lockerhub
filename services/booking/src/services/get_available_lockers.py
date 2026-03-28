@@ -52,11 +52,11 @@ async def get_available_lockers(
         A list of all lockers for the specified floor with availability status
     """
     try:
-        start_date_obj = date.fromisoformat(start_date)
-        end_date_obj = date.fromisoformat(end_date)
-
         lockers = await db.fetch(
-            GET_AVAILABLE_LOCKERS_QUERY, floor_id, start_date_obj, end_date_obj
+            GET_AVAILABLE_LOCKERS_QUERY,
+            floor_id,
+            date.fromisoformat(start_date),
+            date.fromisoformat(end_date),
         )
         logger.info("Retrieved available lockers")
         return [AvailableLockerResponse(**dict(locker)) for locker in lockers]

@@ -1,45 +1,45 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router";
-import { Lock, KeyRound } from "lucide-react";
-import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useValidateResetToken, useResetPassword } from "@/services/auth";
+import { useState } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router';
+import { Lock, KeyRound } from 'lucide-react';
+import Header from '@/components/Header';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useValidateResetToken, useResetPassword } from '@/services/auth';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token") || "";
+  const token = searchParams.get('token') || '';
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
   const { data: validationResult, isLoading: isValidating } = useValidateResetToken(token);
   const resetPasswordMutation = useResetPassword();
 
   const tokenValid = validationResult?.valid || false;
-  const email = validationResult?.email || "";
+  const email = validationResult?.email || '';
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
+      setError('Password must be at least 8 characters long');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError('Passwords do not match');
       return;
     }
 
     if (!token) {
-      setError("Invalid reset token");
+      setError('Invalid reset token');
       return;
     }
 
@@ -49,11 +49,11 @@ const ResetPassword = () => {
         onSuccess: () => {
           setSuccess(true);
           setTimeout(() => {
-            navigate("/");
+            navigate('/');
           }, 3000);
         },
         onError: (err) => {
-          setError(err instanceof Error ? err.message : "Failed to reset password. Please try again.");
+          setError(err instanceof Error ? err.message : 'Failed to reset password. Please try again.');
         },
       }
     );
@@ -85,7 +85,7 @@ const ResetPassword = () => {
           <Card className="w-full max-w-md">
             <CardHeader className="space-y-1">
               <div className="flex items-center justify-center mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-error">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red">
                   <Lock className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -115,7 +115,7 @@ const ResetPassword = () => {
           <Card className="w-full max-w-md">
             <CardHeader className="space-y-1">
               <div className="flex items-center justify-center mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-success">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green">
                   <KeyRound className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -152,13 +152,13 @@ const ResetPassword = () => {
               Reset Your Password
             </CardTitle>
             <CardDescription className="text-center">
-              {email ? `Resetting password for ${email}` : "Enter your new password below"}
+              {email ? `Resetting password for ${email}` : 'Enter your new password below'}
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="rounded-lg bg-error/15 p-3 text-sm text-error">
+                <div className="rounded-lg bg-red/15 p-3 text-sm text-red">
                   {error}
                 </div>
               )}
@@ -192,10 +192,10 @@ const ResetPassword = () => {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending}>
-                {resetPasswordMutation.isPending ? "Resetting Password..." : "Reset Password"}
+                {resetPasswordMutation.isPending ? 'Resetting Password...' : 'Reset Password'}
               </Button>
               <p className="text-sm text-center text-grey">
-                Remember your password?{" "}
+                Remember your password?{' '}
                 <Link to="/" className="text-primary hover:underline font-medium">
                   Login
                 </Link>

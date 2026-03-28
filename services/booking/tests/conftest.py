@@ -132,7 +132,7 @@ def create_booking_dict(**overrides):
         "floor_number": "10",
         "start_date": today,
         "end_date": today + timedelta(days=2),
-        "status": "active",
+        "booking_status": "active",
         "special_request_id": None,
         "created_at": datetime.now(),
         "updated_at": datetime.now(),

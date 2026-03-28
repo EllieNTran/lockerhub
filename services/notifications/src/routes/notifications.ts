@@ -13,6 +13,11 @@ import {
   notifyOverdueKeyReturn,
 } from '../services/bookings'
 import { notifyJoinedWaitingList, notifyRemovedFromWaitingList } from '../services/waiting-list'
+import {
+  notifySpecialRequestSubmitted,
+  notifySpecialRequestApproved,
+  notifySpecialRequestRejected,
+} from '../services/special-requests'
 import { asyncHandler } from '../utils/async-handler'
 import { validate } from '../middleware/validate'
 import {
@@ -91,7 +96,7 @@ router.post(
   '/',
   validate(createNotificationSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { title, adminTitle, caption, type, scope, createdBy, userIds, departmentId, floorId } =
+    const { title, adminTitle, caption, type, entityType, scope, createdBy, userIds, departmentId, floorId } =
       req.body as CreateNotificationRequest
 
     const result = await createNotification({
@@ -99,6 +104,7 @@ router.post(
       adminTitle,
       caption,
       type,
+      entityType,
       scope,
       createdBy,
       userIds,
@@ -422,6 +428,112 @@ router.post(
     res.status(200).json({
       success: true,
       message: 'Waitlist removed notification sent successfully',
+    })
+  }),
+)
+
+/**
+ * POST /notifications/special-request/submitted
+ * Send special request submitted notification and emails
+ */
+router.post(
+  '/special-request/submitted',
+  asyncHandler(async (req: Request, res: Response) => {
+    const {
+      userId,
+      email,
+      name,
+      floorNumber,
+      endDate,
+      requestId,
+      userSpecialRequestsPath,
+      adminSpecialRequestsPath,
+    } = req.body
+
+    await notifySpecialRequestSubmitted(
+      userId,
+      email,
+      name,
+      floorNumber,
+      endDate,
+      requestId,
+      userSpecialRequestsPath,
+      adminSpecialRequestsPath,
+    )
+
+    res.status(200).json({
+      success: true,
+      message: 'Special request submitted notification sent successfully',
+    })
+  }),
+)
+
+/**
+ * POST /notifications/special-request/approved
+ * Send special request approved notification and email
+ */
+router.post(
+  '/special-request/approved',
+  asyncHandler(async (req: Request, res: Response) => {
+    const {
+      userId,
+      email,
+      name,
+      floorNumber,
+      endDate,
+      requestId,
+      userSpecialRequestsPath,
+    } = req.body
+
+    await notifySpecialRequestApproved(
+      userId,
+      email,
+      name,
+      floorNumber,
+      endDate,
+      requestId,
+      userSpecialRequestsPath,
+    )
+
+    res.status(200).json({
+      success: true,
+      message: 'Special request approved notification sent successfully',
+    })
+  }),
+)
+
+/**
+ * POST /notifications/special-request/rejected
+ * Send special request rejected notification and email
+ */
+router.post(
+  '/special-request/rejected',
+  asyncHandler(async (req: Request, res: Response) => {
+    const {
+      userId,
+      email,
+      name,
+      floorNumber,
+      endDate,
+      requestId,
+      reason,
+      userSpecialRequestsPath,
+    } = req.body
+
+    await notifySpecialRequestRejected(
+      userId,
+      email,
+      name,
+      floorNumber,
+      endDate,
+      requestId,
+      reason,
+      userSpecialRequestsPath,
+    )
+
+    res.status(200).json({
+      success: true,
+      message: 'Special request rejected notification sent successfully',
     })
   }),
 )

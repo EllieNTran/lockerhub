@@ -28,6 +28,9 @@ class ReviewSpecialRequestRequest(BaseModel):
     """Request model for reviewing a special request."""
 
     status: str = Field(..., description="Status: 'approved' or 'rejected'")
+    reason: Optional[str] = Field(
+        None, description="Reason for rejection (required if rejecting)"
+    )
 
     @field_validator("status")
     @classmethod
@@ -37,11 +40,26 @@ class ReviewSpecialRequestRequest(BaseModel):
             raise ValueError("Status must be 'approved' or 'rejected'")
         return v
 
+    @field_validator("reason")
+    @classmethod
+    def validate_reason(cls, v: Optional[str], info) -> Optional[str]:
+        """Ensure reason is provided when rejecting."""
+        if "status" in info.data and info.data["status"] == "rejected" and not v:
+            raise ValueError("Reason is required when rejecting a request")
+        return v
+
 
 class UpdateFloorStatusRequest(BaseModel):
     """Request model for updating floor status."""
 
     status: str = Field(..., description="Status: 'open' or 'closed'")
+    start_date: Optional[date] = Field(
+        None, description="Start date for scheduled closure (only when closing)"
+    )
+    end_date: Optional[date] = Field(
+        None, description="End date for scheduled closure (only when closing)"
+    )
+    reason: Optional[str] = Field(None, description="Reason for closure")
 
     @field_validator("status")
     @classmethod

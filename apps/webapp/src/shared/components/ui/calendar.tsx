@@ -1,6 +1,6 @@
-import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/shared/utils/cn";
+import * as React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/utils/cn';
 
 export type CalendarProps = {
   selected?: Date;
@@ -29,11 +29,11 @@ function Calendar({
   };
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   const previousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
@@ -91,11 +91,11 @@ function Calendar({
         onClick={() => handleDateClick(day)}
         disabled={isDisabled}
         className={cn(
-          "w-9 h-9 p-0 font-normal text-sm inline-flex items-center justify-center rounded-md transition-colors",
-          "hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
-          selected && "bg-secondary text-white hover:bg-secondary/90 font-medium",
-          !selected && today && "bg-accent text-dark-blue font-medium",
-          isDisabled && "text-grey/30 cursor-not-allowed hover:bg-transparent opacity-50"
+          'w-9 h-9 p-0 font-normal text-sm inline-flex items-center justify-center rounded-md transition-colors',
+          'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2',
+          selected && 'bg-secondary text-white hover:bg-secondary/90 font-medium',
+          !selected && today && 'bg-accent text-dark-blue font-medium',
+          isDisabled && 'text-grey/30 cursor-not-allowed hover:bg-transparent opacity-50'
         )}
       >
         {day}
@@ -104,7 +104,7 @@ function Calendar({
   }
 
   return (
-    <div className={cn("p-4", className)}>
+    <div className={cn('p-4', className)}>
       <div className="space-y-3">
         {/* Header with month/year and navigation */}
         <div className="flex justify-center relative items-center mb-3">
@@ -153,6 +153,6 @@ function Calendar({
   );
 }
 
-Calendar.displayName = "Calendar";
+Calendar.displayName = 'Calendar';
 
 export { Calendar };

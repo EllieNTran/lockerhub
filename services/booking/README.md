@@ -50,6 +50,9 @@ uvicorn src.main:app --reload --host $APP_HOST --port $APP_PORT
 # Start all services (from repo root)
 sh .local/up.sh
 
+# Rebuild only booking service (from repo root)
+.local/rebuild-service.sh booking
+
 # Rebuild only booking service (from this directory)
 docker compose -f ../../.local/services.yaml -p lockerhub up --build -d booking
 ```

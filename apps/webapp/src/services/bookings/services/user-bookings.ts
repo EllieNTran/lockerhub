@@ -55,3 +55,7 @@ export const cancelBooking = async (bookingId: string): Promise<Booking> => {
 export const deleteBooking = async (bookingId: string): Promise<void> => {
   return apiClient.delete<void>(`/bookings/${bookingId}`)
 }
+
+export const getBookingRule = async (ruleType: string): Promise<{ value: number }> => {
+  return apiClient.get<{ value: number }>(`/bookings/booking-rule/${ruleType}`)
+}

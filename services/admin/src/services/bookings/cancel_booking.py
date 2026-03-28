@@ -11,6 +11,7 @@ SELECT
     b.user_id, 
     b.status,
     b.locker_id,
+    b.special_request_id,
     u.email, 
     u.first_name, 
     l.locker_number, 
@@ -35,6 +36,12 @@ SET status = 'cancelled',
     updated_at = CURRENT_TIMESTAMP
 WHERE booking_id = $1
 RETURNING booking_id, status
+"""
+
+CANCEL_SPECIAL_REQUEST_QUERY = """
+UPDATE lockerhub.requests
+SET status = 'cancelled'
+WHERE request_id = $1
 """
 
 RESET_KEY_QUERY = """
@@ -73,6 +80,14 @@ async def cancel_booking(booking_id: str) -> CancelBookingResponse:
 
             result = await connection.fetchrow(CANCEL_BOOKING_QUERY, booking_id)
 
+            if booking_details["special_request_id"]:
+                await connection.execute(
+                    CANCEL_SPECIAL_REQUEST_QUERY, booking_details["special_request_id"]
+                )
+                logger.info(
+                    f"Cancelled special request {booking_details['special_request_id']} associated with booking"
+                )
+
             if (
                 booking_details["key_id"]
                 and booking_details["key_status"] == "awaiting_handover"
@@ -96,16 +111,8 @@ async def cancel_booking(booking_id: str) -> CancelBookingResponse:
                     "floorNumber": booking_details["floor_number"],
                     "startDate": booking_details["start_date"].isoformat(),
                     "endDate": booking_details["end_date"].isoformat(),
-                    "keyStatus": (
-                        booking_details["key_status"]
-                        if booking_details["key_status"]
-                        else "N/A"
-                    ),
-                    "keyNumber": (
-                        booking_details["key_number"]
-                        if booking_details["key_number"]
-                        else "N/A"
-                    ),
+                    "keyStatus": booking_details["key_status"] or "N/A",
+                    "keyNumber": booking_details["key_number"] or "N/A",
                     "adminBookingsPath": "/admin/bookings",
                 },
             )

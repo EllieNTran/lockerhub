@@ -10,7 +10,7 @@ DO $$ BEGIN
     CREATE TYPE lockerhub.locker_status AS ENUM ('available', 'occupied', 'maintenance', 'reserved');
     CREATE TYPE lockerhub.key_status AS ENUM ('available', 'awaiting_handover', 'with_employee', 'awaiting_return', 'lost', 'awaiting_replacement');
     CREATE TYPE lockerhub.request_type AS ENUM ('normal', 'extension', 'special');
-    CREATE TYPE lockerhub.request_status AS ENUM ('pending', 'queued', 'approved', 'rejected', 'cancelled', 'active', 'completed');
+    CREATE TYPE lockerhub.request_status AS ENUM ('pending', 'queued', 'approved', 'rejected', 'cancelled');
     CREATE TYPE lockerhub.booking_status AS ENUM ('upcoming', 'active', 'completed', 'cancelled', 'expired');
     CREATE TYPE lockerhub.rule_type AS ENUM ('max_duration', 'max_extension', 'advance_booking_window', 'same_day_bookings');
     CREATE TYPE lockerhub.audit_action AS ENUM ('create', 'update', 'delete', 'login', 'logout', 'approve', 'reject', 'handover', 'return');

@@ -5,21 +5,15 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
-import { useCreateLocker, useAllLockers, useAllKeys } from "@/services/admin";
-import { useFloors } from "@/services/bookings";
-import { AxiosError } from "axios";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { useCreateLocker, useAllLockers, useAllKeys } from '@/services/admin';
+import { useFloors } from '@/services/bookings';
+import FloorDropdown from '@/shared/components/FloorDropdown';
+import { AxiosError } from 'axios';
 
 interface CreateLockerDialogProps {
   isOpen: boolean;
@@ -27,32 +21,32 @@ interface CreateLockerDialogProps {
 }
 
 const floorLockerNumberFormat = {
-  "2": "L2W",
-  "3": "DL3",
-  "4": "DL4",
-  "6": "DL6",
-  "7": "DL7",
-  "8": "DL8",
-  "9": "DL9",
-  "10": "DL10",
-  "10 East": "DL10E",
-  "11": "DL11",
-  "11 East": "DL11E",
-  "13 East": "DL13E",
+  '2': 'L2W',
+  '3': 'DL3',
+  '4': 'DL4',
+  '6': 'DL6',
+  '7': 'DL7',
+  '8': 'DL8',
+  '9': 'DL9',
+  '10': 'DL10',
+  '10 East': 'DL10E',
+  '11': 'DL11',
+  '11 East': 'DL11E',
+  '13 East': 'DL13E',
 }
 
 const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) => {
-  const [lockerNumber, setLockerNumber] = useState("");
-  const [floorId, setFloorId] = useState("");
-  const [keyNumber, setKeyNumber] = useState("");
-  const [location, setLocation] = useState("");
-  const [xCoordinate, setXCoordinate] = useState("");
-  const [yCoordinate, setYCoordinate] = useState("");
-  const [lockerNumberError, setLockerNumberError] = useState("");
-  const [keyNumberError, setKeyNumberError] = useState("");
+  const [lockerNumber, setLockerNumber] = useState('');
+  const [floorId, setFloorId] = useState('');
+  const [keyNumber, setKeyNumber] = useState('');
+  const [location, setLocation] = useState('');
+  const [xCoordinate, setXCoordinate] = useState('');
+  const [yCoordinate, setYCoordinate] = useState('');
+  const [lockerNumberError, setLockerNumberError] = useState('');
+  const [keyNumberError, setKeyNumberError] = useState('');
 
   const { mutate: createLocker, isPending } = useCreateLocker();
-  const { data: floorsData = [], isLoading: floorsLoading } = useFloors();
+  const { data: floorsData = [] } = useFloors();
   const { data: lockersData = [] } = useAllLockers();
   const { data: keysData = [] } = useAllKeys();
 
@@ -62,30 +56,30 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
 
   useEffect(() => {
     if (isOpen) {
-      setLockerNumber("");
-      setFloorId("");
-      setKeyNumber("");
-      setLocation("");
-      setXCoordinate("");
-      setYCoordinate("");
-      setLockerNumberError("");
-      setKeyNumberError("");
+      setLockerNumber('');
+      setFloorId('');
+      setKeyNumber('');
+      setLocation('');
+      setXCoordinate('');
+      setYCoordinate('');
+      setLockerNumberError('');
+      setKeyNumberError('');
     }
   }, [isOpen]);
 
   useEffect(() => {
     if (lockerPrefix) {
       setLockerNumber(`${lockerPrefix}-`);
-      setLockerNumberError("");
+      setLockerNumberError('');
     } else {
-      setLockerNumber("");
-      setLockerNumberError("");
+      setLockerNumber('');
+      setLockerNumberError('');
     }
   }, [lockerPrefix]);
 
   useEffect(() => {
     if (!lockerPrefix || !floorId) {
-      setLockerNumberError("");
+      setLockerNumberError('');
       return;
     }
 
@@ -93,7 +87,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
       const prefix = `${lockerPrefix}-`;
 
       if (lockerNumber === prefix) {
-        setLockerNumberError("");
+        setLockerNumberError('');
         return;
       }
 
@@ -102,9 +96,9 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
       );
       
       if (lockerExists) {
-        setLockerNumberError("A locker with this number already exists on this floor");
+        setLockerNumberError('A locker with this number already exists on this floor');
       } else if (lockerNumber.length > prefix.length) {
-        setLockerNumberError("");
+        setLockerNumberError('');
       }
     };
 
@@ -114,7 +108,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
 
   useEffect(() => {
     if (!keyNumber.trim()) {
-      setKeyNumberError("");
+      setKeyNumberError('');
       return;
     }
 
@@ -124,9 +118,9 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
       );
       
       if (keyExists) {
-        setKeyNumberError("A key with this number already exists");
+        setKeyNumberError('A key with this number already exists');
       } else {
-        setKeyNumberError("");
+        setKeyNumberError('');
       }
     };
 
@@ -155,27 +149,27 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
     e.preventDefault();
 
     if (!floorId) {
-      toast.error("Please select a floor");
+      toast.error('Please select a floor');
       return;
     }
 
     if (!lockerNumber.trim() || lockerNumber === `${lockerPrefix}-`) {
-      toast.error("Please enter a complete locker number");
+      toast.error('Please enter a complete locker number');
       return;
     }
 
     if (lockerNumberError) {
-      toast.error("Please fix the locker number error before submitting");
+      toast.error('Please fix the locker number error before submitting');
       return;
     }
 
     if (!keyNumber.trim()) {
-      toast.error("Key number is required");
+      toast.error('Key number is required');
       return;
     }
 
     if (keyNumberError) {
-      toast.error("Please fix the key number error before submitting");
+      toast.error('Please fix the key number error before submitting');
       return;
     }
 
@@ -183,12 +177,12 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
     const y = yCoordinate ? parseInt(yCoordinate) : undefined;
 
     if (xCoordinate && isNaN(x as number)) {
-      toast.error("X coordinate must be a number");
+      toast.error('X coordinate must be a number');
       return;
     }
 
     if (yCoordinate && isNaN(y as number)) {
-      toast.error("Y coordinate must be a number");
+      toast.error('Y coordinate must be a number');
       return;
     }
 
@@ -203,12 +197,12 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
       },
       {
         onSuccess: () => {
-          toast.success("Locker created successfully");
+          toast.success('Locker created successfully');
           onOpenChange(false);
         },
         onError: (error: Error) => {
           const axiosError = error as AxiosError<{ detail: string }>;
-          toast.error(axiosError?.response?.data?.detail || "Failed to create locker");
+          toast.error(axiosError?.response?.data?.detail || 'Failed to create locker');
         },
       }
     );
@@ -227,46 +221,36 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="floor">
-              Floor <span className="text-error">*</span>
+              Floor <span className="text-red">*</span>
             </Label>
-            <Select
+            <FloorDropdown
               value={floorId}
-              onValueChange={setFloorId}
-              disabled={isPending || floorsLoading}
-            >
-              <SelectTrigger id="floor">
-                <SelectValue placeholder="Select a floor first" />
-              </SelectTrigger>
-              <SelectContent>
-                {floorsData.map((floor) => (
-                  <SelectItem key={floor.floor_id} value={floor.floor_id}>
-                    Floor {floor.floor_number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={setFloorId}
+              showAllOption={false}
+              className="w-full justify-between text-grey"
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="lockerNumber">
-              Locker Number <span className="text-error">*</span>
+              Locker Number <span className="text-red">*</span>
             </Label>
             <Input
               id="lockerNumber"
-              placeholder={lockerPrefix ? `${lockerPrefix}-01-01` : "Select a floor first"}
+              placeholder={lockerPrefix ? `${lockerPrefix}-01-01` : 'Select a floor first'}
               value={lockerNumber}
               onChange={handleLockerNumberChange}
               disabled={isPending || !floorId}
             />
             {lockerNumberError && (
-              <p className="text-xs text-error">{lockerNumberError}</p>
+              <p className="text-xs text-red">{lockerNumberError}</p>
             )}
             {!lockerNumberError && lockerPrefix && lockerNumber.length > `${lockerPrefix}-`.length && (
-              <p className="text-xs text-success">✓ Locker number is available</p>
+              <p className="text-xs text-green">✓ Locker number is available</p>
             )}
             {!lockerNumberError && !lockerPrefix && (
               <p className="text-xs text-grey">
-                e.g. {lockerPrefix ? `${lockerPrefix}-01-01` : "Select a floor to see format"}
+                e.g. {lockerPrefix ? `${lockerPrefix}-01-01` : 'Select a floor to see format'}
               </p>
             )}
             {!lockerNumberError && lockerPrefix && lockerNumber === `${lockerPrefix}-` && (
@@ -278,7 +262,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
 
           <div className="space-y-2">
             <Label htmlFor="keyNumber">
-              Key Number <span className="text-error">*</span>
+              Key Number <span className="text-red">*</span>
             </Label>
             <Input
               id="keyNumber"
@@ -288,10 +272,10 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
               disabled={isPending}
             />
             {keyNumberError && (
-              <p className="text-xs text-error">{keyNumberError}</p>
+              <p className="text-xs text-red">{keyNumberError}</p>
             )}
             {!keyNumberError && keyNumber.trim().length > 0 && (
-              <p className="text-xs text-success">✓ Key number is available</p>
+              <p className="text-xs text-green">✓ Key number is available</p>
             )}
           </div>
 
@@ -347,7 +331,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
               disabled={isPending || !!lockerNumberError || !!keyNumberError}
               className="flex-1"
             >
-              {isPending ? "Creating..." : "Confirm"}
+              {isPending ? 'Creating...' : 'Confirm'}
             </Button>
           </div>
         </form>

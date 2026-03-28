@@ -28,9 +28,9 @@ class TestGetFloors:
         with patch("src.services.get_floors.db", mock_db):
             result = await get_floors()
 
-        assert len(result) == 3
-        assert all(floor.status == "open" for floor in result)
-        assert all(hasattr(floor, "floor_number") for floor in result)
+        assert len(result.floors) == 3
+        assert all(floor.status == "open" for floor in result.floors)
+        assert all(hasattr(floor, "floor_number") for floor in result.floors)
 
     @pytest.mark.asyncio
     async def test_get_floors_empty(self, mock_db):
@@ -46,7 +46,7 @@ class TestGetFloors:
         with patch("src.services.get_floors.db", mock_db):
             result = await get_floors()
 
-        assert result == []
+        assert len(result.floors) == 0
 
     @pytest.mark.asyncio
     async def test_get_floors_multiple(self, mock_db):
@@ -73,8 +73,8 @@ class TestGetFloors:
         with patch("src.services.get_floors.db", mock_db):
             result = await get_floors()
 
-        assert len(result) == 9
-        floor_numbers = [floor.floor_number for floor in result]
+        assert len(result.floors) == 9
+        floor_numbers = [floor.floor_number for floor in result.floors]
         assert "2" in floor_numbers
         assert "11" in floor_numbers
 

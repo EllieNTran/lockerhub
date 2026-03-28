@@ -1,66 +1,50 @@
-import { useEffect, useState } from "react";
-import { Lock, CircleCheckBig, Wrench, ChevronDown, Building2, CircleDashed, Plus } from 'lucide-react'
-import AdminLayout from "../layout/AdminLayout";
-import Heading from "@/components/Heading";
-import StatCard from "../components/StatCard";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import StatusBadge from "@/components/StatusBadge";
-import KeyStatus from "../components/KeyStatus";
-import ManageLockerDialog from "../components/ManageLockerDialog";
-import CreateLockerDialog from "../components/CreateLockerDialog";
-import type { KeyStatus as KeyStatusType } from "@/types/key";
-import PaginationControls from "@/components/PaginationControls";
-import { Button } from "@/components/ui/button";
-import SearchBar from "@/components/SearchBar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAllLockers } from "@/services/admin";
-import { useFloors } from "@/services/bookings";
-import type { Locker } from "@/shared/types";
+import { useEffect, useState } from 'react'
+import { Lock, CircleCheckBig, Wrench, Plus } from 'lucide-react'
+import AdminLayout from '../layout/AdminLayout'
+import Heading from '@/components/Heading'
+import StatCard from '../components/StatCard'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import StatusBadge from '@/components/StatusBadge'
+import KeyStatus from '../components/KeyStatus'
+import ManageLockerDialog from '../components/ManageLockerDialog'
+import CreateLockerDialog from '../components/CreateLockerDialog'
+import type { KeyStatus as KeyStatusType } from '@/types/key'
+import PaginationControls from '@/components/PaginationControls'
+import { Button } from '@/components/ui/button'
+import { useAllLockers } from '@/services/admin'
+import type { Locker } from '@/types/locker'
+import Filters from '../components/Filters'
 
 const ITEMS_PER_PAGE = 12;
 
 const statusColors = {
-  available: "green",
-  occupied: "brightBlue",
-  maintenance: "red",
-  reserved: "purple",
+  available: 'green',
+  occupied: 'brightBlue',
+  maintenance: 'red',
+  reserved: 'purple',
 } as const;
 
-const statusOptions = [
-  { value: "all", label: "All Statuses" },
-  { value: "available", label: "Available" },
-  { value: "occupied", label: "Occupied" },
-  { value: "maintenance", label: "Maintenance" },
-  { value: "reserved", label: "Reserved" },
+const STATUS_OPTIONS = [
+  { value: 'available', label: 'Available' },
+  { value: 'occupied', label: 'Occupied' },
+  { value: 'maintenance', label: 'Maintenance' },
+  { value: 'reserved', label: 'Reserved' },
 ];
 
 const Lockers = () => {
-  const [totalLockers, setTotalLockers] = useState<number>(0);
-  const [availableLockers, setAvailableLockers] = useState<number>(0);
-  const [maintenanceLockers, setMaintenanceLockers] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedLocker, setSelectedLocker] = useState<Locker | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [floorFilter, setFloorFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [manageDialogOpen, setManageDialogOpen] = useState<boolean>(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [selectedLocker, setSelectedLocker] = useState<Locker | null>(null)
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [floorFilter, setFloorFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [manageDialogOpen, setManageDialogOpen] = useState<boolean>(false)
+  const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false)
 
-  const { data: lockersData, isLoading: lockersLoading } = useAllLockers();
-  const { data: floorsData = [], isLoading: floorsLoading } = useFloors();
+  const { data: lockersData, isLoading: lockersLoading } = useAllLockers()
 
-  useEffect(() => {
-    if (lockersData) {
-      setTotalLockers(lockersData.length);
-      setAvailableLockers(lockersData.filter(locker => locker.locker_status === 'available').length);
-      setMaintenanceLockers(lockersData.filter(locker => locker.locker_status === 'maintenance').length);
-    }
-  }, [lockersData]);
+  const totalLockers = lockersData?.length || 0
+  const availableLockers = lockersData?.filter((locker) => locker.locker_status === 'available').length || 0
+  const maintenanceLockers = lockersData?.filter((locker) => locker.locker_status === 'maintenance').length || 0
 
   const filteredLockers = lockersData?.filter((locker) => {
     const query = searchQuery.toLowerCase();
@@ -68,8 +52,8 @@ const Lockers = () => {
       locker.locker_number?.toLowerCase().includes(query) ||
       locker.key_number?.toLowerCase().includes(query);
     
-    const matchesFloor = floorFilter === "all" || locker.floor_number === floorFilter;
-    const matchesStatus = statusFilter === "all" || locker.locker_status === statusFilter;
+    const matchesFloor = floorFilter === 'all' || locker.floor_id === floorFilter;
+    const matchesStatus = statusFilter === 'all' || locker.locker_status === statusFilter;
     
     return matchesSearch && matchesFloor && matchesStatus;
   }) || [];
@@ -96,7 +80,7 @@ const Lockers = () => {
             title="Lockers"
             description="View, search and update locker statuses."
           />
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button variant="highlight" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="mr-1 h-4 w-4" />
             Create Locker
           </Button>
@@ -107,65 +91,16 @@ const Lockers = () => {
           <StatCard label="Under Maintenance" value={maintenanceLockers} icon={Wrench} color="red" />
         </div>
 
-        <div className="flex items-center justify-between gap-4">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search by locker number or key number..."
-            className="flex-1"
-          />
-          <div className="flex items-center gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="min-w-[150px] justify-between text-grey"
-                  disabled={floorsLoading}
-                >
-                  <span className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    {floorsLoading 
-                      ? "Loading..." 
-                      : floorFilter === "all" 
-                        ? "All Floors" 
-                        : `Floor ${floorFilter}`
-                    }
-                  </span>
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[150px]">
-                <DropdownMenuItem onClick={() => setFloorFilter("all")}>
-                  All Floors
-                </DropdownMenuItem>
-                {floorsData.map((floor) => (
-                  <DropdownMenuItem key={floor.floor_id} onClick={() => setFloorFilter(floor.floor_number)}>
-                    Floor {floor.floor_number}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="min-w-[150px] justify-between text-grey">
-                  <span className="flex items-center gap-2">
-                    <CircleDashed className="h-4 w-4" />
-                    {statusFilter === "all" ? "All Statuses" : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
-                  </span>
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[150px]">
-                {statusOptions.map(({ value, label }) => (
-                  <DropdownMenuItem key={value} onClick={() => setStatusFilter(value)}>
-                    {label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+        <Filters
+          statusOptions={STATUS_OPTIONS}
+          placeholder="Search by locker number or key number..."
+          searchQuery={searchQuery}
+          floorFilter={floorFilter}
+          statusFilter={statusFilter}
+          onSearchChange={setSearchQuery}
+          onFloorChange={setFloorFilter}
+          onStatusChange={setStatusFilter}
+        />
 
         <div className="rounded-xl border border-grey-outline bg-white shadow-sm">
           <Table>
@@ -199,7 +134,7 @@ const Lockers = () => {
                     <TableCell>
                       <StatusBadge 
                         status={locker.locker_status || 'N/A'} 
-                        color={statusColors[locker.locker_status as keyof typeof statusColors] ?? "green"} 
+                        color={statusColors[locker.locker_status as keyof typeof statusColors] ?? 'green'} 
                       />
                     </TableCell>
                     <TableCell>{locker.key_number || 'N/A'}</TableCell>
@@ -234,7 +169,7 @@ const Lockers = () => {
           locker={selectedLocker} 
           isOpen={manageDialogOpen} 
           onOpenChange={setManageDialogOpen}
-          statusColor={statusColors[selectedLocker.locker_status as keyof typeof statusColors] ?? "green"}
+          statusColor={statusColors[selectedLocker.locker_status as keyof typeof statusColors] ?? 'green'}
         />
       )}
       <CreateLockerDialog 

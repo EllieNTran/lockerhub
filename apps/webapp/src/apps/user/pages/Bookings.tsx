@@ -1,8 +1,8 @@
-import { useState } from "react";
-import UserLayout from "../layout/UserLayout";
-import Heading from "@/components/Heading";
-import BookingCard from "../components/BookingCard";
-import PaginationControls from "@/components/PaginationControls";
+import { useState } from 'react';
+import UserLayout from '../layout/UserLayout';
+import Heading from '@/components/Heading';
+import BookingCard from '../components/BookingCard';
+import PaginationControls from '@/components/PaginationControls';
 import {
   Dialog,
   DialogContent,
@@ -10,22 +10,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { useUserBookings, useExtendBooking, useCancelBooking } from "@/services/bookings";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { format, addDays } from "date-fns";
-import { toast } from "@/components/ui/sonner";
-import type { Booking } from "@/types/booking";
+} from '@/components/ui/dialog';
+import { useUserBookings, useExtendBooking, useCancelBooking, useBookingRule } from '@/services/bookings';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CalendarDays } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { format, addDays } from 'date-fns';
+import { toast } from '@/components/ui/sonner';
+import type { Booking } from '@/types/booking';
 
 const BOOKINGS_PER_PAGE = 12;
 
 const MyBookings = () => {
-  const { data: bookingsData, isLoading: isLoadingBookings } = useUserBookings();
-  const extendBooking = useExtendBooking();
-  const cancelBooking = useCancelBooking();
-  
   const [extendOpen, setExtendOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -37,11 +33,16 @@ const MyBookings = () => {
     all: 1,
   });
 
+  const { data: bookingsData, isLoading: isLoadingBookings } = useUserBookings();
+  const extendBooking = useExtendBooking();
+  const cancelBooking = useCancelBooking();
+  const { data: extensionRule } = useBookingRule('max_extension');
+
   const getExtensionOptions = (currentEndDate: string) => {
     const options: Date[] = [];
     let currentDate = new Date(currentEndDate);
     
-    while (options.length < 3) {
+    while (options.length < (extensionRule?.value || 1)) {
       currentDate = addDays(currentDate, 1);
       if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
         options.push(new Date(currentDate));
@@ -106,11 +107,11 @@ const MyBookings = () => {
 
   const filterBookings = (status: string) => {
     if (!bookingsData) return [];
-    if (status === "all") return bookingsData;
-    if (status === "expired") {
-      return bookingsData.filter(b => b.status === "completed" || b.status === "cancelled" || b.status === "expired");
+    if (status === 'all') return bookingsData;
+    if (status === 'expired') {
+      return bookingsData.filter(b => b.booking_status === 'completed' || b.booking_status === 'cancelled' || b.booking_status === 'expired');
     }
-    return bookingsData.filter(b => b.status === status);
+    return bookingsData.filter(b => b.booking_status === status);
   };
 
   const getPaginatedBookings = (status: string) => {
@@ -131,10 +132,10 @@ const MyBookings = () => {
   };
 
   const tabs = [
-    { value: "active", label: "Active" },
-    { value: "upcoming", label: "Upcoming" },
-    { value: "expired", label: "Past" },
-    { value: "all", label: "All" },
+    { value: 'active', label: 'Active' },
+    { value: 'upcoming', label: 'Upcoming' },
+    { value: 'expired', label: 'Past' },
+    { value: 'all', label: 'All' },
   ];
 
   return (
@@ -227,8 +228,8 @@ const MyBookings = () => {
                 <span className="text-grey">Current End Date</span>
                 <span className="font-medium">
                   {selectedBooking?.end_date
-                    ? format(new Date(selectedBooking.end_date), "MMM d, yyyy")
-                    : "Permanent"}
+                    ? format(new Date(selectedBooking.end_date), 'MMM d, yyyy')
+                    : 'Permanent'}
                 </span>
               </div>
             </div>
@@ -242,18 +243,18 @@ const MyBookings = () => {
                     onClick={() => setNewEndDate(date)}
                     className={`flex items-center justify-between rounded-lg border p-4 text-left transition-all hover:border-primary-outline/40 hover:bg-primary-foreground/40 ${
                       newEndDate?.toDateString() === date.toDateString()
-                        ? "border-primary bg-primary-foreground"
-                        : "border-grey-outline bg-white"
+                        ? 'border-primary bg-primary-foreground'
+                        : 'border-grey-outline bg-white'
                     }`}
                   >
                     <div>
-                      <div className="text-sm font-medium">{format(date, "EEEE, MMMM d, yyyy")}</div>
+                      <div className="text-sm font-medium">{format(date, 'EEEE, MMMM d, yyyy')}</div>
                       <div className="text-xs text-grey">+{index + 1} day{index > 0 ? 's' : ''} extension</div>
                     </div>
                     <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
                       newEndDate?.toDateString() === date.toDateString()
-                        ? "border-primary"
-                        : "border-grey-outline"
+                        ? 'border-primary'
+                        : 'border-grey-outline'
                     }`}>
                       {newEndDate?.toDateString() === date.toDateString() && (
                         <div className="h-3 w-3 rounded-full bg-primary" />
@@ -301,10 +302,10 @@ const MyBookings = () => {
             <div className="flex justify-between">
               <span className="text-grey">Period</span>
               <span className="font-medium">
-                {selectedBooking?.start_date && format(new Date(selectedBooking.start_date), "MMM d")} —{" "}
+                {selectedBooking?.start_date && format(new Date(selectedBooking.start_date), 'MMM d')} —{' '}
                 {selectedBooking?.end_date
-                  ? format(new Date(selectedBooking.end_date), "MMM d, yyyy")
-                  : "Permanent"}
+                  ? format(new Date(selectedBooking.end_date), 'MMM d, yyyy')
+                  : 'Permanent'}
               </span>
             </div>
           </div>

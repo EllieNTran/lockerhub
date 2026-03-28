@@ -1,11 +1,11 @@
 const colorMap = {
-  green: "bg-success-foreground text-success",
-  blue: "bg-primary-foreground text-primary",
-  brightBlue: "bg-secondary-foreground text-secondary",
-  red: "bg-error-foreground text-error",
-  purple: "bg-purple-foreground text-purple",
-  pink: "bg-pink-foreground text-pink",
-  orange: "bg-pending-foreground text-pending",
+  green: 'bg-green-foreground text-green',
+  blue: 'bg-primary-foreground text-primary',
+  brightBlue: 'bg-secondary-foreground text-secondary',
+  red: 'bg-red-foreground text-red',
+  purple: 'bg-purple-foreground text-purple',
+  pink: 'bg-pink-foreground text-pink',
+  orange: 'bg-orange-foreground text-orange',
 };
 
 type color = keyof typeof colorMap;

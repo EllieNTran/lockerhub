@@ -7,12 +7,14 @@ import {
   cancelBooking,
   deleteBooking,
   getBookingById,
+  getBookingRule,
 } from './services/user-bookings'
 import { joinFloorQueue } from './services/waiting-list'
 import { getFloors } from './services/floors'
 import type { UpdateBookingData, ExtendBookingData } from './services/user-bookings'
 import { getAvailableLockers } from './services/available-lockers'
 import type { GetAvailableLockersParams } from './services/available-lockers'
+import { getSpecialRequests, createSpecialRequest, deleteSpecialRequest } from './services/special-requests'
 
 /**
  * Fetch user's bookings
@@ -142,3 +144,52 @@ export const useJoinFloorQueue = () => {
     },
   })
 }
+
+/**
+ * Fetch user's special requests
+ */
+export const useUserSpecialRequests = () =>
+  useQuery({
+    queryKey: ['specialRequests'],
+    queryFn: getSpecialRequests,
+  })
+
+/**
+ * Create a special request for locker allocation
+ */
+export const useCreateSpecialRequest = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: createSpecialRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['specialRequests'] })
+      queryClient.invalidateQueries({ queryKey: ['userNotifications'] })
+    },
+  })
+}
+
+/**
+ * Delete a special request
+ */
+export const useDeleteSpecialRequest = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (request_id: number) => deleteSpecialRequest(request_id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['specialRequests'] })
+      queryClient.invalidateQueries({ queryKey: ['userNotifications'] })
+    },
+  })
+}
+
+/**
+ * Fetch a booking rule by type
+ */
+export const useBookingRule = (ruleType: string) =>
+  useQuery({
+    queryKey: ['bookingRule', ruleType],
+    queryFn: () => getBookingRule(ruleType),
+    enabled: !!ruleType,
+  })

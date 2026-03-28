@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, X, KeyRound, AlertTriangle } from 'lucide-react'
-import { format } from "date-fns";
-import type { AdminBookingDetail } from "@/shared/types";
+import { format } from 'date-fns';
+import type { AdminBookingDetail } from '@/types/booking';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import StatusBadge from "@/components/StatusBadge";
-import { toast } from "sonner";
-import { useConfirmHandover, useConfirmReturn, useCancelBooking } from "@/services/admin";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import StatusBadge from '@/components/StatusBadge';
+import { toast } from 'sonner';
+import { useConfirmHandover, useConfirmReturn, useCancelBooking } from '@/services/admin';
 import { useSendOverdueKeyReturnReminder } from '@/services/notifications';
 import type { AxiosError } from 'axios';
 
@@ -20,7 +20,7 @@ interface ManageBookingDialogProps {
   booking: AdminBookingDetail,
   isOpen: boolean,
   onOpenChange: (open: boolean) => void,
-  statusColor: "green" | "brightBlue" | "red" | "purple" | "blue" | "pink" | "grey",
+  statusColor: 'green' | 'brightBlue' | 'red' | 'purple' | 'blue' | 'pink' | 'grey',
 }
 
 const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: ManageBookingDialogProps) => {
@@ -138,12 +138,34 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
           variant="destructive"
           className="w-full"
         >
-          <X className="mr-2 h-4 w-4" />
           {isCancelling ? 'Cancelling...' : 'Confirm'}
         </Button>
       </div>
     );
   };
+
+  const renderKeyReturnSection = () => (
+    <div className="space-y-3">
+      <Button 
+        variant="outline" 
+        className="w-full flex items-center justify-start h-12 font-normal"
+        onClick={handleConfirmReturn}
+        disabled={isConfirmingReturn}
+      >
+        <CalendarDays className="mr-2 h-4 w-4" />
+        {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
+      </Button>
+      <Button 
+        variant="outline" 
+        className="w-full flex items-center justify-start h-12 font-normal"
+        onClick={handleSendReminder}
+        disabled={isSendingOverdueKeyReturnReminder}
+      >
+        <AlertTriangle className="mr-2 h-4 w-4" />
+        {isSendingOverdueKeyReturnReminder ? 'Sending...' : 'Send Reminder'}
+      </Button>
+    </div>
+  );
 
   const isStartDateTodayOrEarlier = () => {
     if (!booking?.start_date) return false;
@@ -192,56 +214,36 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
         );
       case 'active':
         return (
-          <>
-            {booking?.key_number ? (
-              <Button 
-                variant="outline" 
-                className="w-full flex items-center justify-start h-12 font-normal"
-                onClick={handleConfirmReturn}
-                disabled={isConfirmingReturn}
-              >
-                <CalendarDays className="mr-2 h-4 w-4" />
-                {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
-              </Button>
-            ) : (
-              <p className="text-sm text-grey">This locker has no key to return.</p>
-            )}
-            <Button 
-              variant="outline" 
-              className="w-full flex items-center justify-start h-12 font-normal"
-              onClick={handleCancelClick}
-              disabled={isCancelling}
-            >
-              <X className="mr-2 h-4 w-4" />
-              {isCancelling ? 'Cancelling...' : 'Cancel Booking'}
-            </Button>
-          </>
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-start h-12 font-normal"
+            onClick={handleCancelClick}
+            disabled={isCancelling}
+          >
+            <X className="mr-2 h-4 w-4" />
+            {isCancelling ? 'Cancelling...' : 'Cancel Booking'}
+          </Button>
         );
       case 'expired':
         return (
           <>
             {booking?.key_number ? (
-              <Button 
-                variant="outline" 
-                className="w-full flex items-center justify-start h-12 font-normal"
-                onClick={handleConfirmReturn}
-                disabled={isConfirmingReturn}
-              >
-                <CalendarDays className="mr-2 h-4 w-4" />
-                {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
-              </Button>
+              renderKeyReturnSection()
             ) : (
               <p className="text-sm text-grey">This locker has no key to return.</p>
             )}
-            <Button 
-              variant="outline" 
-              className="w-full flex items-center justify-start h-12 font-normal"
-              onClick={handleSendReminder}
-              disabled={isSendingOverdueKeyReturnReminder}
-            >
-              <AlertTriangle className="mr-2 h-4 w-4" />
-              {isSendingOverdueKeyReturnReminder ? 'Sending...' : 'Send Reminder'}
-            </Button>
+          </>
+        );
+      case 'cancelled':
+        return (
+          <>
+            {booking?.key_number && booking?.key_status == 'with_employee' ? (
+              renderKeyReturnSection()
+            ) : booking?.key_number ? (
+              <p className="text-sm text-grey">No actions available</p>
+            ) : (
+              <p className="text-sm text-grey">This locker has no key to return.</p>
+            )}
           </>
         );
       default:

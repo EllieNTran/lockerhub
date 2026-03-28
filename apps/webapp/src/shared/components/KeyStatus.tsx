@@ -1,12 +1,12 @@
 import { CircleCheck, Clock, KeyRound, TriangleAlert } from 'lucide-react'
 
 const statusColors = {
-  available: 'text-success',
-  awaiting_handover: 'text-pending',
+  available: 'text-green',
+  awaiting_handover: 'text-orange',
   with_employee: 'text-primary',
-  awaiting_return: 'text-pending',
-  lost: 'text-error',
-  awaiting_replacement: 'text-pending',
+  awaiting_return: 'text-orange',
+  lost: 'text-red',
+  awaiting_replacement: 'text-orange',
 } as const;
 
 const statusIcons = {

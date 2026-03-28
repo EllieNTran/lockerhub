@@ -4,10 +4,11 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
+export default [
   { ignores: ['build/', 'node_modules/', '.react-router/'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
@@ -27,6 +28,7 @@ export default tseslint.config(
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      'quotes': ['error', 'single', { avoidEscape: true }],
     },
   },
   {
@@ -35,4 +37,4 @@ export default tseslint.config(
       'react-refresh/only-export-components': 'off',
     },
   }
-);
+];

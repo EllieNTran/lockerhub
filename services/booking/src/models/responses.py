@@ -4,7 +4,7 @@ from datetime import date, datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class BookingResponse(BaseModel):
@@ -17,7 +17,7 @@ class BookingResponse(BaseModel):
     floor_number: str
     start_date: date
     end_date: Optional[date] = None
-    status: str
+    booking_status: str
     special_request_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
@@ -48,6 +48,44 @@ class ExtendBookingResponse(BaseModel):
 
     request_id: int
     status: str
+
+
+class CreateSpecialRequestResponse(BaseModel):
+    """Response model for a special request."""
+
+    request_id: int
+
+
+class SpecialRequestResponse(BaseModel):
+    """Response model for a special request."""
+
+    request_id: int
+    user_id: UUID
+    floor_id: UUID
+    locker_id: Optional[UUID] = None
+    start_date: date
+    end_date: Optional[date] = None
+    request_type: str
+    justification: str
+    status: str
+    created_at: datetime
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[UUID] = None
+    floor_number: str
+    locker_number: Optional[str] = None
+    reason: Optional[str] = None
+
+
+class SpecialRequestsListResponse(BaseModel):
+    """Response model for a list of special requests."""
+
+    requests: List[SpecialRequestResponse]
+
+
+class DeleteSpecialRequestResponse(BaseModel):
+    """Response model for deleting a special request."""
+
+    request_id: int
 
 
 class JoinFloorQueueResponse(BaseModel):
@@ -126,3 +164,14 @@ class FloorsResponse(BaseModel):
     """Response model for list of floors."""
 
     floors: List[FloorResponse]
+
+
+class BookingRuleResponse(BaseModel):
+    """Response model for a booking rule."""
+
+    booking_rule_id: UUID
+    name: str
+    value: int
+    rule_type: str
+
+    model_config = ConfigDict(from_attributes=True)
