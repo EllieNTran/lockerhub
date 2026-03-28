@@ -56,7 +56,7 @@ async def get_available_lockers(
             GET_AVAILABLE_LOCKERS_QUERY,
             floor_id,
             date.fromisoformat(start_date),
-            date.fromisoformat(end_date)
+            date.fromisoformat(end_date),
         )
         logger.info("Retrieved available lockers")
         return [AvailableLockerResponse(**dict(locker)) for locker in lockers]
