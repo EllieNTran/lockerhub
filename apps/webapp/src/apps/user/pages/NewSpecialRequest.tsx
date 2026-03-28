@@ -17,6 +17,7 @@ import {
 import { format, differenceInDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import { useFloors, useAvailableLockers, useCreateSpecialRequest } from '@/services/bookings';
+import FloorDropdown from '@/shared/components/FloorDropdown';
 
 const NewSpecialRequest = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const NewSpecialRequest = () => {
   const [justification, setJustification] = useState('');
   const [isDateRangeTooShort, setIsDateRangeTooShort] = useState(false);
 
-  const { data: floors = [], isLoading: floorsLoading } = useFloors();
+  const { data: floors = [] } = useFloors();
   const { mutate: createSpecialRequest, isPending } = useCreateSpecialRequest();
 
   const getQueryEndDate = () => {
@@ -150,18 +151,13 @@ const NewSpecialRequest = () => {
                 <Label htmlFor="floor">
                   Floor <span className="text-red">*</span>
                 </Label>
-                <Select value={selectedFloorId} onValueChange={setSelectedFloorId} disabled={floorsLoading}>
-                  <SelectTrigger id="floor">
-                    <SelectValue placeholder="Select a floor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {floors.map((floor) => (
-                      <SelectItem key={floor.floor_id} value={floor.floor_id}>
-                        Floor {floor.floor_number}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FloorDropdown
+                  value={selectedFloorId}
+                  onChange={setSelectedFloorId}
+                  showAllOption={false}
+                  className="w-full justify-between font-normal"
+                  highlightSelected
+                />
               </div>
 
               <div className="space-y-2">
@@ -171,6 +167,7 @@ const NewSpecialRequest = () => {
                   onStartDateChange={setStartDate}
                   onEndDateChange={setEndDate}
                   disableEndDate={isPermanent}
+                  disableRules={true}
                 />
                 <div className="flex items-center space-x-2 mt-3">
                   <Checkbox

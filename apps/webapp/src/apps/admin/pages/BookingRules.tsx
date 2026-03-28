@@ -210,7 +210,7 @@ const BookingRules = () => {
             }
           </Button>
         </div>
-        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-8">
+        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-7">
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center">
               <Settings className="mr-2 h-5 w-5 text-primary" />
@@ -265,7 +265,7 @@ const BookingRules = () => {
           </div>
         </div>
 
-        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-8 mt-8">
+        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-7 mt-8">
           <div className="flex items-center gap-2 mb-4">
             <LockKeyhole className="mr-2 h-5 w-5 text-primary" />
             <h3 className="font-medium">Floor Booking Access</h3>
@@ -322,7 +322,7 @@ const BookingRules = () => {
           <DialogHeader>
             <DialogTitle className="text-xl">Edit Floor {selectedFloor?.floor_number} Access</DialogTitle>
             <DialogDescription>
-              Set a start date to schedule a closure (floor stays open until then). Leave dates empty to close immediately.
+              Close or open this floor for new bookings.
             </DialogDescription>
           </DialogHeader>
           

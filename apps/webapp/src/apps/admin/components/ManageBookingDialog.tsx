@@ -144,6 +144,29 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
     );
   };
 
+  const renderKeyReturnSection = () => (
+    <div className="space-y-3">
+      <Button 
+        variant="outline" 
+        className="w-full flex items-center justify-start h-12 font-normal"
+        onClick={handleConfirmReturn}
+        disabled={isConfirmingReturn}
+      >
+        <CalendarDays className="mr-2 h-4 w-4" />
+        {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
+      </Button>
+      <Button 
+        variant="outline" 
+        className="w-full flex items-center justify-start h-12 font-normal"
+        onClick={handleSendReminder}
+        disabled={isSendingOverdueKeyReturnReminder}
+      >
+        <AlertTriangle className="mr-2 h-4 w-4" />
+        {isSendingOverdueKeyReturnReminder ? 'Sending...' : 'Send Reminder'}
+      </Button>
+    </div>
+  );
+
   const isStartDateTodayOrEarlier = () => {
     if (!booking?.start_date) return false;
     const today = new Date().setHours(0, 0, 0, 0);
@@ -205,42 +228,19 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
         return (
           <>
             {booking?.key_number ? (
-              <Button 
-                variant="outline" 
-                className="w-full flex items-center justify-start h-12 font-normal"
-                onClick={handleConfirmReturn}
-                disabled={isConfirmingReturn}
-              >
-                <CalendarDays className="mr-2 h-4 w-4" />
-                {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
-              </Button>
+              renderKeyReturnSection()
             ) : (
               <p className="text-sm text-grey">This locker has no key to return.</p>
             )}
-            <Button 
-              variant="outline" 
-              className="w-full flex items-center justify-start h-12 font-normal"
-              onClick={handleSendReminder}
-              disabled={isSendingOverdueKeyReturnReminder}
-            >
-              <AlertTriangle className="mr-2 h-4 w-4" />
-              {isSendingOverdueKeyReturnReminder ? 'Sending...' : 'Send Reminder'}
-            </Button>
           </>
         );
       case 'cancelled':
         return (
           <>
             {booking?.key_number && booking?.key_status == 'with_employee' ? (
-              <Button 
-                variant="outline" 
-                className="w-full flex items-center justify-start h-12 font-normal"
-                onClick={handleConfirmReturn}
-                disabled={isConfirmingReturn}
-              >
-                <CalendarDays className="mr-2 h-4 w-4" />
-                {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
-              </Button>
+              renderKeyReturnSection()
+            ) : booking?.key_number ? (
+              <p className="text-sm text-grey">No actions available</p>
             ) : (
               <p className="text-sm text-grey">This locker has no key to return.</p>
             )}

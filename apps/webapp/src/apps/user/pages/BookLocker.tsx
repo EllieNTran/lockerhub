@@ -2,16 +2,9 @@ import { useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import UserLayout from '../layout/UserLayout';
 import { format } from 'date-fns';
-import { Building2, CheckCircle2, Clock, Users } from 'lucide-react';
+import { CheckCircle2, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker } from '@/components/DateRangePicker';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +19,7 @@ import type { Locker, AvailableLocker } from '@/types/locker';
 import { toast } from '@/components/ui/sonner';
 import Heading from '@/components/Heading';
 import { useAvailableLockers, useFloors, useCreateBooking, useJoinFloorQueue } from '@/services/bookings';
+import FloorDropdown from '@/shared/components/FloorDropdown';
 
 const BookLocker = () => {
   const navigate = useNavigate();
@@ -38,7 +32,7 @@ const BookLocker = () => {
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [isOnWaitlist, setIsOnWaitlist] = useState(false);
 
-  const { data: floors = [], isLoading: floorsLoading } = useFloors();
+  const { data: floors = [] } = useFloors();
   const { mutate: createBookingMutation, isPending: isCreatingBooking } = useCreateBooking();
   const { mutate: joinFloorQueueMutation, isPending: isJoiningQueue } = useJoinFloorQueue();
 
@@ -47,6 +41,8 @@ const BookLocker = () => {
       setSelectedFloorId(floors[0].floor_id);
     }
   }, [floors, selectedFloorId]);
+
+  const selectedFloor = floors.find(f => f.floor_id === selectedFloorId);
 
   const { data: availableLockers = [], isLoading } = useAvailableLockers({
     floor_id: selectedFloorId,
@@ -58,7 +54,6 @@ const BookLocker = () => {
     setSelectedLocker(null);
   }, [selectedFloorId, startDate, endDate]);
 
-  const selectedFloor = floors.find(f => f.floor_id === selectedFloorId);
   const floorLockers = startDate && endDate ? availableLockers : [];
   const availableCount = floorLockers.filter(l => l.is_available).length;
 
@@ -166,19 +161,13 @@ const BookLocker = () => {
 
             <div className="space-y-1">
               <label className="block text-xs font-medium text-grey">Floor</label>
-              <Select value={selectedFloorId} onValueChange={setSelectedFloorId} disabled={floorsLoading}>
-                <SelectTrigger className="w-[180px]">
-                  <Building2 className="mr-2 h-4 w-4 text-grey" />
-                  <SelectValue placeholder={floorsLoading ? 'Loading...' : 'Select floor'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {floors.map((floor) => (
-                    <SelectItem key={floor.floor_id} value={floor.floor_id}>
-                      Floor {floor.floor_number}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FloorDropdown 
+                value={selectedFloorId} 
+                onChange={setSelectedFloorId}
+                showAllOption={false}
+                className="min-w-[180px] font-normal"
+                highlightSelected
+              />
             </div>
 
             <Button

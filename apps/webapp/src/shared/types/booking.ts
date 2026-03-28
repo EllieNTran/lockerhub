@@ -23,4 +23,5 @@ export interface AdminBookingDetail extends Booking  {
   booking_status: BookingStatus
   key_number: string | null
   key_status: string | null
+  floor_id: string
 }

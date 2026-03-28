@@ -64,8 +64,21 @@ docker compose -f ../../.local/services.yaml -p lockerhub up --build -d analytic
 All endpoints require JWT authentication: `Authorization: Bearer <token>`
 
 **Analytics**
-- `GET /analytics/locker-usage` - Get locker usage statistics over time
-  - Query params: `period` (today, last_7_days, last_14_days, last_month, last_3_months, last_6_months, last_year, last_2_years, all_time), `floor_id` (optional), `department_id` (optional)
+- `GET /analytics/locker-usage` - Get daily locker occupancy over time
+  - Query params: 
+    - `period` (default: `last_7_days`) - Time period: `last_7_days`, `last_14_days`, `last_month`, `last_3_months`, `last_6_months`, `last_year`, `last_2_years`, `all_time`
+    - `floor_id` (optional) - Filter by floor UUID
+    - `department_id` (optional) - Filter by department UUID
+
+- `GET /analytics/top-departments` - Get top 6 departments by locker occupancy
+  - Query params:
+    - `period` (default: `last_7_days`) - Time period (same values as above)
+    - `floor_id` (optional) - Filter by floor UUID
+
+- `GET /analytics/most-popular-floors` - Get top 6 floors by locker occupancy
+  - Query params:
+    - `period` (default: `last_7_days`) - Time period (same values as above)
+    - `department_id` (optional) - Filter by department UUID
 
 **Health**
 - `GET /health` - Health check

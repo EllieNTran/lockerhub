@@ -1,10 +1,10 @@
 """Get locker usage over a specified date range with floor and department filters."""
 
-from datetime import date, timedelta
 from typing import Optional
 from src.logger import logger
 from src.connectors.db import db
-from src.models.responses import DayLockerUsageResponse, FullLockerUsageResponse
+from src.models.responses import DayLockerUsageResponse, LockerUsageResponse
+from src.utils.date_utils import get_date_range
 
 GET_LOCKER_USAGE_QUERY = """
 WITH date_series AS (
@@ -20,38 +20,26 @@ SELECT
 FROM date_series ds
 LEFT JOIN lockerhub.bookings b ON (
     ds.usage_date BETWEEN b.start_date AND COALESCE(b.end_date, CURRENT_DATE)
-    AND b.status IN ('active', 'upcoming', 'completed')
-    AND ($3::uuid IS NULL OR EXISTS (
-        SELECT 1 FROM lockerhub.lockers l 
-        WHERE l.locker_id = b.locker_id AND l.floor_id = $3::uuid
-    ))
-    AND ($4::uuid IS NULL OR EXISTS (
-        SELECT 1 FROM lockerhub.users u 
-        WHERE u.user_id = b.user_id AND u.department_id = $4::uuid
-    ))
+    AND b.status NOT IN ('cancelled', 'expired')
+)
+LEFT JOIN lockerhub.lockers l ON (
+    l.locker_id = b.locker_id
+    AND ($3::uuid IS NULL OR l.floor_id = $3::uuid)
+)
+LEFT JOIN lockerhub.users u ON (
+    u.user_id = b.user_id
+    AND ($4::uuid IS NULL OR u.department_id = $4::uuid)
 )
 GROUP BY ds.usage_date
 ORDER BY ds.usage_date DESC;
 """
 
-PERIOD_DAYS = {
-    "today": 0,
-    "last_7_days": 7,
-    "last_14_days": 14,
-    "last_month": 30,
-    "last_3_months": 90,
-    "last_6_months": 180,
-    "last_year": 365,
-    "last_2_years": 730,
-    "all_time": None,
-}
-
 
 async def get_locker_usage(
-    period: str = "last_month",
+    period: str = "last_7_days",
     floor_id: Optional[str] = None,
     department_id: Optional[str] = None,
-) -> FullLockerUsageResponse:
+) -> LockerUsageResponse:
     """
     Get daily locker occupancy over a specified time period with optional filters.
 
@@ -64,24 +52,13 @@ async def get_locker_usage(
         FullLockerUsageResponse with list of daily locker usage data
     """
     try:
-        end_date = date.today()
-
-        if period == "all_time":
-            earliest_booking = await db.fetchval(
-                "SELECT MIN(start_date) FROM lockerhub.bookings"
-            )
-            start_date = earliest_booking if earliest_booking else end_date
-        elif period == "today":
-            start_date = end_date
-        else:
-            days = PERIOD_DAYS[period]
-            start_date = end_date - timedelta(days=days - 1)
+        start_date, end_date = await get_date_range(period)
 
         records = await db.fetch(
             GET_LOCKER_USAGE_QUERY, start_date, end_date, floor_id, department_id
         )
         logger.info(f"Retrieved {len(records)} daily usage records")
-        return FullLockerUsageResponse(
+        return LockerUsageResponse(
             locker_usage=[DayLockerUsageResponse(**dict(record)) for record in records]
         )
     except ValueError:
