@@ -239,6 +239,8 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
           <>
             {booking?.key_number && booking?.key_status == 'with_employee' ? (
               renderKeyReturnSection()
+            ) : booking?.key_number ? (
+              <p className="text-sm text-grey">No actions available</p>
             ) : (
               <p className="text-sm text-grey">This locker has no key to return.</p>
             )}
