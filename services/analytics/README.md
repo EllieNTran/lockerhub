@@ -1,7 +1,7 @@
 
-# Booking Service
+# Analytics Service
 
-Microservice for managing locker bookings with JWT authentication.
+Microservice for locker analytics.
 
 ## Tech Stack
 
@@ -31,7 +31,7 @@ export DB_PASSWORD="postgres"
 export DB_MIN_POOL_SIZE=5
 export DB_MAX_POOL_SIZE=20
 export APP_HOST="0.0.0.0"
-export APP_PORT=3004
+export APP_PORT=3007
 export AUTH_SERVICE_URL="http://localhost:3003"
 ```
 
@@ -42,7 +42,7 @@ export AUTH_SERVICE_URL="http://localhost:3003"
 uvicorn src.main:app --reload --host $APP_HOST --port $APP_PORT
 ```
 
-**API Docs:** <http://localhost:3004/docs>
+**API Docs:** <http://localhost:3007/docs>
 
 ## Docker
 
@@ -50,30 +50,22 @@ uvicorn src.main:app --reload --host $APP_HOST --port $APP_PORT
 # Start all services (from repo root)
 sh .local/up.sh
 
-# Rebuild only booking service (from repo root)
-.local/rebuild-service.sh booking
+# Rebuild only analytics service (from repo root)
+.local/rebuild-service.sh analytics
 
-# Rebuild only booking service (from this directory)
-docker compose -f ../../.local/services.yaml -p lockerhub up --build -d booking
+# Rebuild only analytics service (from this directory)
+docker compose -f ../../.local/services.yaml -p lockerhub up --build -d analytics
 ```
 
-**API Docs:** <http://localhost:3004/docs>
+**API Docs:** <http://localhost:3007/docs>
 
 ## API Endpoints
 
 All endpoints require JWT authentication: `Authorization: Bearer <token>`
 
-**Bookings**
-- `POST /bookings` - Create booking
-- `GET /bookings` - Get user's bookings
-- `GET /bookings/{id}` - Get specific booking
-- `PUT /bookings/{id}` - Update booking (shorten only)
-- `DELETE /bookings/{id}` - Delete booking
-- `POST /bookings/{id}/extend` - Request extension
-
-**Availability**
-- `GET /bookings/lockers/available` - Get available lockers for floor/dates
-- `GET /bookings/lockers/{id}/availability` - Check specific locker availability
+**Analytics**
+- `GET /analytics/locker-usage` - Get locker usage statistics over time
+  - Query params: `period` (today, last_7_days, last_14_days, last_month, last_3_months, last_6_months, last_year, last_2_years, all_time), `floor_id` (optional), `department_id` (optional)
 
 **Health**
 - `GET /health` - Health check

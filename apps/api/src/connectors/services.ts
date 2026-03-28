@@ -23,6 +23,10 @@ export const SERVICE_CONFIG = {
     url: fromEnv('NOTIFICATIONS_SERVICE_URL') || 'http://localhost:3006',
     prefix: '/notifications',
   },
+  analytics: {
+    url: fromEnv('ANALYTICS_SERVICE_URL') || 'http://localhost:3007',
+    prefix: '/analytics',
+  }
 } as const
 
 /**
