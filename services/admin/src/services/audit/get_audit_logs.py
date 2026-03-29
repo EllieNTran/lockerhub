@@ -43,9 +43,7 @@ def build_audit_logs_query(
         if user_role == "system":
             where_conditions.append("u.role IS NULL")
         else:
-            where_conditions.append(
-                f"u.role = ${param_counter}::lockerhub.user_role"
-            )
+            where_conditions.append(f"u.role = ${param_counter}::lockerhub.user_role")
             params.append(user_role)
             param_counter += 1
 

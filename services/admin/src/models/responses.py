@@ -240,7 +240,7 @@ class AuditLogResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    @field_validator('old_value', 'new_value', mode='before')
+    @field_validator("old_value", "new_value", mode="before")
     @classmethod
     def parse_json_value(cls, v):
         """Parse JSON string to dict if needed."""
