@@ -19,10 +19,8 @@ LEFT JOIN lockerhub.bookings b ON (
     AND COALESCE(b.end_date, CURRENT_DATE) >= $1::date
     AND b.status NOT IN ('cancelled', 'expired')
 )
-LEFT JOIN lockerhub.lockers l ON (
-    l.locker_id = b.locker_id
-    AND ($3::uuid IS NULL OR l.floor_id = $3::uuid)
-)
+LEFT JOIN lockerhub.lockers l ON l.locker_id = b.locker_id
+WHERE ($3::uuid IS NULL OR l.floor_id = $3::uuid)
 GROUP BY d.department_id, d.name
 HAVING COUNT(DISTINCT b.locker_id) > 0
 ORDER BY occupied_count DESC

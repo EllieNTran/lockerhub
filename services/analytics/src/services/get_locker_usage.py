@@ -16,22 +16,21 @@ WITH date_series AS (
 )
 SELECT 
     ds.usage_date,
-    COUNT(DISTINCT b.locker_id) as occupied_count
+    COUNT(DISTINCT CASE 
+        WHEN ($3::uuid IS NULL OR l.floor_id = $3::uuid)
+         AND ($4::uuid IS NULL OR u.department_id = $4::uuid)
+        THEN b.locker_id 
+        ELSE NULL 
+    END) as occupied_count
 FROM date_series ds
 LEFT JOIN lockerhub.bookings b ON (
     ds.usage_date BETWEEN b.start_date AND COALESCE(b.end_date, CURRENT_DATE)
     AND b.status NOT IN ('cancelled', 'expired')
 )
-LEFT JOIN lockerhub.lockers l ON (
-    l.locker_id = b.locker_id
-    AND ($3::uuid IS NULL OR l.floor_id = $3::uuid)
-)
-LEFT JOIN lockerhub.users u ON (
-    u.user_id = b.user_id
-    AND ($4::uuid IS NULL OR u.department_id = $4::uuid)
-)
+LEFT JOIN lockerhub.lockers l ON l.locker_id = b.locker_id
+LEFT JOIN lockerhub.users u ON u.user_id = b.user_id
 GROUP BY ds.usage_date
-ORDER BY ds.usage_date DESC;
+ORDER BY ds.usage_date ASC;
 """
 
 

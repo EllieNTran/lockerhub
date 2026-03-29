@@ -61,9 +61,6 @@ const LockerAnalytics = () => {
     department_id: topFloorDeptFilter !== 'all' ? topFloorDeptFilter : undefined,
   });
 
-  console.log('topFloorsRaw', topFloorsRaw);
-  console.log('topDepartmentsRaw', topDepartmentsRaw);
-
   const chartData = data?.map((item) => ({
     date: format(new Date(item.usage_date), 'MMM dd'),
     fullDate: item.usage_date,
@@ -178,8 +175,9 @@ const LockerAnalytics = () => {
           )}
 
           {!isLoading && !isError && (!chartData || chartData.length === 0) && (
-            <div className="h-[400px] flex items-center justify-center text-grey">
-              No data available for the selected period
+            <div className="h-[400px] flex flex-col items-center justify-center text-center text-grey/40">
+              <ChartArea className="h-15 w-15 mb-4" />
+              <p className="text-md">Locker usage data not found</p>
             </div>
           )}
         </div>
