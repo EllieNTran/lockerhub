@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { generateAccessToken, generateRefreshToken, verifyToken } from './token'
 import { findUserByEmail, findUserById, createUser } from './users'
+import { blacklistToken, isTokenBlacklisted } from './token-blacklist'
 import logger from '../logger'
 import type { AppError } from '../types'
 import type { SignupResponse, LoginResponse, RefreshResponse, LogoutResponse } from '../types'
@@ -182,7 +183,13 @@ export const refresh = async (refreshToken: string): Promise<RefreshResponse> =>
     throw err
   }
 
-  // TODO: Check if refresh token is blacklisted/revoked in database
+  const isBlacklisted = await isTokenBlacklisted(refreshToken)
+  if (isBlacklisted) {
+    logger.warn({ userId: decoded.userId }, 'Attempted to use blacklisted refresh token')
+    const error = new Error('Refresh token has been revoked') as AppError
+    error.status = 401
+    throw error
+  }
 
   const user = await findUserById(decoded.userId)
 
@@ -208,10 +215,26 @@ export const refresh = async (refreshToken: string): Promise<RefreshResponse> =>
 /**
  * Logout user
  */
-export const logout = async (_refreshToken: string): Promise<LogoutResponse> => {
-  // TODO: Add refresh token to blacklist in database
+export const logout = async (refreshToken: string): Promise<LogoutResponse> => {
+  if (!refreshToken) {
+    const error = new Error('Refresh token is required') as AppError
+    error.status = 400
+    throw error
+  }
 
-  logger.info('User logged out')
+  try {
+    const decoded = verifyToken(refreshToken)
+    const expiresAt = new Date(decoded.exp * 1000)
 
-  return { message: 'Logged out successfully' }
+    await blacklistToken(refreshToken, decoded.userId, expiresAt)
+
+    logger.info({ userId: decoded.userId }, 'User logged out successfully')
+
+    return { message: 'Logged out successfully' }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    logger.warn({ error: message }, 'Logout attempted with invalid token')
+
+    return { message: 'Logged out successfully' }
+  }
 }
