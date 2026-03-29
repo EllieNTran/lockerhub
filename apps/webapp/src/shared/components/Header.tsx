@@ -1,9 +1,12 @@
-import { Lock, ShieldCheck, User } from 'lucide-react';
+import { Lock, ShieldCheck, User, LogOut } from 'lucide-react';
 import { NavLink, useNavigate, useLocation } from 'react-router';
 import { useEffect, useState } from 'react';
 import { cn } from '@/utils/cn';
 import { Switch } from '@/components/ui/switch';
 import { useViewMode } from '../context/ViewModeContext';
+import { Button } from './ui/button';
+import { toast } from '@/components/ui/sonner';
+import { useLogout } from '@/services/auth/hooks';
 
 type HeaderProps = {
   showNav?: boolean;
@@ -18,6 +21,8 @@ const Header = ({ showNav = true }: HeaderProps) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const canAccessAdmin = userRole === 'admin';
 
+  const logoutMutation = useLogout();
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setUserRole(localStorage.getItem('userRole'));
@@ -31,6 +36,34 @@ const Header = ({ showNav = true }: HeaderProps) => {
       setViewMode('user');
     }
   }, [isAdminRoute, viewMode, setViewMode]);
+
+  const handleLogout = () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (refreshToken) {
+      logoutMutation.mutate(refreshToken, {
+        onSuccess: () => {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userRole');
+          navigate('/login');
+          toast.success('Logged out successfully');
+        },
+        onError: (error) => {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userRole');
+          navigate('/login');
+          console.error('Logout error:', error);
+        },
+      });
+    } else {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userRole');
+      navigate('/login');
+    }
+  };
 
   const handleToggle = (checked: boolean) => {
     if (!canAccessAdmin && checked) {
@@ -79,27 +112,41 @@ const Header = ({ showNav = true }: HeaderProps) => {
           )}
         </div>
 
-        {showNav && (
-          <div className="flex items-center gap-3">
-            {canAccessAdmin && (
-              <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
-                <User className={cn('h-3.5 w-3.5 transition-colors', !isAdmin ? 'text-white' : 'text-primary-foreground/80')} />
-                <span className={cn('text-xs transition-colors', !isAdmin ? 'text-white font-medium' : 'text-primary-foreground/80')}>
-                  User
-                </span>
-                <Switch
-                  checked={isAdmin}
-                  onCheckedChange={handleToggle}
-                  className="data-[state=checked]:bg-secondary data-[state=unchecked]:bg-white/20"
-                />
-                <ShieldCheck className={cn('h-3.5 w-3.5 transition-colors', isAdmin ? 'text-white' : 'text-primary-foreground/80')} />
-                <span className={cn('text-xs transition-colors', isAdmin ? 'text-white font-medium' : 'text-primary-foreground/80')}>
-                  Admin
-                </span>
-              </div>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          {showNav && (
+            <div className="flex items-center gap-3">
+              {canAccessAdmin && (
+                <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
+                  <User className={cn('h-3.5 w-3.5 transition-colors', !isAdmin ? 'text-white' : 'text-primary-foreground/80')} />
+                  <span className={cn('text-xs transition-colors', !isAdmin ? 'text-white font-medium' : 'text-primary-foreground/80')}>
+                    User
+                  </span>
+                  <Switch
+                    checked={isAdmin}
+                    onCheckedChange={handleToggle}
+                    className="data-[state=checked]:bg-secondary data-[state=unchecked]:bg-white/20"
+                  />
+                  <ShieldCheck className={cn('h-3.5 w-3.5 transition-colors', isAdmin ? 'text-white' : 'text-primary-foreground/80')} />
+                  <span className={cn('text-xs transition-colors', isAdmin ? 'text-white font-medium' : 'text-primary-foreground/80')}>
+                    Admin
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {userRole && (
+            <Button
+              variant="icon"
+              className="text-white hover:text-primary-foreground [&_svg]:!size-5 pr-0"
+              onClick={handleLogout}
+              disabled={logoutMutation.isPending}
+            >
+              <LogOut />
+            </Button>
+          )}
+        </div>
+
       </div>
     </header>
   );
