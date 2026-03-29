@@ -357,7 +357,7 @@ describe('Authentication Services', () => {
        * Mock token verification and blacklisting.
        */
       const mockDecodedToken = createMockDecodedToken({ userId: sampleUserId })
-      
+
       vi.spyOn(token, 'verifyToken').mockReturnValue(mockDecodedToken)
       vi.spyOn(tokenBlacklist, 'blacklistToken').mockResolvedValue()
 
@@ -396,7 +396,7 @@ describe('Authentication Services', () => {
        * Verify that blacklisted tokens cannot be used to refresh.
        */
       const mockDecodedToken = createMockDecodedToken({ userId: sampleUserId, scope: 'refresh' })
-      
+
       vi.spyOn(token, 'verifyToken').mockReturnValue(mockDecodedToken)
       vi.spyOn(tokenBlacklist, 'isTokenBlacklisted').mockResolvedValue(true)
 
