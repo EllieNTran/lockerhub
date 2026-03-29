@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs'
 import { signup, login, refresh, logout } from '../../src/services/auth'
 import * as users from '../../src/services/users'
 import * as token from '../../src/services/token'
+import * as tokenBlacklist from '../../src/services/token-blacklist'
 import {
   createMockUser,
   createMockPreRegisteredUser,
@@ -291,6 +292,7 @@ describe('Authentication Services', () => {
       const mockDecodedToken = createMockDecodedToken({ userId: mockUser.user_id, scope: 'refresh' })
 
       vi.spyOn(token, 'verifyToken').mockReturnValue(mockDecodedToken)
+      vi.spyOn(tokenBlacklist, 'isTokenBlacklisted').mockResolvedValue(false)
       vi.spyOn(users, 'findUserById').mockResolvedValue(mockUser)
       vi.spyOn(token, 'generateAccessToken').mockReturnValue('new-access-token')
 
@@ -298,6 +300,7 @@ describe('Authentication Services', () => {
 
       expect(result).toHaveProperty('accessToken', 'new-access-token')
       expect(token.verifyToken).toHaveBeenCalledWith(refreshToken)
+      expect(tokenBlacklist.isTokenBlacklisted).toHaveBeenCalledWith(refreshToken)
     })
 
     it('should throw error for missing refresh token', async () => {
@@ -329,6 +332,7 @@ describe('Authentication Services', () => {
       const mockDecodedToken = createMockDecodedToken({ userId: sampleUserId, scope: 'refresh' })
 
       vi.spyOn(token, 'verifyToken').mockReturnValue(mockDecodedToken)
+      vi.spyOn(tokenBlacklist, 'isTokenBlacklisted').mockResolvedValue(false)
       vi.spyOn(users, 'findUserById').mockResolvedValue(null)
 
       try {
@@ -347,24 +351,63 @@ describe('Authentication Services', () => {
       vi.clearAllMocks()
     })
 
-    it('should successfully logout user', async () => {
+    it('should successfully logout user and blacklist token', async () => {
       /**
        * Verify successful logout operation.
-       * In this implementation, logout is stateless and always succeeds.
+       * Mock token verification and blacklisting.
        */
+      const mockDecodedToken = createMockDecodedToken({ userId: sampleUserId })
+
+      vi.spyOn(token, 'verifyToken').mockReturnValue(mockDecodedToken)
+      vi.spyOn(tokenBlacklist, 'blacklistToken').mockResolvedValue()
+
       const result = await logout('some-refresh-token')
 
       expect(result).toHaveProperty('message', 'Logged out successfully')
+      expect(tokenBlacklist.blacklistToken).toHaveBeenCalled()
     })
 
     it('should handle logout without token gracefully', async () => {
       /**
        * Verify logout can handle missing token.
-       * Should still return success as it's stateless.
+       * Should still return success for client-side cleanup.
        */
       const result = await logout('')
 
       expect(result).toHaveProperty('message', 'Logged out successfully')
+    })
+
+    it('should handle logout with invalid token gracefully', async () => {
+      /**
+       * Verify logout handles invalid tokens gracefully.
+       * Even if token verification fails, logout should succeed.
+       */
+      vi.spyOn(token, 'verifyToken').mockImplementation(() => {
+        throw new Error('Invalid token')
+      })
+
+      const result = await logout('invalid-token')
+
+      expect(result).toHaveProperty('message', 'Logged out successfully')
+    })
+
+    it('should reject blacklisted token on refresh', async () => {
+      /**
+       * Verify that blacklisted tokens cannot be used to refresh.
+       */
+      const mockDecodedToken = createMockDecodedToken({ userId: sampleUserId, scope: 'refresh' })
+
+      vi.spyOn(token, 'verifyToken').mockReturnValue(mockDecodedToken)
+      vi.spyOn(tokenBlacklist, 'isTokenBlacklisted').mockResolvedValue(true)
+
+      try {
+        await refresh('blacklisted-token')
+        expect.fail('Should have thrown an error')
+      } catch (error: unknown) {
+        const err = error as MockError
+        expect(err.message).toBe('Refresh token has been revoked')
+        expect(err.status).toBe(401)
+      }
     })
   })
 })
