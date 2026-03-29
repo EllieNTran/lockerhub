@@ -16,6 +16,11 @@ import {
   sampleUserId,
 } from '../fixtures'
 
+interface MockError extends Error {
+  status?: number
+  code?: string
+}
+
 // Mock the database module
 vi.mock('../../src/connectors/db')
 
@@ -93,9 +98,10 @@ describe('Authentication Services', () => {
           validSignupData.office,
         )
         expect.fail('Should have thrown an error')
-      } catch (error: any) {
-        expect(error.message).toBe('User with this email already exists')
-        expect(error.status).toBe(409)
+      } catch (error: unknown) {
+        const err = error as MockError
+        expect(err.message).toBe('User with this email already exists')
+        expect(err.status).toBe(409)
       }
     })
 
@@ -120,10 +126,11 @@ describe('Authentication Services', () => {
           validSignupData.office,
         )
         expect.fail('Should have thrown an error')
-      } catch (error: any) {
-        expect(error.message).toContain('activate your account')
-        expect(error.status).toBe(409)
-        expect(error.code).toBe('ACCOUNT_NOT_ACTIVATED')
+      } catch (error: unknown) {
+        const err = error as MockError
+        expect(err.message).toContain('activate your account')
+        expect(err.status).toBe(409)
+        expect(err.code).toBe('ACCOUNT_NOT_ACTIVATED')
       }
     })
 
@@ -193,9 +200,10 @@ describe('Authentication Services', () => {
       try {
         await login(validCredentials.email, validCredentials.password)
         expect.fail('Should have thrown an error')
-      } catch (error: any) {
-        expect(error.message).toBe('Invalid email or password')
-        expect(error.status).toBe(401)
+      } catch (error: unknown) {
+        const err = error as MockError
+        expect(err.message).toBe('Invalid email or password')
+        expect(err.status).toBe(401)
       }
     })
 
@@ -213,9 +221,10 @@ describe('Authentication Services', () => {
       try {
         await login(validCredentials.email, 'wrongpassword')
         expect.fail('Should have thrown an error')
-      } catch (error: any) {
-        expect(error.message).toBe('Invalid email or password')
-        expect(error.status).toBe(401)
+      } catch (error: unknown) {
+        const err = error as MockError
+        expect(err.message).toBe('Invalid email or password')
+        expect(err.status).toBe(401)
       }
     })
 
@@ -232,10 +241,11 @@ describe('Authentication Services', () => {
       try {
         await login(validCredentials.email, validCredentials.password)
         expect.fail('Should have thrown an error')
-      } catch (error: any) {
-        expect(error.message).toContain('Account not activated')
-        expect(error.status).toBe(403)
-        expect(error.code).toBe('ACCOUNT_NOT_ACTIVATED')
+      } catch (error: unknown) {
+        const err = error as MockError
+        expect(err.message).toContain('Account not activated')
+        expect(err.status).toBe(403)
+        expect(err.code).toBe('ACCOUNT_NOT_ACTIVATED')
       }
     })
 
@@ -256,10 +266,11 @@ describe('Authentication Services', () => {
       try {
         await login(validCredentials.email, validCredentials.password)
         expect.fail('Should have thrown an error')
-      } catch (error: any) {
-        expect(error.message).toContain('Account not activated')
-        expect(error.status).toBe(403)
-        expect(error.code).toBe('ACCOUNT_NOT_ACTIVATED')
+      } catch (error: unknown) {
+        const err = error as MockError
+        expect(err.message).toContain('Account not activated')
+        expect(err.status).toBe(403)
+        expect(err.code).toBe('ACCOUNT_NOT_ACTIVATED')
       }
     })
   })
@@ -323,9 +334,10 @@ describe('Authentication Services', () => {
       try {
         await refresh('valid-token')
         expect.fail('Should have thrown an error')
-      } catch (error: any) {
-        expect(error.message).toBe('Invalid refresh token')
-        expect(error.status).toBe(401)
+      } catch (error: unknown) {
+        const err = error as MockError
+        expect(err.message).toBe('Invalid refresh token')
+        expect(err.status).toBe(401)
       }
     })
   })

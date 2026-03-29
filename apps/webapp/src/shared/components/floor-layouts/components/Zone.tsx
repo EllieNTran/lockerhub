@@ -8,7 +8,7 @@ export const Zone = ({ zone }: ZoneProps) => {
   return (
     <div
       className="absolute rounded-xl border-2 border-dashed border-grey-outline bg-background"
-      style={{ 
+      style={{
         left: `${zone.x}px`,
         top: `${zone.y}px`,
         width: `${zone.width}px`,

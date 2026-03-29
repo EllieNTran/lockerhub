@@ -18,7 +18,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
   useEffect(() => {
     if (userRole === null) return;
-    
+
     if (!userRole) {
       navigate('/', { replace: true });
       return;

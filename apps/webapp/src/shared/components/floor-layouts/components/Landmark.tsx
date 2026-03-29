@@ -39,11 +39,11 @@ export const Landmark = ({ landmark }: LandmarkProps) => {
   return (
     <div
       className={`absolute flex flex-col items-center justify-center rounded-lg border-2 border-dashed text-center ${
-        isRestricted 
-          ? 'border-grey bg-grey/40' 
+        isRestricted
+          ? 'border-grey bg-grey/40'
           : 'border-grey-outline bg-background'
       }`}
-      style={{ 
+      style={{
         left: `${landmark.x}px`,
         top: `${landmark.y}px`,
         width: `${landmark.width}px`,
@@ -57,4 +57,3 @@ export const Landmark = ({ landmark }: LandmarkProps) => {
     </div>
   )
 }
- 

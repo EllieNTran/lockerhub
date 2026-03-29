@@ -6,9 +6,9 @@ import AdminLayout from '../layout/AdminLayout';
 import Heading from '@/components/Heading';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { useLockerUsage, useTopDepartments, useMostPopularFloors, type Period } from '@/services/analytics';
-import FloorDropdown from '@/shared/components/FloorDropdown';
-import CustomDropdown from '@/shared/components/CustomDropdown';
-import DepartmentDropdown from '@/shared/components/DepartmentDropdown';
+import FloorDropdown from '@/components/FloorDropdown';
+import CustomDropdown from '@/components/CustomDropdown';
+import DepartmentDropdown from '@/components/DepartmentDropdown';
 
 const chartConfig = {
   occupied: {
@@ -37,7 +37,6 @@ const PERIOD_OPTIONS = [
   { value: 'all_time', label: 'All Time' },
 ];
 
-
 const LockerAnalytics = () => {
   const [period, setPeriod] = useState<Period>('last_7_days');
   const [usageFloorFilter, setUsageFloorFilter] = useState<string>('all');
@@ -45,7 +44,7 @@ const LockerAnalytics = () => {
   const [topDeptFloorFilter, setTopDeptFloorFilter] = useState<string>('all');
   const [topFloorDeptFilter, setTopFloorDeptFilter] = useState<string>('all');
 
-  const { data, isLoading, isError } = useLockerUsage({ 
+  const { data, isLoading, isError } = useLockerUsage({
     period,
     floor_id: usageFloorFilter !== 'all' ? usageFloorFilter : undefined,
     department_id: usageDepartmentFilter !== 'all' ? usageDepartmentFilter : undefined,

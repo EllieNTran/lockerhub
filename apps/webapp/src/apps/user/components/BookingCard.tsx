@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { CalendarDays, CalendarPlus, CircleX, MapPin, Star } from 'lucide-react';
-import StatusBadge from '@/components/StatusBadge';
+import ColorBadge from '@/components/ColorBadge';
 import type { Booking, BookingStatus } from '@/types/booking';
 import { Button } from '@/components/ui/button';
 
@@ -26,7 +26,7 @@ const formatFloorNumber = (floor: string): string => {
 const BookingCard = ({ booking, variant = 'small', onExtend, onCancel }: BookingCardProps) => {
   const formattedFloor = formatFloorNumber(booking.floor_number);
   const isLarge = variant === 'large';
-  
+
   return (
     <div
       className={`flex items-center justify-between rounded-lg border border-grey-outline ${isLarge ? 'bg-white px-4 py-4.5 shadow-sm' : 'bg-grey-foreground/50 p-3.5'}`}
@@ -38,12 +38,12 @@ const BookingCard = ({ booking, variant = 'small', onExtend, onCancel }: Booking
         <div>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{booking.locker_number}</span>
-            <StatusBadge
+            <ColorBadge
               color={statusColors[booking.booking_status]}
               status={booking.booking_status}
             />
             {booking.special_request_id && (
-              <StatusBadge
+              <ColorBadge
                 color="dark"
                 status="Special Request"
                 icon={<Star className="h-3 w-3" />}
@@ -54,7 +54,7 @@ const BookingCard = ({ booking, variant = 'small', onExtend, onCancel }: Booking
             <span className="flex items-center gap-1">
               <CalendarDays className="h-3 w-3" />
               {format(new Date(booking.start_date), 'MMM d')} —{' '}
-              {booking.end_date 
+              {booking.end_date
                 ? format(new Date(booking.end_date), 'MMM d, yyyy')
                 : 'Permanent'}
             </span>

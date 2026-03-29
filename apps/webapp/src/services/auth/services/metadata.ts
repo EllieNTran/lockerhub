@@ -25,14 +25,14 @@ export async function getOffices(): Promise<string[]> {
 /**
  * Validate staff number availability
  */
-export async function validateStaffNumber(staffNumber: string): Promise<{ 
-  available: boolean; 
+export async function validateStaffNumber(staffNumber: string): Promise<{
+  available: boolean;
   message: string;
   requiresActivation?: boolean;
   email?: string;
 }> {
-  return apiClient.publicRequest<{ 
-    available: boolean; 
+  return apiClient.publicRequest<{
+    available: boolean;
     message: string;
     requiresActivation?: boolean;
     email?: string;

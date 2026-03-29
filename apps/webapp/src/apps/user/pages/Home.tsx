@@ -22,13 +22,13 @@ import type { Notification } from '@/types/notification';
 const Home = () => {
   const navigate = useNavigate();
   const userId = getUserIdFromToken() || '';
-  
+
   const { data: notificationsData, isLoading: isLoadingNotifications } = useUserNotifications(userId, true);
   const notifications = notificationsData?.notifications || [];
   const unreadCount = notificationsData?.unread || 0;
-  
+
   const { mutate: markAsRead } = useMarkNotificationAsRead();
-  
+
   const { data: bookingsData, isLoading: isLoadingBookings } = useUserBookings();
 
   const upcomingBookings = bookingsData?.filter((b) => {

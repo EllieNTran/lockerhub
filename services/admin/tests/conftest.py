@@ -228,6 +228,7 @@ def sample_booking_data(
         "key_status": "with_employee",
         "key_number": "AA123",
         "special_request_id": None,
+        "extension_request_id": None,
     }
 
 
@@ -276,6 +277,7 @@ def create_booking_dict(**overrides):
         "key_status": "with_employee",
         "key_number": "AA123",
         "special_request_id": None,
+        "extension_request_id": None,
     }
     default.update(overrides)
     return default

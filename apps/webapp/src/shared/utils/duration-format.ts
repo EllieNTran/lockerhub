@@ -4,11 +4,11 @@ const formatDuration = (startDate: string, endDate: string | null) => {
   if (!endDate) {
     return 'Permanent';
   }
-  
+
   const start = new Date(startDate);
   const end = new Date(endDate);
   const days = differenceInDays(end, start);
-  
+
   if (days === 1) {
     return '1 day';
   } else if (days < 7) {

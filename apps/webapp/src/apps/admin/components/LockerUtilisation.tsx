@@ -15,7 +15,7 @@ interface LockerUtilisationProps {
 
 const LockerUtilisation = ({ floorStats, totalLockers }: LockerUtilisationProps) => {
   return (
-    <div className={`rounded-xl border border-grey-outline bg-card p-6 shadow-sm ${floorStats.length === 0 ? 'flex flex-col min-h-[380px]' : ''}`}>
+    <div className={`rounded-xl bg-white border border-grey-outline p-6 shadow-sm ${floorStats.length === 0 ? 'flex flex-col min-h-[380px]' : ''}`}>
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-base font-semibold text-dark-blue flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />

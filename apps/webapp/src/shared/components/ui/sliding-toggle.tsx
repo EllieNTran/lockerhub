@@ -12,10 +12,10 @@ interface SlidingToggleProps<T extends string> {
   onChange: (value: T) => void;
 }
 
-export function SlidingToggle<T extends string>({ 
-  options, 
-  value, 
-  onChange 
+export function SlidingToggle<T extends string>({
+  options,
+  value,
+  onChange
 }: SlidingToggleProps<T>) {
   const selectedIndex = options.findIndex(opt => opt.value === value);
 

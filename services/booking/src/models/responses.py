@@ -19,6 +19,7 @@ class BookingResponse(BaseModel):
     end_date: Optional[date] = None
     booking_status: str
     special_request_id: Optional[int] = None
+    extension_request_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

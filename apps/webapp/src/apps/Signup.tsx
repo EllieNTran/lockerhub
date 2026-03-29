@@ -7,13 +7,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  useDepartments, 
-  useOffices, 
-  useSignup, 
-  useValidateStaffNumber 
+import {
+  useDepartments,
+  useOffices,
+  useSignup,
+  useValidateStaffNumber
 } from '@/services/auth';
-
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -180,7 +179,7 @@ const Signup = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="staffNumber">Staff Number</Label>
@@ -205,7 +204,7 @@ const Signup = () => {
                     <p className="text-xs text-green">✓ Staff number is available</p>
                   )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="departmentId">Department</Label>
                   <Select
@@ -226,7 +225,7 @@ const Signup = () => {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="office">Office Location</Label>
                 <Select

@@ -1,3 +1,5 @@
+import type { UserRole } from './auth';
+
 export type AuditAction =
   | 'create'
   | 'update'
@@ -14,6 +16,8 @@ export type EntityType = 'booking' | 'locker' | 'key' | 'request' | 'floor' | 'b
 export interface AuditLog {
   audit_log_id: string
   user_id: string | null
+  user_name: string | null
+  user_role: UserRole | null
   action: AuditAction
   entity_type: EntityType
   entity_id: string | null
@@ -37,7 +41,9 @@ export interface AuditLogFilters {
   user_id?: string
   action?: AuditAction
   entity_type?: EntityType
+  user_role?: UserRole | 'system'
   entity_id?: string
   start_date?: string
   end_date?: string
+  search?: string
 }

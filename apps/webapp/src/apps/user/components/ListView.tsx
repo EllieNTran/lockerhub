@@ -11,7 +11,7 @@ interface ListViewProps {
 const ListView = ({ lockers, selectedLockerId, onSelectLocker }: ListViewProps) => {
   const groupedLockers = useMemo(() => {
     const groups = new Map<string, Locker[]>();
-    
+
     lockers.forEach(locker => {
       const zone = getZoneFromLockerNumber(locker.locker_number) || 'Unknown';
       if (!groups.has(zone)) {
@@ -45,10 +45,10 @@ const ListView = ({ lockers, selectedLockerId, onSelectLocker }: ListViewProps) 
         {zoneLockers.map((locker) => {
           const isSelected = locker.locker_id === selectedLockerId;
           const isAvailableLocker = 'is_available' in locker;
-          const isAvailable = isAvailableLocker 
-            ? (locker as AvailableLocker).is_available 
+          const isAvailable = isAvailableLocker
+            ? (locker as AvailableLocker).is_available
             : locker.status === 'available';
-          
+
           let displayStatus: string = locker.status || 'available';
           if (isAvailableLocker && !isAvailable && locker.status === 'available') {
             displayStatus = 'booked';
@@ -66,7 +66,7 @@ const ListView = ({ lockers, selectedLockerId, onSelectLocker }: ListViewProps) 
                 return 'bg-red-foreground text-red border-red-outline';
             }
           };
-          
+
           return (
             <div
               key={locker.locker_id}

@@ -67,7 +67,7 @@ async def create_special_request(
             justification,
         )
 
-        allocation_type = "permanent" if end_date is None else "extended"
+        allocation_type = "permanent" if end_date is None else "long-term"
 
         user_details = await db.fetchrow(GET_USER_DETAILS_QUERY, user_id, floor_id)
 

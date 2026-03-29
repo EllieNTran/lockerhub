@@ -11,6 +11,11 @@ import * as authService from '../../src/services/auth'
 import * as tokenService from '../../src/services/token'
 import { createMockUser, validSignupData, validCredentials } from '../fixtures'
 
+interface MockError extends Error {
+  status?: number
+  code?: string
+}
+
 const app = express()
 app.use(express.json())
 app.use('/auth', authRouter)
@@ -59,7 +64,7 @@ describe('Auth Routes Integration Tests', () => {
        * Verify error handling for duplicate signups.
        * Mock service throws conflict error.
        */
-      const error: any = new Error('User with this email already exists')
+      const error: MockError = new Error('User with this email already exists')
       error.status = 409
 
       vi.mocked(authService.signup).mockRejectedValue(error)
@@ -74,7 +79,7 @@ describe('Auth Routes Integration Tests', () => {
        * Verify validation for required fields.
        * Mock service throws validation error.
        */
-      const error: any = new Error('First name, last name, email, and password are required')
+      const error: MockError = new Error('First name, last name, email, and password are required')
       error.status = 400
 
       vi.mocked(authService.signup).mockRejectedValue(error)
@@ -126,7 +131,7 @@ describe('Auth Routes Integration Tests', () => {
        * Verify authentication failure handling.
        * Mock service throws unauthorized error.
        */
-      const error: any = new Error('Invalid email or password')
+      const error: MockError = new Error('Invalid email or password')
       error.status = 401
 
       vi.mocked(authService.login).mockRejectedValue(error)
@@ -144,7 +149,7 @@ describe('Auth Routes Integration Tests', () => {
        * Verify pre-registered account handling.
        * Mock service throws forbidden error with specific code.
        */
-      const error: any = new Error('Account not activated')
+      const error: MockError = new Error('Account not activated')
       error.status = 403
       error.code = 'ACCOUNT_NOT_ACTIVATED'
 
@@ -185,7 +190,7 @@ describe('Auth Routes Integration Tests', () => {
        * Verify error handling for invalid tokens.
        * Mock service throws unauthorized error.
        */
-      const error: any = new Error('Invalid or expired refresh token')
+      const error: MockError = new Error('Invalid or expired refresh token')
       error.status = 401
 
       vi.mocked(authService.refresh).mockRejectedValue(error)

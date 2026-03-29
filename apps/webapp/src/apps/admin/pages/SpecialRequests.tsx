@@ -88,11 +88,11 @@ const SpecialRequests = () => {
         ) : filteredRequests.length > 0 ? (
           <div className="space-y-4">
             {filteredRequests.map((request) => (
-              <SpecialRequestCard 
-                key={request.request_id} 
-                specialRequest={request} 
-                onReview={(approved, reason) => handleReview(request.request_id, approved, reason)} 
-                isAdmin 
+              <SpecialRequestCard
+                key={request.request_id}
+                specialRequest={request}
+                onReview={(approved, reason) => handleReview(request.request_id, approved, reason)}
+                isAdmin
               />
             ))}
           </div>

@@ -1,4 +1,6 @@
--- Audit logging function for all entities
+-- Fix audit trigger to properly capture old_value on UPDATE operations
+-- Bug: old_value was only being set on DELETE, not UPDATE
+
 CREATE OR REPLACE FUNCTION lockerhub.log_audit()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -48,20 +50,13 @@ BEGIN
         END IF;
     END IF;
 
-    -- Generate reference based on entity type
-    -- booking_rule: rule type
-    -- booking: locker number
-    -- request: [staff_number] - [permanent/extension]
-    -- key: key number
-    -- locker: locker number
+    -- Get reference based on entity type
     CASE TG_ARGV[0]
-        WHEN 'booking_rule' THEN
-            v_reference := COALESCE(NEW.rule_type::TEXT, OLD.rule_type::TEXT);
-            
         WHEN 'booking' THEN
             SELECT locker_number INTO v_locker_number
             FROM lockerhub.lockers
             WHERE locker_id = COALESCE(NEW.locker_id, OLD.locker_id);
+            
             v_reference := v_locker_number;
             
         WHEN 'request' THEN
@@ -109,3 +104,11 @@ BEGIN
     RETURN COALESCE(NEW, OLD);
 END;
 $$ LANGUAGE plpgsql;
+
+-- Add extension_request_id column to separate extension requests from special requests
+ALTER TABLE lockerhub.bookings 
+ADD COLUMN IF NOT EXISTS extension_request_id INTEGER 
+REFERENCES lockerhub.requests(request_id) ON DELETE SET NULL;
+
+COMMENT ON COLUMN lockerhub.bookings.extension_request_id IS 'Reference to the extension request if the booking was extended';
+COMMENT ON COLUMN lockerhub.bookings.special_request_id IS 'Reference to the special/permanent request if booking was created from special request';

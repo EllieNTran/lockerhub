@@ -22,6 +22,6 @@ export const floor11eLayout: FloorLayout = {
 
     { id: 'restricted1', type: 'restricted', x: 30, y: 620, width: 940, height: 250 },
   ],
-  
-  corridors: [] 
+
+  corridors: []
 }

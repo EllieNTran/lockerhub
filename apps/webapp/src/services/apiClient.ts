@@ -97,7 +97,7 @@ class ApiClient {
 
     if (!response.ok) {
       let errorMessage = response.statusText || 'An error occurred'
-      
+
       if (isJson) {
         const errorData = await response.json()
         errorMessage = errorData.detail || errorData.message || errorMessage

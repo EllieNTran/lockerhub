@@ -19,6 +19,8 @@ SELECT
     b.start_date,
     b.end_date,
     b.status as booking_status,
+    b.special_request_id,
+    b.extension_request_id,
     k.key_number,
     k.status as key_status
 FROM lockerhub.bookings b

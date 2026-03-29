@@ -15,6 +15,7 @@ SELECT
     b.end_date,
     b.status,
     b.special_request_id,
+    b.extension_request_id,
     b.created_at,
     b.updated_at
 FROM lockerhub.bookings b

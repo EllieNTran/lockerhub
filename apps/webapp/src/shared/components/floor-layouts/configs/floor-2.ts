@@ -13,7 +13,7 @@ export const floor2Layout: FloorLayout = {
     { id: '04', name: 'Zone 4', x: 30, y: 600, width: 220, height: 170 },
     { id: '05', name: 'Zone 5', x: 270, y: 600, width: 200, height: 170 },
     { id: '06', name: 'Zone 6', x: 490, y: 600, width: 200, height: 170 },
-    
+
     { id: '07', name: 'Zone 7', x: 710, y: 600, width: 200, height: 170 },
     { id: '08', name: 'Zone 8', x: 930, y: 600, width: 240, height: 170 },
 
@@ -35,6 +35,6 @@ export const floor2Layout: FloorLayout = {
     { id: 'wc1', type: 'toilet', x: 290, y: 790, width: 200, height: 170 },
     { id: 'desk2', type: 'desk-area', x: 730, y: 790, width: 440, height: 170 },
   ],
-  
-  corridors: [] 
+
+  corridors: []
 }

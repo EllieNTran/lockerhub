@@ -14,6 +14,7 @@ SELECT
     b.start_date,
     b.end_date,
     b.status as booking_status,
+    b.extension_request_id,
     b.special_request_id,
     b.created_at,
     b.updated_at

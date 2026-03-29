@@ -10,6 +10,7 @@ export interface Booking {
   end_date: string | null
   booking_status: BookingStatus
   special_request_id: number | null
+  extension_request_id: number | null
   created_at?: string
   updated_at?: string
 }
@@ -21,6 +22,8 @@ export interface AdminBookingDetail extends Booking  {
   department_name: string | null
   email: string
   booking_status: BookingStatus
+  special_request_id: number | null
+  extension_request_id: number | null
   key_number: string | null
   key_status: string | null
   floor_id: string

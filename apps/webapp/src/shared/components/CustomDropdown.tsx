@@ -17,7 +17,7 @@ interface CustomDropdownProps {
   onChange: (value: string) => void;
   items: DropdownItem[];
   isLoading?: boolean;
-  icon: React.ElementType;
+  icon?: React.ElementType;
   placeholder?: string;
   allOptionLabel?: string;
   showAllOption?: boolean;
@@ -46,7 +46,7 @@ const CustomDropdown = ({
     return item?.label || placeholder;
   };
 
-  const displayText = getDisplayText 
+  const displayText = getDisplayText
     ? getDisplayText(value, items)
     : defaultGetDisplayText(value, items);
 
@@ -67,14 +67,14 @@ const CustomDropdown = ({
           disabled={isLoading}
         >
           <span className="flex items-center gap-2">
-            <Icon className="h-4 w-4" />
+            {Icon && <Icon className="h-4 w-4" />}
             {displayText}
           </span>
           <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align="start" 
+      <DropdownMenuContent
+        align="start"
         className={`${isFullWidth ? 'w-[var(--radix-dropdown-menu-trigger-width)]' : 'min-w-[150px]'} max-h-[400px] overflow-y-auto`}
       >
         {showAllOption && (

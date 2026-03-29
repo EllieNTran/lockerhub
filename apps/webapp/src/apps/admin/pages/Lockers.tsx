@@ -4,7 +4,7 @@ import AdminLayout from '../layout/AdminLayout'
 import Heading from '@/components/Heading'
 import StatCard from '../components/StatCard'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
-import StatusBadge from '@/components/StatusBadge'
+import ColorBadge from '@/components/ColorBadge'
 import KeyStatus from '../components/KeyStatus'
 import ManageLockerDialog from '../components/ManageLockerDialog'
 import CreateLockerDialog from '../components/CreateLockerDialog'
@@ -48,13 +48,13 @@ const Lockers = () => {
 
   const filteredLockers = lockersData?.filter((locker) => {
     const query = searchQuery.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       locker.locker_number?.toLowerCase().includes(query) ||
       locker.key_number?.toLowerCase().includes(query);
-    
+
     const matchesFloor = floorFilter === 'all' || locker.floor_id === floorFilter;
     const matchesStatus = statusFilter === 'all' || locker.locker_status === statusFilter;
-    
+
     return matchesSearch && matchesFloor && matchesStatus;
   }) || [];
 
@@ -123,7 +123,7 @@ const Lockers = () => {
                 </TableRow>
               ) : paginatedFilteredLockers.length > 0 ? (
                 paginatedFilteredLockers.map((locker) => (
-                  <TableRow 
+                  <TableRow
                     key={locker.locker_id}
                     onClick={() => handleLockerClick(locker)}
                     className="cursor-pointer hover:bg-grey-background"
@@ -132,9 +132,9 @@ const Lockers = () => {
                     <TableCell>{locker.floor_number || 'N/A'}</TableCell>
                     <TableCell>{locker.location || 'N/A'}</TableCell>
                     <TableCell>
-                      <StatusBadge 
-                        status={locker.locker_status || 'N/A'} 
-                        color={statusColors[locker.locker_status as keyof typeof statusColors] ?? 'green'} 
+                      <ColorBadge
+                        status={locker.locker_status || 'N/A'}
+                        color={statusColors[locker.locker_status as keyof typeof statusColors] ?? 'green'}
                       />
                     </TableCell>
                     <TableCell>{locker.key_number || 'N/A'}</TableCell>
@@ -165,15 +165,15 @@ const Lockers = () => {
         />
       </main>
       {selectedLocker && (
-        <ManageLockerDialog 
-          locker={selectedLocker} 
-          isOpen={manageDialogOpen} 
+        <ManageLockerDialog
+          locker={selectedLocker}
+          isOpen={manageDialogOpen}
           onOpenChange={setManageDialogOpen}
           statusColor={statusColors[selectedLocker.locker_status as keyof typeof statusColors] ?? 'green'}
         />
       )}
-      <CreateLockerDialog 
-        isOpen={createDialogOpen} 
+      <CreateLockerDialog
+        isOpen={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
     </AdminLayout>

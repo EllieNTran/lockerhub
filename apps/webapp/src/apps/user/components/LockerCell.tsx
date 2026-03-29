@@ -13,10 +13,10 @@ interface LockerCellProps {
 const LockerCell = ({ locker, isSelected, onSelect }: LockerCellProps) => {
   const isAvailableLocker = 'is_available' in locker;
 
-  const isAvailable = isAvailableLocker 
-    ? (locker as AvailableLocker).is_available 
+  const isAvailable = isAvailableLocker
+    ? (locker as AvailableLocker).is_available
     : locker.status === 'available';
-  
+
   const isMaintenance = locker.status === 'maintenance';
   const isClickable = (isAvailable && !isMaintenance) || isSelected;
   const displayNumber = getLockerDisplayNumber(locker.locker_number);

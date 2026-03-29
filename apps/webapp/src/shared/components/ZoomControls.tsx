@@ -19,7 +19,7 @@ interface ZoomButtonProps {
 
 const ZoomButton = ({ icon: Icon, onClick, size }: ZoomButtonProps) => {
   const isSmall = size === 'sm';
-  
+
   return (
     <Button
       variant="ghost"
@@ -32,16 +32,16 @@ const ZoomButton = ({ icon: Icon, onClick, size }: ZoomButtonProps) => {
   );
 };
 
-const ZoomControls = ({ 
-  scale, 
-  onZoomIn, 
-  onZoomOut, 
+const ZoomControls = ({
+  scale,
+  onZoomIn,
+  onZoomOut,
   showPercentage = true,
   size = 'md',
   height
 }: ZoomControlsProps) => {
   return (
-    <div 
+    <div
       className="flex items-center gap-1 border border-grey-outline rounded-lg p-1"
       style={height ? { height } : undefined}
     >
