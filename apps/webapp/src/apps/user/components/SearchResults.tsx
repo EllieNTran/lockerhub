@@ -47,10 +47,10 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
 
   const handleSelectLocker = (locker: Locker | AvailableLocker) => {
     const isAvailableLocker = 'is_available' in locker;
-    const isAvailable = isAvailableLocker 
-      ? (locker as AvailableLocker).is_available 
+    const isAvailable = isAvailableLocker
+      ? (locker as AvailableLocker).is_available
       : locker.status === 'available';
-    
+
     if (isAvailable) {
       setSelectedLockerId(locker.locker_id);
       onSelectLocker(locker);
@@ -86,7 +86,7 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
                   </span>
                 ))}
               </div>
-            
+
               <ZoomControls
                 scale={scale}
                 onZoomIn={handleZoomIn}
@@ -125,10 +125,10 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
           onTranslateChange={setTranslate}
         />
       ) : (
-        <ListView 
-          lockers={lockers} 
+        <ListView
+          lockers={lockers}
           selectedLockerId={selectedLockerId}
-          onSelectLocker={handleSelectLocker} 
+          onSelectLocker={handleSelectLocker}
         />
       )}
     </div>

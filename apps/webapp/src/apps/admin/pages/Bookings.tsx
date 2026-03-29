@@ -6,7 +6,7 @@ import StatCard from '../components/StatCard';
 import ManageBookingDialog from '../components/ManageBookingDialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import StatusBadge from '@/components/StatusBadge';
+import ColorBadge from '@/components/ColorBadge';
 import KeyStatus from '../components/KeyStatus';
 import type { KeyStatus as KeyStatusType } from '@/types/key';
 import PaginationControls from '@/components/PaginationControls';
@@ -55,14 +55,14 @@ const Bookings = () => {
 
   const filteredBookings = bookingsData?.filter((booking) => {
     const query = searchQuery.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       booking.employee_name?.toLowerCase().includes(query) ||
       booking.staff_number?.toLowerCase().includes(query) ||
       booking.locker_number?.toLowerCase().includes(query);
-    
+
     const matchesFloor = floorFilter === 'all' || booking.floor_id === floorFilter;
     const matchesStatus = statusFilter === 'all' || booking.booking_status === statusFilter;
-    
+
     return matchesSearch && matchesFloor && matchesStatus;
   }) || [];
 
@@ -121,7 +121,7 @@ const Bookings = () => {
                   </TableRow>
                 ) : paginatedFilteredBookings.length > 0 ? (
                   paginatedFilteredBookings.map((booking) => (
-                    <TableRow 
+                    <TableRow
                       key={booking.booking_id}
                       onClick={() => handleSelectBooking(booking)}
                       className="cursor-pointer h-16"
@@ -133,9 +133,9 @@ const Bookings = () => {
                       <TableCell>Floor {booking.floor_number}</TableCell>
                       <TableCell>{formatDateRange(booking.start_date, booking.end_date)}</TableCell>
                       <TableCell>
-                        <StatusBadge 
-                          status={booking.booking_status} 
-                          color={statusColors[booking.booking_status as keyof typeof statusColors] ?? 'green'} 
+                        <ColorBadge
+                          status={booking.booking_status}
+                          color={statusColors[booking.booking_status as keyof typeof statusColors] ?? 'green'}
                         />
                       </TableCell>
                       <TableCell>
@@ -166,9 +166,9 @@ const Bookings = () => {
         />
       </main>
       {selectedBooking && (
-        <ManageBookingDialog 
-          booking={selectedBooking} 
-          isOpen={manageDialogOpen} 
+        <ManageBookingDialog
+          booking={selectedBooking}
+          isOpen={manageDialogOpen}
           onOpenChange={setManageDialogOpen}
           statusColor={statusColors[selectedBooking.booking_status as keyof typeof statusColors] ?? 'green'}
         />

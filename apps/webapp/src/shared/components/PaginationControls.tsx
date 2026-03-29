@@ -33,7 +33,7 @@ const PaginationControls = ({
     const windowStart = Math.floor((currentPage - 1) / 3) * 3 + 1;
 
     const pages: (number | 'ellipsis-end')[] = [];
-    
+
     if (windowStart === 1) {
       pages.push(1, 2, 3);
       if (totalPages > 4) pages.push('ellipsis-end');
@@ -66,9 +66,9 @@ const PaginationControls = ({
             className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
           />
         </PaginationItem>
-        
+
         <PaginationItem>
-          <PaginationPrevious 
+          <PaginationPrevious
             href="#"
             onClick={(e) => {
               e.preventDefault();
@@ -79,7 +79,7 @@ const PaginationControls = ({
             className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
           />
         </PaginationItem>
-        
+
         {pageNumbers.map((page, _) => {
           if (page === 'ellipsis-end') {
             return (
@@ -88,7 +88,7 @@ const PaginationControls = ({
               </PaginationItem>
             );
           }
-          
+
           return (
             <PaginationItem key={page}>
               <PaginationLink
@@ -105,9 +105,9 @@ const PaginationControls = ({
             </PaginationItem>
           );
         })}
-        
+
         <PaginationItem>
-          <PaginationNext 
+          <PaginationNext
             href="#"
             onClick={(e) => {
               e.preventDefault();
@@ -118,7 +118,7 @@ const PaginationControls = ({
             className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
           />
         </PaginationItem>
-        
+
         <PaginationItem>
           <PaginationLast
             href="#"

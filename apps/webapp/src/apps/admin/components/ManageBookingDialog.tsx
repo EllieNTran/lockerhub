@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import StatusBadge from '@/components/StatusBadge';
+import ColorBadge from '@/components/ColorBadge';
 import { toast } from 'sonner';
 import { useConfirmHandover, useConfirmReturn, useCancelBooking } from '@/services/admin';
 import { useSendOverdueKeyReturnReminder } from '@/services/notifications';
@@ -146,8 +146,8 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
 
   const renderKeyReturnSection = () => (
     <div className="space-y-3">
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         className="w-full flex items-center justify-start h-12 font-normal"
         onClick={handleConfirmReturn}
         disabled={isConfirmingReturn}
@@ -155,8 +155,8 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
         <CalendarDays className="mr-2 h-4 w-4" />
         {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
       </Button>
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         className="w-full flex items-center justify-start h-12 font-normal"
         onClick={handleSendReminder}
         disabled={isSendingOverdueKeyReturnReminder}
@@ -184,8 +184,8 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
         return (
           <>
             {booking?.key_number && isStartDateTodayOrEarlier() ? (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full flex items-center justify-start h-12 font-normal"
                 onClick={handleConfirmHandover}
                 disabled={isConfirmingHandover}
@@ -201,8 +201,8 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
                 <span className="font-medium">{format(new Date(booking.start_date), 'PPP')}</span>
               </div>
             )}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full flex items-center justify-start h-12 font-normal"
               onClick={handleCancelClick}
               disabled={isCancelling}
@@ -214,8 +214,8 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
         );
       case 'active':
         return (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full flex items-center justify-start h-12 font-normal"
             onClick={handleCancelClick}
             disabled={isCancelling}
@@ -260,9 +260,9 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
             <DialogTitle className="text-xl">Booking for Locker {booking?.locker_number || 'N/A'}</DialogTitle>
             <DialogDescription className="flex items-center gap-2">
               Current Status:
-              <StatusBadge 
-                status={booking?.booking_status || 'N/A'} 
-                color={statusColor} 
+              <ColorBadge
+                status={booking?.booking_status || 'N/A'}
+                color={statusColor}
               />
             </DialogDescription>
           </DialogHeader>

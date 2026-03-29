@@ -17,7 +17,7 @@ import {
 import { format, differenceInDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import { useFloors, useAvailableLockers, useCreateSpecialRequest } from '@/services/bookings';
-import FloorDropdown from '@/shared/components/FloorDropdown';
+import FloorDropdown from '@/components/FloorDropdown';
 
 const NewSpecialRequest = () => {
   const navigate = useNavigate();

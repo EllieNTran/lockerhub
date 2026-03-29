@@ -42,7 +42,7 @@ const activityColors: Record<ActivityType, ReturnType<typeof createColorScheme>>
 
 const RecentActivity = ({ activities }: RecentActivityProps) => {
   return (
-    <div className={`rounded-xl border border-grey-outline bg-card p-6 shadow-sm ${activities.length === 0 ? 'flex flex-col min-h-[380px]' : ''}`}>
+    <div className={`rounded-xl border border-grey-outline bg-white p-6 shadow-sm ${activities.length === 0 ? 'flex flex-col min-h-[380px]' : ''}`}>
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-base font-semibold text-dark-blue flex items-center gap-2">
           <Layers className="h-4 w-4 text-primary" />

@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/apiClient';
-import type { BookingRule } from '@/shared/types/booking-rule';
-import type { FloorWithLockerCount } from '@/shared/types/floor';
+import type { BookingRule } from '@/types/booking-rule';
+import type { FloorWithLockerCount } from '@/types/floor';
 
 export interface UpdateBookingRulesData {
   max_booking_duration?: number;

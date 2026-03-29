@@ -11,7 +11,7 @@ export type CalendarProps = {
   defaultMonth?: Date;
 };
 
-function Calendar({ 
+function Calendar({
   selected,
   onSelect,
   disabled = () => false,
@@ -115,11 +115,11 @@ function Calendar({
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          
+
           <div className="text-sm font-semibold text-dark-blue">
             {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
           </div>
-          
+
           <button
             type="button"
             onClick={nextMonth}

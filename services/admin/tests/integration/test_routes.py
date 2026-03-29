@@ -636,20 +636,22 @@ class TestAuditRoutes:
         """
         user_id = uuid4()
         entity_id = uuid4()
+        audit_log_id = uuid4()
         now = datetime.now()
 
         mock_logs = {
             "logs": [
                 {
-                    "audit_log_id": 1,
+                    "audit_log_id": audit_log_id,
                     "user_id": user_id,
                     "user_name": "Admin User",
+                    "user_role": "admin",
                     "action": "create",
                     "entity_type": "booking",
                     "entity_id": entity_id,
                     "reference": "DL10-01-01",
                     "old_value": None,
-                    "new_value": "active",
+                    "new_value": {"status": "active"},
                     "audit_date": now,
                 }
             ],

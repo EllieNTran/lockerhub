@@ -65,14 +65,14 @@ export const DateRangePicker = ({
 
   const isStartDateDisabled = (date: Date) => {
     if (disablePastDates && date < getTodayNormalized()) return true;
-    
+
     if (!disableRules) {
       const maxFutureDate = getMaxFutureDate();
       if (maxFutureDate && date > maxFutureDate) return true;
     }
-      
+
     if (disableWeekends && isWeekend(date)) return true;
-    
+
     return false;
   };
 
@@ -84,9 +84,9 @@ export const DateRangePicker = ({
         const maxFutureDate = getMaxFutureDate();
         if (maxFutureDate && date > maxFutureDate) return true;
       }
-        
+
       if (disableWeekends && isWeekend(date)) return true;
-      
+
       return false;
     }
 

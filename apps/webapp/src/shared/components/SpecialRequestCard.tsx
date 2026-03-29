@@ -2,10 +2,10 @@ import { useEffect, useState, type SetStateAction } from 'react'
 import { format } from 'date-fns'
 import { Clock, CalendarDays, MapPin, Hourglass, Loader, AlertTriangle, CircleCheckBig, X, CircleX, CircleCheck } from 'lucide-react'
 import formatDuration from '@/utils/duration-format'
-import StatusBadge from '@/components/StatusBadge'
+import ColorBadge from '@/components/ColorBadge'
 import { formatTimeAgo } from '@/utils/date-format'
 import type { Request } from '@/types/request'
-import { Button } from '@/shared/components/ui/button'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -106,7 +106,7 @@ const SpecialRequestCard = ({ specialRequest, onCancel, onReview, isAdmin = fals
                   <div className='text-md font-medium'>
                     { isAdmin ? `${specialRequest.employee_name} #${specialRequest.request_id}` : `Request #${specialRequest.request_id}`}
                   </div>
-                  <StatusBadge status={specialRequest.status} color={statusColor} />
+                  <ColorBadge status={specialRequest.status} color={statusColor} />
                 </div>
                 <div className='flex items-center gap-4 text-xs text-grey'>
                   <span className='flex items-center gap-1'>
@@ -196,8 +196,8 @@ const SpecialRequestCard = ({ specialRequest, onCancel, onReview, isAdmin = fals
               }}>
                 Cancel
               </Button>
-              <Button 
-                variant='destructive' 
+              <Button
+                variant='destructive'
                 onClick={handleReject}
                 disabled={!rejectionReason.trim()}
               >

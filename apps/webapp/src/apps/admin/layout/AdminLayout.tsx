@@ -21,9 +21,9 @@ const navItems = [
   { label: 'Lockers', to: '/admin/lockers', icon: Lock },
   { label: 'Special Requests', to: '/admin/special-requests', icon: FileText },
   { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
-  { label: 'Audit Logs', to: '/admin/audit', icon: ClipboardList },
   { label: 'Booking Rules', to: '/admin/rules', icon: Settings },
   { label: 'Locker Configuration', to: '/admin/locker-configuration', icon: MapPinPen },
+  { label: 'Audit Logs', to: '/admin/audit', icon: ClipboardList },
 ];
 
 interface AdminLayoutProps {

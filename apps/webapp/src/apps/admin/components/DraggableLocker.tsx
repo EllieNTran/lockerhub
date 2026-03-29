@@ -8,8 +8,8 @@ interface DraggableLockerProps {
   onDragEnd: () => void
 }
 
-export const DraggableLocker = ({ 
-  locker, 
+export const DraggableLocker = ({
+  locker,
   scale,
   onDragStart,
   onDragEnd,
@@ -28,7 +28,7 @@ export const DraggableLocker = ({
         transform: 'none'
       })
       document.body.appendChild(dragImage)
-      
+
       e.dataTransfer.setDragImage(dragImage, scaledSize / 2, scaledSize / 2)
 
       setTimeout(() => document.body.removeChild(dragImage), 0)

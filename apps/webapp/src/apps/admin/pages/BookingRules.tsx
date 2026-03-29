@@ -1,18 +1,18 @@
 import { CheckCircle, Settings, Save, LockKeyhole, SquarePen } from 'lucide-react';
 import AdminLayout from '../layout/AdminLayout';
 import Heading from '@/components/Heading';
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { useState, useMemo } from 'react';
-import { Switch } from '@/shared/components/ui/switch';
-import { Input } from '@/shared/components/ui/input';
-import { Label } from '@/shared/components/ui/label';
-import { TextArea } from '@/shared/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { TextArea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/sonner';
 import { format } from 'date-fns';
 import { useBookingRules, useUpdateBookingRules, useUpdateFloorStatus, useAllFloors, type UpdateFloorStatusData } from '@/services/admin';
-import StatusBadge from '@/shared/components/StatusBadge';
-import { DateRangePicker } from '@/shared/components/DateRangePicker';
-import type { FloorWithLockerCount } from '@/shared/types/floor';
+import ColorBadge from '@/components/ColorBadge';
+import { DateRangePicker } from '@/components/DateRangePicker';
+import type { FloorWithLockerCount } from '@/types/floor';
 import {
   Dialog,
   DialogContent,
@@ -33,37 +33,37 @@ interface RuleMetadata {
 }
 
 const RULE_METADATA: RuleMetadata[] = [
-  { 
-    id: 'max_duration', 
-    label: 'Maximum Booking Duration', 
-    description: 'Maximum number of days a standard booking can span.', 
-    type: 'number', 
-    unit: 'days', 
-    min: 1, 
-    max: 14 
+  {
+    id: 'max_duration',
+    label: 'Maximum Booking Duration',
+    description: 'Maximum number of days a standard booking can span.',
+    type: 'number',
+    unit: 'days',
+    min: 1,
+    max: 14
   },
-  { 
-    id: 'max_extension', 
-    label: 'Maximum Extension', 
-    description: 'Maximum additional days allowed when extending a booking.', 
-    type: 'number', 
-    unit: 'days', 
-    min: 1, 
-    max: 7 
+  {
+    id: 'max_extension',
+    label: 'Maximum Extension',
+    description: 'Maximum additional days allowed when extending a booking.',
+    type: 'number',
+    unit: 'days',
+    min: 1,
+    max: 7
   },
-  { 
-    id: 'advance_booking_window', 
-    label: 'Advance Booking Window', 
-    description: 'How far in advance employees can book a locker.', 
-    type: 'number', 
-    unit: 'days', 
-    min: 1, 
-    max: 90 
+  {
+    id: 'advance_booking_window',
+    label: 'Advance Booking Window',
+    description: 'How far in advance employees can book a locker.',
+    type: 'number',
+    unit: 'days',
+    min: 1,
+    max: 90
   },
-  { 
-    id: 'same_day_bookings', 
-    label: 'Allow Same-Day Bookings', 
-    description: 'Permit bookings that start on the current day.', 
+  {
+    id: 'same_day_bookings',
+    label: 'Allow Same-Day Bookings',
+    description: 'Permit bookings that start on the current day.',
     type: 'boolean'
   },
 ];
@@ -90,10 +90,10 @@ const BookingRules = () => {
       }
 
       const backendRule = rulesData?.find(r => r.rule_type === meta.id);
-      const value = backendRule 
+      const value = backendRule
         ? (meta.type === 'boolean' ? Boolean(backendRule.value) : backendRule.value)
         : (meta.type === 'boolean' ? false : 0);
-      
+
       return { ...meta, value };
     });
   }, [rulesData, changes]);
@@ -105,7 +105,7 @@ const BookingRules = () => {
 
   const save = async () => {
     const updates: Record<string, number | boolean> = {};
-    
+
     if ('max_duration' in changes) updates.max_booking_duration = (changes.max_duration === '' ? 0 : changes.max_duration) as number;
     if ('max_extension' in changes) updates.max_extension = (changes.max_extension === '' ? 0 : changes.max_extension) as number;
     if ('advance_booking_window' in changes) updates.advance_booking_window = (changes.advance_booking_window === '' ? 0 : changes.advance_booking_window) as number;
@@ -126,16 +126,16 @@ const BookingRules = () => {
     return Object.keys(changes).some(ruleId => {
       const backendRule = rulesData?.find(r => r.rule_type === ruleId);
       const changedValue = changes[ruleId];
-      
+
       if (!backendRule) return changedValue !== 0 && changedValue !== false;
-      
+
       const meta = RULE_METADATA.find(m => m.id === ruleId);
       if (!meta) return false;
-      
-      const backendValue = meta.type === 'boolean' 
-        ? Boolean(backendRule.value) 
+
+      const backendValue = meta.type === 'boolean'
+        ? Boolean(backendRule.value)
         : backendRule.value;
-      
+
       return changedValue !== backendValue;
     });
   }, [changes, rulesData]);
@@ -155,7 +155,7 @@ const BookingRules = () => {
     if (floorStatus !== selectedFloor.status) return true;
 
     if (floorStatus === 'closed' && (startDate || endDate || reason)) return true;
-    
+
     return false;
   }, [floorStatus, selectedFloor, startDate, endDate, reason]);
 
@@ -175,11 +175,11 @@ const BookingRules = () => {
         if (reason) data.reason = reason;
       }
 
-      await updateFloorStatusMutation.mutateAsync({ 
-        floorId: selectedFloor.floor_id, 
+      await updateFloorStatusMutation.mutateAsync({
+        floorId: selectedFloor.floor_id,
         data
       });
-      
+
       toast.success(`Floor ${selectedFloor.floor_number} status updated successfully`);
       setOpenFloorDialog(false);
     } catch {
@@ -195,17 +195,17 @@ const BookingRules = () => {
             title="Booking Rules"
             description="Set system-wide constraints that apply to all locker bookings."
           />
-          <Button 
+          <Button
             variant='highlight'
-            onClick={save} 
-            className="gap-2" 
+            onClick={save}
+            className="gap-2"
             disabled={!hasChanges || updateBookingRulesMutation.isPending}
           >
             {saved ? <CheckCircle className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-            {updateBookingRulesMutation.isPending 
-              ? 'Saving...' 
-              : saved 
-                ? 'Saved' 
+            {updateBookingRulesMutation.isPending
+              ? 'Saving...'
+              : saved
+                ? 'Saved'
                 : 'Save Changes'
             }
           </Button>
@@ -280,9 +280,9 @@ const BookingRules = () => {
                       <div className="bg-white rounded-full text-xs text-grey border border-grey-outline px-2 py-1">
                         {floor.total_lockers} Lockers
                       </div>
-                      <StatusBadge status={floor.status} color={floor.status === 'open' ? 'green' : 'red'} />
+                      <ColorBadge status={floor.status} color={floor.status === 'open' ? 'green' : 'red'} />
                     </div>
-                    
+
                     <Button
                       variant='icon'
                       className="h-auto w-auto pr-1"
@@ -291,7 +291,7 @@ const BookingRules = () => {
                       <SquarePen className="!h-5 !w-5" />
                     </Button>
                   </div>
-                  
+
                   {floor.closures && floor.closures.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-grey-outline">
                       <p className="text-xs font-medium text-grey mb-2">Upcoming Closures:</p>
@@ -299,7 +299,7 @@ const BookingRules = () => {
                         {floor.closures.map((closure) => (
                           <div key={closure.closure_id} className="text-xs text-grey">
                             <span>
-                              {closure.end_date 
+                              {closure.end_date
                                 ? `${format(new Date(closure.start_date), 'dd MMM yyyy')} - ${format(new Date(closure.end_date), 'dd MMM yyyy')}`
                                 : `Indefinite closure starting ${format(new Date(closure.start_date), 'dd MMM yyyy')}`
                               }
@@ -325,7 +325,7 @@ const BookingRules = () => {
               Close or open this floor for new bookings.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6 py-2">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -379,15 +379,15 @@ const BookingRules = () => {
           </div>
 
           <DialogFooter>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => setOpenFloorDialog(false)}
               disabled={updateFloorStatusMutation.isPending}
             >
               Cancel
             </Button>
-            <Button 
-              variant="highlight" 
+            <Button
+              variant="highlight"
               onClick={handleUpdateFloorStatus}
               disabled={!hasFloorStatusChanges || updateFloorStatusMutation.isPending}
             >

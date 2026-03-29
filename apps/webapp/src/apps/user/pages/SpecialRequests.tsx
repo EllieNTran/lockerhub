@@ -4,7 +4,7 @@ import Heading from '@/components/Heading';
 import SpecialRequestCard from '../../../shared/components/SpecialRequestCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Plus } from 'lucide-react';
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { useUserSpecialRequests, useDeleteSpecialRequest } from '@/services/bookings';
 import { toast } from '@/components/ui/sonner';
 
@@ -67,7 +67,7 @@ const SpecialRequests = () => {
               );
             })}
           </TabsList>
-          
+
           {tabs.map((tab) => (
             <TabsContent key={tab.value} value={tab.value} className="min-h-[500px]">
               {isLoading ? (

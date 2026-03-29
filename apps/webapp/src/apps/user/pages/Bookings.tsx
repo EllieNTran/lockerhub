@@ -41,14 +41,14 @@ const MyBookings = () => {
   const getExtensionOptions = (currentEndDate: string) => {
     const options: Date[] = [];
     let currentDate = new Date(currentEndDate);
-    
+
     while (options.length < (extensionRule?.value || 1)) {
       currentDate = addDays(currentDate, 1);
       if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
         options.push(new Date(currentDate));
       }
     }
-    
+
     return options;
   };
 
@@ -165,7 +165,7 @@ const MyBookings = () => {
               );
             })}
           </TabsList>
-          
+
           {tabs.map((tab) => (
             <TabsContent key={tab.value} value={tab.value} className="min-h-[500px]">
               {isLoadingBookings ? (
@@ -192,7 +192,7 @@ const MyBookings = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <PaginationControls
                     currentPage={currentPage[tab.value] || 1}
                     totalPages={getTotalPages(tab.value)}
@@ -213,7 +213,7 @@ const MyBookings = () => {
               Select a new end date to extend your booking for {selectedBooking?.locker_number}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-3 rounded-lg bg-muted p-4 text-sm">
               <div className="flex justify-between">
@@ -289,7 +289,7 @@ const MyBookings = () => {
               Are you sure you want to cancel this booking? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-3 rounded-lg bg-muted p-4 text-sm">
             <div className="flex justify-between">
               <span className="text-grey">Locker</span>

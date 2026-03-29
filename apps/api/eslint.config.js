@@ -30,6 +30,7 @@ export default [
       'quotes': ['error', 'single', { avoidEscape: true }],
       'indent': ['error', 2],
       'no-trailing-spaces': 'error',
+      'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
       'eol-last': ['error', 'always'],
     },
   },

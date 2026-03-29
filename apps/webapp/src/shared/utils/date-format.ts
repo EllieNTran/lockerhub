@@ -40,15 +40,15 @@ export function formatDateRange(startDate: Date | string, endDate: Date | string
 
   const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
   const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
-  
+
   const startDay = start.getDate();
   const startMonth = format(start, 'MMM');
   const startYear = start.getFullYear();
-  
+
   const endDay = end.getDate();
   const endMonth = format(end, 'MMM');
   const endYear = end.getFullYear();
-  
+
   const startOrdinal = getOrdinalSuffix(startDay);
   const endOrdinal = getOrdinalSuffix(endDay);
 

@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DateRangePicker } from '@/components/DateRangePicker';
-import StatusBadge from '@/components/StatusBadge';
+import ColorBadge from '@/components/ColorBadge';
 import { useMarkLockerMaintenance, useReportLostKey, useOrderReplacementKey, useMarkLockerAvailable, useAllUsers, useCreateAdminBooking, useCreateLockerKey, useAllKeys } from '@/services/admin';
 import { toast } from 'sonner';
 import type { AxiosError } from 'axios';
@@ -40,7 +40,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  
+
   const markMaintenanceMutation = useMarkLockerMaintenance();
   const reportLostKeyMutation = useReportLostKey();
   const orderReplacementKeyMutation = useOrderReplacementKey();
@@ -75,7 +75,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       const keyExists = keysData.some(
         (key) => key.key_number === keyNumber.trim()
       );
-      
+
       if (keyExists) {
         setKeyNumberError('A key with this number already exists');
       } else {
@@ -240,8 +240,8 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
     return (
       <>
         <p className="text-sm text-grey mb-3">Please select the reason for maintenance:</p>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="w-full flex items-center justify-start h-12 font-normal"
           onClick={handleLockerFault}
           disabled={markMaintenanceMutation.isPending}
@@ -250,8 +250,8 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
           Locker Needs Fixing
         </Button>
         {locker?.key_number && (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full flex items-center justify-start h-12 font-normal"
             onClick={handleKeyReplacement}
             disabled={reportLostKeyMutation.isPending}
@@ -314,8 +314,8 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
           onEndDateChange={setEndDate}
         />
 
-        <Button 
-          variant="default" 
+        <Button
+          variant="default"
           className="w-full"
           onClick={handleCreateBooking}
           disabled={!selectedUser || !startDate || !endDate || createAdminBookingMutation.isPending}
@@ -348,8 +348,8 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
           )}
         </div>
 
-        <Button 
-          variant="default" 
+        <Button
+          variant="default"
           className="w-full"
           onClick={handleCreateKey}
           disabled={!keyNumber.trim() || !!keyNumberError || createLockerKeyMutation.isPending}
@@ -362,10 +362,10 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
 
   const renderCreateKeyButton = () => {
     if (locker?.key_number) return null;
-    
+
     return (
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         className="w-full flex items-center justify-start h-12 font-normal"
         onClick={handleCreateKeyClick}
       >
@@ -393,16 +393,16 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
         return (
           <>
             {renderCreateKeyButton()}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full flex items-center justify-start h-12 font-normal"
               onClick={handleManualBookingClick}
             >
               <CalendarDays className="mr-2 h-4 w-4" />
               Create Manual Booking
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full flex items-center justify-start h-12 font-normal"
               onClick={handleMaintenanceClick}
             >
@@ -411,7 +411,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             </Button>
           </>
         );
-      
+
       case 'occupied':
         return (
           <>
@@ -427,13 +427,13 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             {renderCreateKeyButton()}
           </>
         );
-      
+
       case 'maintenance':
         return (
           <>
             {renderCreateKeyButton()}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full flex items-center justify-start h-12 font-normal"
               onClick={handleMarkFixed}
               disabled={markAvailableMutation.isPending}
@@ -442,8 +442,8 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
               Mark as Fixed
             </Button>
             {locker?.key_status === 'lost' && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full flex items-center justify-start h-12 font-normal"
                 onClick={handleOrderReplacement}
                 disabled={orderReplacementKeyMutation.isPending}
@@ -454,7 +454,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             )}
           </>
         );
-      
+
       case 'reserved':
         return (
           <>
@@ -470,7 +470,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             {renderCreateKeyButton()}
           </>
         );
-      
+
       default:
         return (
           <>
@@ -489,9 +489,9 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             <DialogTitle className="text-xl">Locker: {locker?.locker_number}</DialogTitle>
             <DialogDescription className="flex items-center gap-2">
               Current Status:
-              <StatusBadge 
-                status={locker?.locker_status || 'N/A'} 
-                color={statusColor} 
+              <ColorBadge
+                status={locker?.locker_status || 'N/A'}
+                color={statusColor}
               />
             </DialogDescription>
           </DialogHeader>

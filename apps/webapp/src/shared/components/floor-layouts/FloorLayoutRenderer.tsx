@@ -18,8 +18,8 @@ interface FloorLayoutRendererProps {
   children?: React.ReactNode
 }
 
-export const FloorLayoutRenderer = ({ 
-  layout, 
+export const FloorLayoutRenderer = ({
+  layout,
   lockers = [],
   selectedLockerId = null,
   onSelectLocker = () => {},

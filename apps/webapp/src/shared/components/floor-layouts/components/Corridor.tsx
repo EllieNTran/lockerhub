@@ -5,8 +5,8 @@ interface CorridorProps {
 }
 
 export const Corridor = ({ corridor }: CorridorProps) => {
-  const borderClass = corridor.orientation === 'vertical' 
-    ? 'border-x' 
+  const borderClass = corridor.orientation === 'vertical'
+    ? 'border-x'
     : 'border-y'
 
   return (

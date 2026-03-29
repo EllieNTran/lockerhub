@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useCreateLocker, useAllLockers, useAllKeys } from '@/services/admin';
 import { useFloors } from '@/services/bookings';
-import FloorDropdown from '@/shared/components/FloorDropdown';
+import FloorDropdown from '@/components/FloorDropdown';
 import { AxiosError } from 'axios';
 
 interface CreateLockerDialogProps {
@@ -94,7 +94,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
       const lockerExists = lockersData.some(
         locker => locker.locker_number === lockerNumber.trim() && locker.floor_id === floorId
       );
-      
+
       if (lockerExists) {
         setLockerNumberError('A locker with this number already exists on this floor');
       } else if (lockerNumber.length > prefix.length) {
@@ -116,7 +116,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
       const keyExists = keysData.some(
         (key) => key.key_number === keyNumber.trim()
       );
-      
+
       if (keyExists) {
         setKeyNumberError('A key with this number already exists');
       } else {
@@ -138,7 +138,7 @@ const CreateLockerDialog = ({ isOpen, onOpenChange }: CreateLockerDialogProps) =
         setLockerNumber(prefix);
         return;
       }
-      
+
       setLockerNumber(newValue);
     } else {
       setLockerNumber(newValue);

@@ -3,8 +3,9 @@
 from datetime import date, datetime
 from typing import List, Optional, Any, Dict
 from uuid import UUID
+import json
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class CreateBookingResponse(BaseModel):
@@ -36,6 +37,8 @@ class BookingDetailResponse(BaseModel):
     start_date: date
     end_date: Optional[date] = None
     booking_status: str
+    special_request_id: Optional[int] = None
+    extension_request_id: Optional[int] = None
     key_number: Optional[str]
     key_status: Optional[str]
 
@@ -223,18 +226,32 @@ class AllBookingRulesResponse(BaseModel):
 class AuditLogResponse(BaseModel):
     """Response model for an audit log entry."""
 
-    audit_log_id: int
+    audit_log_id: UUID
     user_id: Optional[UUID]
     user_name: Optional[str]
+    user_role: Optional[str]
     action: str
     entity_type: str
-    entity_id: UUID
+    entity_id: Optional[UUID]
     reference: Optional[str]
-    old_value: Optional[str]
-    new_value: Optional[str]
+    old_value: Optional[Dict[str, Any]]
+    new_value: Optional[Dict[str, Any]]
     audit_date: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator('old_value', 'new_value', mode='before')
+    @classmethod
+    def parse_json_value(cls, v):
+        """Parse JSON string to dict if needed."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return None
+        return v
 
 
 class AuditLogsResponse(BaseModel):

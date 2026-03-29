@@ -57,7 +57,7 @@ function decodeJWT(token: string): Record<string, unknown> | null {
 export function getUserIdFromToken(): string | null {
   const token = getAccessToken();
   if (!token) return null;
-  
+
   const payload = decodeJWT(token);
   return payload?.sub as string || null;
 }

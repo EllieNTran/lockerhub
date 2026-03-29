@@ -14,10 +14,10 @@ interface FloorPlanProps {
   onTranslateChange?: (translate: { x: number; y: number }) => void;
 }
 
-const FloorPlan = ({ 
-  lockers, 
-  selectedLockerId, 
-  onSelectLocker, 
+const FloorPlan = ({
+  lockers,
+  selectedLockerId,
+  onSelectLocker,
   floorNumber,
   scale: externalScale,
   translate: externalTranslate,
@@ -27,7 +27,7 @@ const FloorPlan = ({
   const [internalScale, setInternalScale] = useState(1);
   const [internalTranslate, setInternalTranslate] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  
+
   // Use external state if provided, otherwise use internal state
   const scale = externalScale ?? internalScale;
   const translate = externalTranslate ?? internalTranslate;
@@ -109,7 +109,7 @@ const FloorPlan = ({
         }}
       >
         {layout ? (
-          <FloorLayoutRenderer 
+          <FloorLayoutRenderer
             layout={layout}
             lockers={lockers}
             selectedLockerId={selectedLockerId}

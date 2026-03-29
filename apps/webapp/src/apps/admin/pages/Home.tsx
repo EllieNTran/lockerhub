@@ -56,33 +56,33 @@ const AdminHome = () => {
         />
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
-          <StatCard 
-            label="Available Lockers" 
-            value={dashboardStats?.available_lockers || 0} 
-            sub="Across all floors" 
-            icon={Lock} 
-            color="green" 
+          <StatCard
+            label="Available Lockers"
+            value={dashboardStats?.available_lockers || 0}
+            sub="Across all floors"
+            icon={Lock}
+            color="green"
           />
-          <StatCard 
-            label="Pending Special Requests" 
-            value={dashboardStats?.pending_requests || 0} 
-            sub="Awaiting review" 
-            icon={FileText} 
-            color="pink" 
+          <StatCard
+            label="Pending Special Requests"
+            value={dashboardStats?.pending_requests || 0}
+            sub="Awaiting review"
+            icon={FileText}
+            color="pink"
           />
-          <StatCard 
-            label="Active Bookings" 
-            value={dashboardStats?.active_bookings || 0} 
-            sub="Currently active" 
-            icon={CalendarDays} 
-            color="blue" 
+          <StatCard
+            label="Active Bookings"
+            value={dashboardStats?.active_bookings || 0}
+            sub="Currently active"
+            icon={CalendarDays}
+            color="blue"
           />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <LockerUtilisation 
-            floorStats={floorStats} 
-            totalLockers={dashboardStats?.total_lockers || 0} 
+          <LockerUtilisation
+            floorStats={floorStats}
+            totalLockers={dashboardStats?.total_lockers || 0}
           />
           <RecentActivity activities={activities} />
         </div>

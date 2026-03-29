@@ -5,7 +5,6 @@ import { fromEnv } from '../constants'
 const WEBAPP_URL = fromEnv('WEBAPP_URL') || 'http://localhost:3001'
 const ADMIN_EMAIL = 'fm@lockerhub.com'
 
-
 export const notifySpecialRequestSubmitted = async (
   userId: string,
   email: string,

@@ -36,7 +36,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
     if (!canAccessAdmin && checked) {
       return;
     }
-    
+
     setViewMode(checked ? 'admin' : 'user');
     if (checked) {
       navigate('/admin');

@@ -46,7 +46,7 @@ RETURNING request_id
 
 EXTEND_BOOKING_QUERY = """
 UPDATE lockerhub.bookings 
-SET end_date = $1, special_request_id = $2, updated_at = CURRENT_TIMESTAMP
+SET end_date = $1, extension_request_id = $2, updated_at = CURRENT_TIMESTAMP
 WHERE booking_id = $3
 """
 

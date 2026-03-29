@@ -23,6 +23,6 @@ export const floor4Layout: FloorLayout = {
 
     { id: 'restricted1', type: 'restricted', x: 30, y: 600, width: 1140, height: 370 },
   ],
-  
-  corridors: [] 
+
+  corridors: []
 }

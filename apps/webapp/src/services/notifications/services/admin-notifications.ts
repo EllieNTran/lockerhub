@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/apiClient';
 import { getUserIdFromToken } from '@/services/auth/services/tokens';
-import type { EntityType, NotificationScope, NotificationType } from '@/shared/types/notification';
+import type { EntityType, NotificationScope, NotificationType } from '@/types/notification';
 
 export interface SendOverdueKeyReturnReminderRequest {
   userId: string;
@@ -35,7 +35,7 @@ export async function sendOverdueKeyReturnReminder(
   data: SendOverdueKeyReturnReminderRequest
 ): Promise<SendOverdueKeyReturnReminderResponse> {
   const adminId = getUserIdFromToken();
-  
+
   if (!adminId) {
     throw new Error('Admin ID not found in token');
   }

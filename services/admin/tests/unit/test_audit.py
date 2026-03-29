@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import patch
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime
 
 
@@ -21,27 +21,29 @@ class TestGetAuditLogs:
 
         logs = [
             {
-                "audit_log_id": 1,
+                "audit_log_id": uuid4(),
                 "user_id": UUID("11111111-1111-1111-1111-111111111111"),
                 "user_name": "John Doe",
-                "action": "CREATE",
+                "user_role": "user",
+                "action": "create",
                 "entity_type": "booking",
                 "entity_id": UUID("22222222-2222-2222-2222-222222222222"),
                 "reference": "Booking created",
                 "old_value": None,
-                "new_value": "status: upcoming",
+                "new_value": {"status": "upcoming"},
                 "audit_date": datetime(2026, 3, 21, 10, 30, 0),
             },
             {
-                "audit_log_id": 2,
+                "audit_log_id": uuid4(),
                 "user_id": UUID("33333333-3333-3333-3333-333333333333"),
                 "user_name": "Jane Smith",
-                "action": "UPDATE",
+                "user_role": "admin",
+                "action": "update",
                 "entity_type": "locker",
                 "entity_id": UUID("44444444-4444-4444-4444-444444444444"),
                 "reference": "Locker status changed",
-                "old_value": "status: available",
-                "new_value": "status: maintenance",
+                "old_value": {"status": "available"},
+                "new_value": {"status": "maintenance"},
                 "audit_date": datetime(2026, 3, 21, 9, 15, 0),
             },
         ]
@@ -57,9 +59,8 @@ class TestGetAuditLogs:
             assert result.page == 1
             assert result.pages == 3
             assert result.limit == 12
-            assert result.logs[0].audit_log_id == 1
-            assert result.logs[0].action == "CREATE"
-            assert result.logs[1].action == "UPDATE"
+            assert result.logs[0].action == "create"
+            assert result.logs[1].action == "update"
 
     @pytest.mark.asyncio
     async def test_get_audit_logs_second_page(self, mock_db):
@@ -72,14 +73,15 @@ class TestGetAuditLogs:
 
         logs = [
             {
-                "audit_log_id": 13,
+                "audit_log_id": uuid4(),
                 "user_id": UUID("55555555-5555-5555-5555-555555555555"),
                 "user_name": "Admin User",
-                "action": "DELETE",
+                "user_role": "admin",
+                "action": "delete",
                 "entity_type": "key",
                 "entity_id": UUID("66666666-6666-6666-6666-666666666666"),
                 "reference": "Key deleted",
-                "old_value": "key_number: AA123",
+                "old_value": {"key_number": "AA123"},
                 "new_value": None,
                 "audit_date": datetime(2026, 3, 20, 14, 20, 0),
             },
@@ -128,15 +130,16 @@ class TestGetAuditLogs:
 
         logs = [
             {
-                "audit_log_id": 1,
+                "audit_log_id": uuid4(),
                 "user_id": UUID("11111111-1111-1111-1111-111111111111"),
                 "user_name": "Test User",
-                "action": "CREATE",
+                "user_role": "user",
+                "action": "create",
                 "entity_type": "booking",
                 "entity_id": UUID("22222222-2222-2222-2222-222222222222"),
                 "reference": "Test",
                 "old_value": None,
-                "new_value": "test",
+                "new_value": {"test": "data"},
                 "audit_date": datetime(2026, 3, 21, 10, 0, 0),
             },
         ]
@@ -164,15 +167,16 @@ class TestGetAuditLogs:
         for i in range(5):
             logs.append(
                 {
-                    "audit_log_id": i + 1,
+                    "audit_log_id": uuid4(),
                     "user_id": UUID("11111111-1111-1111-1111-111111111111"),
                     "user_name": f"User {i}",
-                    "action": "CREATE",
+                    "user_role": "user",
+                    "action": "create",
                     "entity_type": "booking",
                     "entity_id": UUID("22222222-2222-2222-2222-222222222222"),
                     "reference": f"Action {i}",
                     "old_value": None,
-                    "new_value": "test",
+                    "new_value": {"test": "data"},
                     "audit_date": datetime(2026, 3, 21, 10, i, 0),
                 }
             )
@@ -199,15 +203,16 @@ class TestGetAuditLogs:
 
         logs = [
             {
-                "audit_log_id": 1,
+                "audit_log_id": uuid4(),
                 "user_id": None,
                 "user_name": None,
-                "action": "SYSTEM",
+                "user_role": None,
+                "action": "update",
                 "entity_type": "booking",
                 "entity_id": UUID("11111111-1111-1111-1111-111111111111"),
                 "reference": "Automated status update",
-                "old_value": "status: upcoming",
-                "new_value": "status: active",
+                "old_value": {"status": "upcoming"},
+                "new_value": {"status": "active"},
                 "audit_date": datetime(2026, 3, 21, 0, 0, 0),
             },
         ]
@@ -221,7 +226,7 @@ class TestGetAuditLogs:
             assert len(result.logs) == 1
             assert result.logs[0].user_id is None
             assert result.logs[0].user_name is None
-            assert result.logs[0].action == "SYSTEM"
+            assert result.logs[0].action == "update"
 
     @pytest.mark.asyncio
     async def test_get_audit_logs_default_parameters(self, mock_db):
@@ -253,15 +258,16 @@ class TestGetAuditLogs:
 
         logs = [
             {
-                "audit_log_id": 26,
+                "audit_log_id": uuid4(),
                 "user_id": UUID("77777777-7777-7777-7777-777777777777"),
                 "user_name": "Last User",
-                "action": "UPDATE",
+                "user_role": "user",
+                "action": "update",
                 "entity_type": "locker",
                 "entity_id": UUID("88888888-8888-8888-8888-888888888888"),
                 "reference": "Final update",
-                "old_value": "test",
-                "new_value": "updated",
+                "old_value": {"test": "old"},
+                "new_value": {"test": "updated"},
                 "audit_date": datetime(2026, 3, 19, 10, 0, 0),
             },
         ]
@@ -288,38 +294,41 @@ class TestGetAuditLogs:
 
         logs = [
             {
-                "audit_log_id": 1,
+                "audit_log_id": uuid4(),
                 "user_id": UUID("11111111-1111-1111-1111-111111111111"),
                 "user_name": "User A",
-                "action": "CREATE",
+                "user_role": "user",
+                "action": "create",
                 "entity_type": "booking",
                 "entity_id": UUID("22222222-2222-2222-2222-222222222222"),
                 "reference": "Created",
                 "old_value": None,
-                "new_value": "new booking",
+                "new_value": {"booking": "new"},
                 "audit_date": datetime(2026, 3, 21, 10, 0, 0),
             },
             {
-                "audit_log_id": 2,
+                "audit_log_id": uuid4(),
                 "user_id": UUID("33333333-3333-3333-3333-333333333333"),
                 "user_name": "User B",
-                "action": "UPDATE",
+                "user_role": "admin",
+                "action": "update",
                 "entity_type": "locker",
                 "entity_id": UUID("44444444-4444-4444-4444-444444444444"),
                 "reference": "Updated",
-                "old_value": "old value",
-                "new_value": "new value",
+                "old_value": {"value": "old"},
+                "new_value": {"value": "new"},
                 "audit_date": datetime(2026, 3, 21, 9, 0, 0),
             },
             {
-                "audit_log_id": 3,
+                "audit_log_id": uuid4(),
                 "user_id": UUID("55555555-5555-5555-5555-555555555555"),
                 "user_name": "User C",
-                "action": "DELETE",
+                "user_role": "admin",
+                "action": "delete",
                 "entity_type": "key",
                 "entity_id": UUID("66666666-6666-6666-6666-666666666666"),
                 "reference": "Deleted",
-                "old_value": "deleted key",
+                "old_value": {"key": "deleted"},
                 "new_value": None,
                 "audit_date": datetime(2026, 3, 21, 8, 0, 0),
             },
@@ -332,8 +341,8 @@ class TestGetAuditLogs:
             result = await get_audit_logs()
 
             assert len(result.logs) == 3
-            assert result.logs[0].action == "CREATE"
-            assert result.logs[1].action == "UPDATE"
-            assert result.logs[2].action == "DELETE"
+            assert result.logs[0].action == "create"
+            assert result.logs[1].action == "update"
+            assert result.logs[2].action == "delete"
             assert result.logs[0].old_value is None
             assert result.logs[2].new_value is None

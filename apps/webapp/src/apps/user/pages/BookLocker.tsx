@@ -19,7 +19,7 @@ import type { Locker, AvailableLocker } from '@/types/locker';
 import { toast } from '@/components/ui/sonner';
 import Heading from '@/components/Heading';
 import { useAvailableLockers, useFloors, useCreateBooking, useJoinFloorQueue } from '@/services/bookings';
-import FloorDropdown from '@/shared/components/FloorDropdown';
+import FloorDropdown from '@/components/FloorDropdown';
 
 const BookLocker = () => {
   const navigate = useNavigate();
@@ -161,8 +161,8 @@ const BookLocker = () => {
 
             <div className="space-y-1">
               <label className="block text-xs font-medium text-grey">Floor</label>
-              <FloorDropdown 
-                value={selectedFloorId} 
+              <FloorDropdown
+                value={selectedFloorId}
                 onChange={setSelectedFloorId}
                 showAllOption={false}
                 className="min-w-[180px] font-normal"
@@ -202,7 +202,7 @@ const BookLocker = () => {
 
         {!startDate || !endDate ? (
           <div className="rounded-xl border border-grey-outline bg-card p-12 shadow-card text-center">
-            <p className="text-grey">Please select start and end dates to view available lockers</p>
+            <p className="text-grey">Select start and end dates to view available lockers</p>
           </div>
         ) : isLoading ? (
           <div className="rounded-xl border border-grey-outline bg-card p-12 shadow-card text-center">
@@ -234,8 +234,8 @@ const BookLocker = () => {
               </Button>
             </div>
             <TooltipProvider>
-              <SearchResults 
-                lockers={lockersWithSelection} 
+              <SearchResults
+                lockers={lockersWithSelection}
                 onSelectLocker={handleSelectLocker}
                 floorNumber={selectedFloor?.floor_number || ''}
               />
@@ -243,8 +243,8 @@ const BookLocker = () => {
           </>
         ) : (
           <TooltipProvider>
-            <SearchResults 
-              lockers={lockersWithSelection} 
+            <SearchResults
+              lockers={lockersWithSelection}
               onSelectLocker={handleSelectLocker}
               floorNumber={selectedFloor?.floor_number || ''}
             />
@@ -280,8 +280,8 @@ const BookLocker = () => {
             <Button variant="destructive" onClick={() => setConfirmOpen(false)} disabled={isCreatingBooking}>
               Cancel
             </Button>
-            <Button 
-              onClick={confirmBooking} 
+            <Button
+              onClick={confirmBooking}
               disabled={isCreatingBooking}
             >
               {isCreatingBooking ? 'Booking...' : 'Confirm Booking'}

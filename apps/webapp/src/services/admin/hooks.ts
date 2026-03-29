@@ -65,7 +65,7 @@ export const useAllBookings = () =>
 
 export const useCreateAdminBooking = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateAdminBookingData) => createAdminBooking(data),
     onSuccess: () => {
@@ -77,7 +77,7 @@ export const useCreateAdminBooking = () => {
 
 export const useCancelBooking = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (bookingId: string) => cancelBooking(bookingId),
     onSuccess: () => {
@@ -89,7 +89,7 @@ export const useCancelBooking = () => {
 
 export const useConfirmHandover = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ bookingId }: { bookingId: string }) =>
       confirmHandover(bookingId),
@@ -102,7 +102,7 @@ export const useConfirmHandover = () => {
 
 export const useConfirmReturn = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ bookingId }: { bookingId: string }) =>
       confirmReturn(bookingId),
@@ -129,7 +129,7 @@ export const useLockerStats = () =>
 
 export const useMarkLockerMaintenance = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (lockerId: string) => markLockerMaintenance(lockerId),
     onSuccess: () => {
@@ -142,7 +142,7 @@ export const useMarkLockerMaintenance = () => {
 
 export const useReportLostKey = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (lockerId: string) => reportLostKey(lockerId),
     onSuccess: () => {
@@ -155,7 +155,7 @@ export const useReportLostKey = () => {
 
 export const useOrderReplacementKey = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (lockerId: string) => orderReplacementKey(lockerId),
     onSuccess: () => {
@@ -168,7 +168,7 @@ export const useOrderReplacementKey = () => {
 
 export const useMarkLockerAvailable = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (lockerId: string) => markLockerAvailable(lockerId),
     onSuccess: () => {
@@ -181,7 +181,7 @@ export const useMarkLockerAvailable = () => {
 
 export const useUpdateLockerCoordinates = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ lockerId, x_coordinate, y_coordinate }: { lockerId: string; x_coordinate: number; y_coordinate: number }) =>
       updateLockerCoordinates(lockerId, x_coordinate, y_coordinate),
@@ -253,7 +253,7 @@ export const useBookingRules = () =>
 
 export const useUpdateBookingRules = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: UpdateBookingRulesData) => updateBookingRules(data),
     onSuccess: () => {
@@ -264,7 +264,7 @@ export const useUpdateBookingRules = () => {
 
 export const useUpdateFloorStatus = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ floorId, data }: { floorId: string; data: UpdateFloorStatusData }) =>
       updateFloorStatus(floorId, data),

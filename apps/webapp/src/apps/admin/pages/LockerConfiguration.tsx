@@ -38,7 +38,7 @@ const LockerConfiguration = () => {
 
   const { data: floors = [], isLoading: floorsLoading } = useFloors()
   const { data: allLockers = [], isLoading: lockersLoading } = useAllLockers()
-  
+
   const updateCoordinatesMutation = useUpdateLockerCoordinates()
 
   const layout = getFloorLayout(selectedFloor)
@@ -68,7 +68,7 @@ const LockerConfiguration = () => {
   const floorLockers = lockers.filter(l => {
     const floorFromNumber = getFloorFromLockerNumber(l.locker_number)
     if (!floorFromNumber) return false
-    
+
     // Special case: Floor 2 has lockers named L2W- which should match floor "2"
     if (floorFromNumber === '2W' && selectedFloor === '2') {
       return true
@@ -90,24 +90,24 @@ const LockerConfiguration = () => {
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-    
+
     if (!containerRef.current || !layout) return
 
     const lockerId = e.dataTransfer.getData('lockerId')
     const locker = floorLockers.find(l => l.locker_id === lockerId)
-    
+
     if (!locker) return
 
     const zoneId = getZoneFromLockerNumber(locker.locker_number)
     const zone = layout.zones.find(z => z.id === zoneId)
-    
+
     if (!zone) {
       toast.error('Locker zone not found in layout')
       return
     }
 
     const rect = containerRef.current.getBoundingClientRect()
-    
+
     // Calculate zone-relative coordinates
     const x = ((e.clientX - rect.left - rect.width / 2 - pan.x) / scale) + (layout.dimensions.width / 2)
     const y = ((e.clientY - rect.top - rect.height / 2 - pan.y) / scale) + (layout.dimensions.height / 2)
@@ -115,10 +115,10 @@ const LockerConfiguration = () => {
     const zoneRelativeY = Math.round(y - zone.y - 24)
 
     // Find other lockers in same zone for snapping
-    const sameZoneLockers = floorLockers.filter(l => 
-      l.locker_id !== lockerId && 
-      getZoneFromLockerNumber(l.locker_number) === zoneId && 
-      l.x_coordinate !== null && 
+    const sameZoneLockers = floorLockers.filter(l =>
+      l.locker_id !== lockerId &&
+      getZoneFromLockerNumber(l.locker_number) === zoneId &&
+      l.x_coordinate !== null &&
       l.y_coordinate !== null
     )
 
@@ -137,7 +137,7 @@ const LockerConfiguration = () => {
       // Snap to edges (for rows/columns)
       const rightEdge = otherX + LOCKER_SIZE + LOCKER_SPACING
       const bottomEdge = otherY + LOCKER_SIZE + LOCKER_SPACING
-      
+
       if (Math.abs(zoneRelativeX - rightEdge) <= SNAP_THRESHOLD) snappedX = rightEdge
       if (Math.abs(zoneRelativeX + LOCKER_SIZE + LOCKER_SPACING - otherX) <= SNAP_THRESHOLD) {
         snappedX = otherX - LOCKER_SIZE - LOCKER_SPACING
@@ -147,15 +147,15 @@ const LockerConfiguration = () => {
         snappedY = otherY - LOCKER_SIZE - LOCKER_SPACING
       }
     }
-    
+
     // Clamp to zone bounds
     const clampedX = Math.max(LOCKER_SPACING, Math.min(snappedX, zone.width - LOCKER_SIZE - LOCKER_SPACING))
     const clampedY = Math.max(ZONE_LABEL_HEIGHT + LOCKER_SPACING, Math.min(snappedY, zone.height - LOCKER_SIZE - LOCKER_SPACING))
 
-    setLockers(prev => prev.map(l => 
+    setLockers(prev => prev.map(l =>
       l.locker_id === lockerId ? { ...l, x_coordinate: clampedX, y_coordinate: clampedY } : l
     ))
-    
+
     setHasChanges(true)
     setDraggingLocker(null)
   }, [floorLockers, layout, scale, pan])
@@ -185,7 +185,7 @@ const LockerConfiguration = () => {
     const target = e.target as HTMLElement
     if (target.closest('[draggable="true"]')) return
     if (draggingLocker) return
-    
+
     e.preventDefault()
     setIsPanning(true)
     setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y })
@@ -193,7 +193,7 @@ const LockerConfiguration = () => {
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isPanning) return
-    
+
     setPan({
       x: e.clientX - panStart.x,
       y: e.clientY - panStart.y,
@@ -348,7 +348,7 @@ const LockerConfiguration = () => {
                     {floorLockers.map((locker) => {
                       const zoneId = getZoneFromLockerNumber(locker.locker_number)
                       const zone = layout.zones.find(z => z.id === zoneId)
-                      
+
                       if (!zone) return null
 
                       const absoluteX = zone.x + (locker.x_coordinate || 0)

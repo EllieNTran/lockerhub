@@ -172,7 +172,7 @@ const Login = () => {
             <CardFooter className="flex flex-col space-y-4">
               <Button type="submit" className="w-full" disabled={loginMutation.isPending || requestPasswordResetMutation.isPending}>
                 {loginMutation.isPending || requestPasswordResetMutation.isPending
-                  ? (showForgotPassword ? 'Sending...' : 'Signing in...') 
+                  ? (showForgotPassword ? 'Sending...' : 'Signing in...')
                   : (showForgotPassword ? 'Send Reset Link' : 'Sign in')}
               </Button>
               {showForgotPassword ? (
