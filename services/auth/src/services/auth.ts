@@ -216,10 +216,10 @@ export const refresh = async (refreshToken: string): Promise<RefreshResponse> =>
  * Logout user
  */
 export const logout = async (refreshToken: string): Promise<LogoutResponse> => {
+  // Handle empty token gracefully - client-side cleanup is sufficient
   if (!refreshToken) {
-    const error = new Error('Refresh token is required') as AppError
-    error.status = 400
-    throw error
+    logger.info('Logout called without refresh token')
+    return { message: 'Logged out successfully' }
   }
 
   try {
