@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CalendarDays, KeyRound, Undo2 } from 'lucide-react'
+import { Link } from 'react-router';
 import AdminLayout from '../layout/AdminLayout';
 import Heading from '@/components/Heading';
 import StatCard from '../components/StatCard';
@@ -15,6 +16,7 @@ import { formatDateRange } from '@/utils/date-format';
 import type { AdminBookingDetail } from '@/types/booking';
 import StaffTooltip from '../components/StaffTooltip';
 import Filters from '../components/Filters';
+import { Button } from '@/components/ui/button';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -129,7 +131,19 @@ const Bookings = () => {
                       <TableCell className="font-medium text-dark-blue pl-8">
                         <StaffTooltip booking={booking} />
                       </TableCell>
-                      <TableCell>{booking.locker_number}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          asChild
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-auto p-0 text-grey"
+                        >
+                          <Link to={`/admin/lockers?locker=${booking.locker_number}`}>
+                            {booking.locker_number}
+                          </Link>
+                        </Button>
+                      </TableCell>
                       <TableCell>Floor {booking.floor_number}</TableCell>
                       <TableCell>{formatDateRange(booking.start_date, booking.end_date)}</TableCell>
                       <TableCell>
