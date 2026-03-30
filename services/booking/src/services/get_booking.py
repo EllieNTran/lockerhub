@@ -40,15 +40,13 @@ async def get_booking(user_id: str, booking_id: str) -> BookingResponse:
         booking = await db.fetchrow(GET_BOOKING_QUERY, booking_id)
 
         if not booking:
-            logger.warning(f"Booking {booking_id} not found for user {user_id}")
+            logger.warning("Booking not found for user")
             raise ValueError("Booking not found")
         if str(booking["user_id"]) != user_id:
-            logger.warning(
-                f"User {user_id} attempted to access booking {booking_id} not owned by them"
-            )
+            logger.warning("User attempted to access booking not owned by them")
             raise ValueError("Unauthorized")
 
-        logger.info(f"Retrieved booking {booking_id} for user {user_id}")
+        logger.info("Retrieved booking for user")
         return BookingResponse(**dict(booking))
     except Exception:
         logger.error("Error retrieving booking for user")
