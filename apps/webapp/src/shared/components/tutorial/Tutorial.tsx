@@ -16,18 +16,14 @@ const Tutorial = ({ mode, hasSeenTutorial, isAdmin }: TutorialProps) => {
   const completeTutorialMutation = useCompleteTutorial();
 
   useEffect(() => {
-    if (!hasSeenTutorial && !runTour && !hasCompletedTutorial) {
-      if (isAdmin && mode === 'user') {
-        setTourMode('user');
-        setRunTour(true);
-      }
-      else if (!isAdmin && mode === 'user') {
-        setTourMode('user');
-        setRunTour(true);
-      }
+    if (hasSeenTutorial || runTour || hasCompletedTutorial) {
+      return;
     }
 
-    if (isAdmin && mode === 'admin' && !hasSeenTutorial && !runTour && !hasCompletedTutorial) {
+    if (mode === 'user') {
+      setTourMode('user');
+      setRunTour(true);
+    } else if (mode === 'admin' && isAdmin) {
       setTourMode('admin');
       setRunTour(true);
     }
@@ -35,8 +31,15 @@ const Tutorial = ({ mode, hasSeenTutorial, isAdmin }: TutorialProps) => {
 
   const handleJoyrideEvent = (data: EventData, _controls: Controls) => {
     const { status, action } = data;
-    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
+    if (action === ACTIONS.SKIP || action === ACTIONS.CLOSE) {
+      setRunTour(false);
+      setHasCompletedTutorial(true);
+      completeTutorialMutation.mutate();
+      return;
+    }
+
+    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
     if (finishedStatuses.includes(status)) {
       setRunTour(false);
 
@@ -49,18 +52,6 @@ const Tutorial = ({ mode, hasSeenTutorial, isAdmin }: TutorialProps) => {
         setHasCompletedTutorial(true);
         completeTutorialMutation.mutate();
       }
-    }
-
-    if (action === ACTIONS.SKIP) {
-      setRunTour(false);
-      setHasCompletedTutorial(true);
-      completeTutorialMutation.mutate();
-    }
-
-    if (action === ACTIONS.CLOSE) {
-      setRunTour(false);
-      setHasCompletedTutorial(true);
-      completeTutorialMutation.mutate();
     }
   };
 
