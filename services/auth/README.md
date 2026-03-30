@@ -38,12 +38,26 @@ npm test
 ## API Endpoints
 
 ### Authentication
+- `POST /auth/signup` - Register new user
 - `POST /auth/login` - Login and receive tokens
 - `POST /auth/refresh` - Refresh access token
 - `POST /auth/logout` - Logout user
-
-### Public Keys
 - `GET /auth/.well-known/jwks.json` - JWKS endpoint for token verification
+
+### Password Reset
+- `POST /auth/password-reset/request` - Request password reset email
+- `POST /auth/password-reset/reset` - Reset password using token
+- `GET /auth/password-reset/validate/:token` - Validate reset token
+
+### Metadata
+- `GET /auth/metadata/departments` - Get all departments
+- `GET /auth/metadata/offices` - Get all office locations
+- `POST /auth/metadata/check-account` - Check account status
+- `GET /auth/metadata/validate-staff-number/:staffNumber` - Validate staff number availability
+
+### Tutorial
+- `GET /auth/tutorial/status` - Get tutorial status (requires auth)
+- `PATCH /auth/tutorial/complete` - Mark tutorial as completed (requires auth)
 
 ### Health
 - `GET /health` - Health check

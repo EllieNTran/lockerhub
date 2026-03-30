@@ -66,14 +66,43 @@ All endpoints require JWT authentication: `Authorization: Bearer <token>`
 **Bookings**
 - `POST /bookings` - Create booking
 - `GET /bookings` - Get user's bookings
-- `GET /bookings/{id}` - Get specific booking
-- `PUT /bookings/{id}` - Update booking (shorten only)
-- `DELETE /bookings/{id}` - Delete booking
-- `POST /bookings/{id}/extend` - Request extension
+- `GET /bookings/floors` - Get all open floors
+- `GET /bookings/{booking_id}` - Get specific booking
+- `PUT /bookings/{booking_id}` - Update booking (shorten only)
+- `PUT /bookings/{booking_id}/cancel` - Cancel booking
+- `DELETE /bookings/{booking_id}/special-requests` - Delete special request
+- `POST /bookings/{booking_id}/extend` - Request extension
+
+**Special Requests**
+- `POST /bookings/special-requests` - Create special request
+- `GET /bookings/special-requests` - Get user's special requests
 
 **Availability**
 - `GET /bookings/lockers/available` - Get available lockers for floor/dates
-- `GET /bookings/lockers/{id}/availability` - Check specific locker availability
+- `GET /bookings/lockers/{locker_id}/availability` - Check specific locker availability
+
+**Waitlist**
+- `POST /bookings/waitlist/join` - Join floor queue
+- `POST /bookings/queues/process` - Process floor queues (scheduled job)
+
+**Booking Rules**
+- `GET /bookings/booking-rule/{rule_type}` - Get specific booking rule
 
 **Health**
 - `GET /health` - Health check
+
+## Scheduled Jobs
+
+Automated tasks run via APScheduler:
+
+- **Update Booking Statuses** - Daily at 00:00
+  - Transitions bookings from `upcoming` to `active` when start date arrives
+  - Updates locker and key status to `reserved`
+
+- **Expire Overdue Bookings** - Daily at 00:00
+  - Expires bookings past their end date
+  - Resets locker/key status to `available`
+
+- **Send Key Return Reminders** - Daily at 09:00
+  - Emails users whose bookings end today
+  - Reminds them to return keys
