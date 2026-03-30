@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button'
 import { useAllLockers } from '@/services/admin'
 import type { Locker } from '@/types/locker'
 import Filters from '../components/Filters'
+import PageTour from '@/components/tutorial/PageTour';
+import { ADMIN_LOCKERS_STEPS } from '@/components/tutorial/steps';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -90,29 +92,31 @@ const Lockers = () => {
             title="Lockers"
             description="View, search and update locker statuses."
           />
-          <Button variant="highlight" onClick={() => setCreateDialogOpen(true)}>
+          <Button variant="highlight" onClick={() => setCreateDialogOpen(true)} data-tour="admin-lockers-create-btn">
             <Plus className="mr-1 h-4 w-4" />
             Create Locker
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-tour="admin-lockers-stats">
           <StatCard label="Total Lockers" value={totalLockers} icon={Lock} color="blue" />
           <StatCard label="Available" value={availableLockers} icon={CircleCheckBig} color="green" />
           <StatCard label="Under Maintenance" value={maintenanceLockers} icon={Wrench} color="red" />
         </div>
 
-        <Filters
-          statusOptions={STATUS_OPTIONS}
-          placeholder="Search by locker number or key number..."
-          searchQuery={searchQuery}
-          floorFilter={floorFilter}
-          statusFilter={statusFilter}
-          onSearchChange={setSearchQuery}
-          onFloorChange={setFloorFilter}
-          onStatusChange={setStatusFilter}
-        />
+        <div data-tour="admin-lockers-filters">
+          <Filters
+            statusOptions={STATUS_OPTIONS}
+            placeholder="Search by locker number or key number..."
+            searchQuery={searchQuery}
+            floorFilter={floorFilter}
+            statusFilter={statusFilter}
+            onSearchChange={setSearchQuery}
+            onFloorChange={setFloorFilter}
+            onStatusChange={setStatusFilter}
+          />
+        </div>
 
-        <div className="rounded-xl border border-grey-outline bg-white shadow-sm">
+        <div className="rounded-xl border border-grey-outline bg-white shadow-sm" data-tour="admin-lockers-table">
           <Table>
             <TableHeader>
               <TableRow>
@@ -132,11 +136,12 @@ const Lockers = () => {
                   </TableCell>
                 </TableRow>
               ) : paginatedFilteredLockers.length > 0 ? (
-                paginatedFilteredLockers.map((locker) => (
+                paginatedFilteredLockers.map((locker, index) => (
                   <TableRow
                     key={locker.locker_id}
                     onClick={() => handleLockerClick(locker)}
                     className="cursor-pointer hover:bg-grey-background"
+                    data-tour={index === 0 ? 'admin-locker-row' : undefined}
                   >
                     <TableCell className="font-medium text-dark-blue pl-8">{locker.locker_number}</TableCell>
                     <TableCell>{locker.floor_number || 'N/A'}</TableCell>
@@ -186,6 +191,7 @@ const Lockers = () => {
         isOpen={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
+      <PageTour steps={ADMIN_LOCKERS_STEPS} pageName="Admin Lockers" />
     </AdminLayout>
   );
 };

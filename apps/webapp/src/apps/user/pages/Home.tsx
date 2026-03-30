@@ -135,11 +135,11 @@ const Home = () => {
               </div>
             </div>
             {isLoadingBookings ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center flex-1">
+              <div className="flex flex-col items-center justify-center py-18 text-center flex-1">
                 <p className="text-sm text-grey">Loading bookings...</p>
               </div>
             ) : upcomingBookings.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center flex-1">
+              <div className="flex flex-col items-center justify-center py-18 text-center flex-1">
                 <CalendarDays className="h-10 w-10 text-grey/40 mb-3" />
                 <p className="text-sm text-grey">No upcoming bookings</p>
                 <p className="text-xs text-grey/60 mt-1">

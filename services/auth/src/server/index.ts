@@ -8,6 +8,7 @@ import { notFoundHandler } from '../middleware/not-found'
 import authRoutes from '../routes/auth'
 import passwordResetRoutes from '../routes/password-reset'
 import metadataRoutes from '../routes/metadata'
+import tutorialRoutes from '../routes/tutorial'
 import logger from '../logger'
 import { fromEnv } from '../constants'
 
@@ -44,6 +45,7 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/auth', authRoutes)
 app.use('/auth/password-reset', passwordResetRoutes)
 app.use('/auth/metadata', metadataRoutes)
+app.use('/auth/tutorial', tutorialRoutes)
 
 app.use(notFoundHandler)
 app.use(errorHandler)

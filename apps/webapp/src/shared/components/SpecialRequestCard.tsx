@@ -95,7 +95,7 @@ const SpecialRequestCard = ({ specialRequest, onCancel, onReview, isAdmin = fals
 
   return (
     <>
-        <div className='flex flex-col gap-3 rounded-lg border border-grey-outline bg-white p-5'>
+        <div className='flex flex-col gap-3 rounded-lg border border-grey-outline bg-white p-5' data-tour={isAdmin ? 'admin-special-request-card' : undefined}>
           <div className='flex items-start justify-between gap-4'>
             <div className='flex items-start gap-4'>
               <div className={`flex items-center justify-center rounded-lg bg-${statusColor}-foreground text-${statusColor} font-bold shrink-0 h-12 w-12 text-m`}>
@@ -133,7 +133,7 @@ const SpecialRequestCard = ({ specialRequest, onCancel, onReview, isAdmin = fals
 
             <div className='flex'>
               {specialRequest.status === 'pending' && isAdmin && (
-                <div className='flex gap-3'>
+                <div className='flex gap-3' data-tour="admin-special-request-actions">
                   <Button variant='outline' size='sm' textColor='text-green' className='text-xs' onClick={() => onReview?.(true)}>
                     <CircleCheck className='h-3 w-3' />
                     Approve
@@ -146,7 +146,14 @@ const SpecialRequestCard = ({ specialRequest, onCancel, onReview, isAdmin = fals
               )}
 
               {['pending', 'approved'].includes(specialRequest.status) && !isAdmin && (
-                <Button variant='outline' size='sm' textColor='text-red' className='text-xs' onClick={onCancel}>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  textColor='text-red'
+                  className='text-xs'
+                  onClick={onCancel}
+                  data-tour="cancel-btn"
+                >
                   <CircleX className='h-3 w-3' />
                   Cancel
                 </Button>

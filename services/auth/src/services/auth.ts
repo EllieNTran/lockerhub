@@ -3,8 +3,7 @@ import { generateAccessToken, generateRefreshToken, verifyToken } from './token'
 import { findUserByEmail, findUserById, createUser } from './users'
 import { blacklistToken, isTokenBlacklisted } from './token-blacklist'
 import logger from '../logger'
-import type { AppError } from '../types'
-import type { SignupResponse, LoginResponse, RefreshResponse, LogoutResponse } from '../types'
+import type { AppError, SignupResponse, LoginResponse, RefreshResponse, LogoutResponse } from '../types'
 
 /** * Register a new user
  */

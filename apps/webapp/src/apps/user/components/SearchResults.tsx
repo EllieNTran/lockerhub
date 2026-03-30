@@ -100,7 +100,7 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
             </>
           )}
 
-          <div className="ml-2 h-8">
+          <div className="ml-2 h-8" data-tour="view-toggle">
             <SlidingToggle
               options={[
                 { value: 'floor', label: 'Floor', icon: <Map className="h-3.5 w-3.5" /> },

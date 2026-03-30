@@ -68,12 +68,12 @@ const BookingCard = ({ booking, variant = 'small', onExtend, onCancel }: Booking
       {isLarge && (booking.booking_status === 'active' || booking.booking_status === 'upcoming') && (
         <div className="flex gap-3">
           {!booking.special_request_id && (
-            <Button variant="outline" size="sm" textColor="text-dark-blue" onClick={onExtend} className="text-xs">
+            <Button variant="outline" size="sm" textColor="text-dark-blue" onClick={onExtend} className="text-xs" data-tour="extend-btn">
               <CalendarPlus className="h-3 w-3" />
               Extend
             </Button>
           )}
-          <Button variant="outline" size="sm" textColor="text-red" onClick={onCancel} className="text-xs">
+          <Button variant="outline" size="sm" textColor="text-red" onClick={onCancel} className="text-xs" data-tour="cancel-btn">
             <CircleX className="h-3 w-3" />
             Cancel
           </Button>

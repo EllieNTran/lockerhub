@@ -18,8 +18,10 @@ import { Button } from '@/components/ui/button';
 import { format, addDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import type { Booking } from '@/types/booking';
+import PageTour from '@/components/tutorial/PageTour';
+import { MY_BOOKINGS_STEPS } from '@/components/tutorial/steps';
 
-const BOOKINGS_PER_PAGE = 12;
+const BOOKINGS_PER_PAGE = 10;
 
 const MyBookings = () => {
   const [extendOpen, setExtendOpen] = useState(false);
@@ -150,7 +152,7 @@ const MyBookings = () => {
         </div>
 
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-6">
+          <TabsList className="mb-6" data-tour="bookings-tabs">
             {tabs.map((tab) => {
               const count = filterBookings(tab.value).length;
               return (
@@ -176,14 +178,15 @@ const MyBookings = () => {
                 <>
                   <div className="space-y-4 min-h-[400px]">
                     {getPaginatedBookings(tab.value).length > 0 ? (
-                      getPaginatedBookings(tab.value).map((booking) => (
-                        <BookingCard
-                          key={booking.booking_id}
-                          booking={booking}
-                          variant="large"
-                          onExtend={() => handleExtend(booking.booking_id)}
-                          onCancel={() => handleCancel(booking.booking_id)}
-                        />
+                      getPaginatedBookings(tab.value).map((booking, index) => (
+                        <div key={booking.booking_id} data-tour={index === 0 ? 'booking-card' : undefined}>
+                          <BookingCard
+                            booking={booking}
+                            variant="large"
+                            onExtend={() => handleExtend(booking.booking_id)}
+                            onCancel={() => handleCancel(booking.booking_id)}
+                          />
+                        </div>
                       ))
                     ) : (
                       <div className="flex flex-col items-center justify-center py-12 text-center text-grey/40">
@@ -326,6 +329,7 @@ const MyBookings = () => {
       </Dialog>
 
       </div>
+      <PageTour steps={MY_BOOKINGS_STEPS} pageName="My Bookings" />
     </UserLayout>
   );
 };

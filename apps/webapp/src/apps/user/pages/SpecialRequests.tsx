@@ -7,6 +7,8 @@ import { FileText, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserSpecialRequests, useDeleteSpecialRequest } from '@/services/bookings';
 import { toast } from '@/components/ui/sonner';
+import { SPECIAL_REQUEST_STEPS } from '@/shared/components/tutorial/steps';
+import PageTour from '@/shared/components/tutorial/PageTour';
 
 const SpecialRequests = () => {
   const navigate = useNavigate();
@@ -45,14 +47,18 @@ const SpecialRequests = () => {
             title="Special Requests"
             description="Submit a special request for bookings longer than 3 days or permanent allocation."
           />
-          <Button variant="highlight" onClick={() => navigate('/user/special-request/new')}>
+          <Button
+            variant="highlight"
+            onClick={() => navigate('/user/special-request/new')}
+            data-tour="new-special-request-btn"
+          >
             <Plus className="mr-1 h-4 w-4" />
             New Request
           </Button>
         </div>
 
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-6">
+          <TabsList className="mb-6" data-tour="special-requests-tabs">
             {tabs.map((tab) => {
               const count = filterRequests(tab.value).length;
               return (
@@ -77,12 +83,14 @@ const SpecialRequests = () => {
               ) : (
                 <div className="space-y-4 min-h-[400px]">
                   {filterRequests(tab.value).length > 0 ? (
-                    filterRequests(tab.value).map((request) => (
-                      <SpecialRequestCard
-                        key={request.request_id}
-                        specialRequest={request}
-                        onCancel={() => handleCancel(request.request_id)}
-                      />
+                    filterRequests(tab.value).map((request, index) => (
+                      <div key={request.request_id} data-tour={index === 0 ? 'special-request-card' : undefined}>
+                        <SpecialRequestCard
+                          key={request.request_id}
+                          specialRequest={request}
+                          onCancel={() => handleCancel(request.request_id)}
+                        />
+                      </div>
                     ))
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center text-grey/40">
@@ -97,6 +105,7 @@ const SpecialRequests = () => {
         </Tabs>
       </main>
       </div>
+      <PageTour steps={SPECIAL_REQUEST_STEPS} pageName="Special Requests" />
     </UserLayout>
   );
 };

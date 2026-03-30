@@ -103,11 +103,11 @@ const Header = ({ showNav = true }: HeaderProps) => {
           </div>
           {showNav && !isAdminRoute && (
             <nav className="flex items-center gap-5 ml-4">
-              <NavLink to="/user" end className={linkClass}>Home</NavLink>
-              <NavLink to="/user/book" className={linkClass}>Book a Locker</NavLink>
-              <NavLink to="/user/my-bookings" className={linkClass}>My Bookings</NavLink>
-              <NavLink to="/user/special-request" className={linkClass}>Special Request</NavLink>
-              <NavLink to="/user/return-key" className={linkClass}>Return Key Instructions</NavLink>
+              <NavLink to="/user" end className={linkClass} data-tour="nav-home">Home</NavLink>
+              <NavLink to="/user/book" className={linkClass} data-tour="nav-book">Book a Locker</NavLink>
+              <NavLink to="/user/my-bookings" className={linkClass} data-tour="nav-bookings">My Bookings</NavLink>
+              <NavLink to="/user/special-request" className={linkClass} data-tour="nav-special-request">Special Request</NavLink>
+              <NavLink to="/user/return-key" className={linkClass} data-tour="nav-return-key">Return Key Instructions</NavLink>
             </nav>
           )}
         </div>
@@ -116,7 +116,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
           {showNav && (
             <div className="flex items-center gap-3">
               {canAccessAdmin && (
-                <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
+                <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5" data-tour="view-mode-toggle">
                   <User className={cn('h-3.5 w-3.5 transition-colors', !isAdmin ? 'text-white' : 'text-primary-foreground/80')} />
                   <span className={cn('text-xs transition-colors', !isAdmin ? 'text-white font-medium' : 'text-primary-foreground/80')}>
                     User
@@ -141,6 +141,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
               className="text-white hover:text-primary-foreground [&_svg]:!size-5 pr-0"
               onClick={handleLogout}
               disabled={logoutMutation.isPending}
+              data-tour="logout-btn"
             >
               <LogOut />
             </Button>

@@ -9,6 +9,8 @@ import { useLockerUsage, useTopDepartments, useMostPopularFloors, type Period } 
 import FloorDropdown from '@/components/FloorDropdown';
 import CustomDropdown from '@/components/CustomDropdown';
 import DepartmentDropdown from '@/components/DepartmentDropdown';
+import PageTour from '@/components/tutorial/PageTour';
+import { ADMIN_ANALYTICS_STEPS } from '@/components/tutorial/steps';
 
 const chartConfig = {
   occupied: {
@@ -85,7 +87,7 @@ const LockerAnalytics = () => {
           description="Detailed locker usage insights by date, department and floor."
         />
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4" data-tour="admin-analytics-period-filter">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-5 stroke-3 text-grey" />
             <p>Filter</p>
@@ -100,7 +102,7 @@ const LockerAnalytics = () => {
           />
         </div>
 
-        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-6">
+        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-6" data-tour="admin-analytics-usage-chart">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-medium">Locker Usage</h3>
             <div className="flex items-center gap-4">
@@ -146,7 +148,7 @@ const LockerAnalytics = () => {
                   tickMargin={8}
                   className="text-grey"
                   allowDecimals={false}
-                  domain={[0, (dataMax: number) => Math.ceil(dataMax)]}
+                  domain={[0, 'auto']}
                 />
                 <ChartTooltip
                   content={
@@ -182,7 +184,7 @@ const LockerAnalytics = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
-          <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-6">
+          <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-6" data-tour="admin-analytics-top-departments">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-medium">Top Departments</h3>
               <FloorDropdown value={topDeptFloorFilter} onChange={setTopDeptFloorFilter} />
@@ -225,7 +227,7 @@ const LockerAnalytics = () => {
             )}
           </div>
 
-          <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-6">
+          <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-6" data-tour="admin-analytics-popular-floors">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-medium">Most Popular Floors</h3>
               <DepartmentDropdown value={topFloorDeptFilter} onChange={setTopFloorDeptFilter} />
@@ -264,6 +266,7 @@ const LockerAnalytics = () => {
           </div>
         </div>
       </main>
+      <PageTour steps={ADMIN_ANALYTICS_STEPS} pageName="Admin Analytics" />
     </AdminLayout>
   );
 };

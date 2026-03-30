@@ -10,6 +10,7 @@ export interface AuthUser {
   role: UserRole
   created_at: string
   updated_at: string
+  has_seen_tutorial: boolean
 }
 
 export interface CreateUserData {

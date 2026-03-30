@@ -11,6 +11,8 @@ import ColorBadge from '@/components/ColorBadge';
 import type { AuditLog, AuditAction, EntityType } from '@/types/audit';
 import type { UserRole } from '@/types/auth';
 import { useAuditLogs } from '@/services/admin';
+import PageTour from '@/components/tutorial/PageTour';
+import { ADMIN_AUDIT_LOGS_STEPS } from '@/components/tutorial/steps';
 
 const ACTION_OPTIONS: { value: AuditAction; label: string }[] = [
   { value: 'create', label: 'Create' },
@@ -131,13 +133,15 @@ const AuditLogs = () => {
           description="Complete history of all actions across the system."
         />
         <div className='flex items-center justify-between gap-4'>
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search employee name or entity reference..."
-            className='flex-1'
-          />
-          <div className='flex items-center gap-3'>
+          <div data-tour="admin-audit-logs-search" className='flex-1'>
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search employee name or entity reference..."
+              className='flex-1'
+            />
+          </div>
+          <div className='flex items-center gap-3' data-tour="admin-audit-logs-filters">
             <CustomDropdown
               value={actionFilter}
               onChange={setActionFilter}
@@ -161,7 +165,7 @@ const AuditLogs = () => {
             />
           </div>
         </div>
-        <div className="rounded-xl border border-grey-outline bg-white shadow-sm">
+        <div className="rounded-xl border border-grey-outline bg-white shadow-sm" data-tour="admin-audit-logs-table">
           <Table>
             <TableHeader>
               <TableRow>
@@ -181,8 +185,8 @@ const AuditLogs = () => {
                   </TableCell>
                 </TableRow>
               ) : auditLogs.length > 0 ? (
-                auditLogs.map((log) => (
-                  <TableRow key={log.audit_log_id}>
+                auditLogs.map((log, index) => (
+                  <TableRow key={log.audit_log_id} data-tour={index === 0 ? 'admin-audit-log-row' : undefined}>
                     <TableCell className="pl-8">
                       <div className="flex flex-col">
                         <span className="font-medium text-dark-blue">{format(new Date(log.audit_date), 'd MMM yyyy')}</span>
@@ -224,6 +228,7 @@ const AuditLogs = () => {
           className="mt-4 mb-4"
         />
       </main>
+      <PageTour steps={ADMIN_AUDIT_LOGS_STEPS} pageName="Admin Audit Logs" />
     </AdminLayout>
   );
 };
