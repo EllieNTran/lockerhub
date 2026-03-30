@@ -1,0 +1,1 @@
+ALTER TABLE lockerhub.users ADD COLUMN IF NOT EXISTS has_seen_tutorial BOOLEAN DEFAULT FALSE;

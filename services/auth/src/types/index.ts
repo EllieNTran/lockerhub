@@ -4,6 +4,8 @@ export * from './token'
 export * from './user'
 export * from './notifications'
 
+import type { Request } from 'express'
+
 // Common types
 export interface AppError extends Error {
   status?: number;
@@ -16,4 +18,15 @@ export interface QueryResult<T = unknown> {
   rowCount: number | null;
   command: string;
   fields: unknown[];
+}
+
+export interface RequestUser {
+  userId: string;
+  email: string;
+  role: string;
+  departmentId?: string | null;
+}
+
+export interface AuthenticatedRequest extends Request {
+  user?: RequestUser;
 }

@@ -13,6 +13,8 @@ import { useBookingRules, useUpdateBookingRules, useUpdateFloorStatus, useAllFlo
 import ColorBadge from '@/components/ColorBadge';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import type { FloorWithLockerCount } from '@/types/floor';
+import PageTour from '@/components/tutorial/PageTour';
+import { ADMIN_BOOKING_RULES_STEPS } from '@/components/tutorial/steps';
 import {
   Dialog,
   DialogContent,
@@ -200,6 +202,7 @@ const BookingRules = () => {
             onClick={save}
             className="gap-2"
             disabled={!hasChanges || updateBookingRulesMutation.isPending}
+            data-tour="admin-booking-rules-save-btn"
           >
             {saved ? <CheckCircle className="h-4 w-4" /> : <Save className="h-4 w-4" />}
             {updateBookingRulesMutation.isPending
@@ -210,7 +213,7 @@ const BookingRules = () => {
             }
           </Button>
         </div>
-        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-7">
+        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-7" data-tour="admin-booking-rules-constraints">
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center">
               <Settings className="mr-2 h-5 w-5 text-primary" />
@@ -265,15 +268,15 @@ const BookingRules = () => {
           </div>
         </div>
 
-        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-7 mt-8">
+        <div className="bg-white border border-grey-outline rounded-lg shadow-sm p-7 mt-8" data-tour="admin-booking-rules-floor-access">
           <div className="flex items-center gap-2 mb-4">
             <LockKeyhole className="mr-2 h-5 w-5 text-primary" />
             <h3 className="font-medium">Floor Booking Access</h3>
           </div>
           <div>
-            {floors?.map((floor) => (
+            {floors?.map((floor, index) => (
               <div key={floor.floor_id} className="flex flex-col py-2">
-                <div className="bg-background p-4 w-full rounded-lg border border-grey-outline">
+                <div className="bg-background p-4 w-full rounded-lg border border-grey-outline" data-tour={index === 0 ? 'admin-booking-rules-floor-row' : undefined}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <p className="text-sm font-medium text-dark-blue">Floor {floor.floor_number}</p>
@@ -397,6 +400,7 @@ const BookingRules = () => {
         </DialogContent>
       </Dialog>
 
+      <PageTour steps={ADMIN_BOOKING_RULES_STEPS} pageName="Admin Booking Rules" />
     </AdminLayout>
   );
 };

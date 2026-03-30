@@ -18,6 +18,8 @@ import { getZoneFromLockerNumber, getFloorFromLockerNumber } from '@/utils/locke
 import { useFloors } from '@/services/bookings';
 import { DraggableLocker } from '../components/DraggableLocker'
 import Heading from '@/components/Heading'
+import PageTour from '@/components/tutorial/PageTour';
+import { ADMIN_LOCKER_CONFIG_STEPS } from '@/components/tutorial/steps';
 
 const LOCKER_SIZE = 48
 const LOCKER_SPACING = 8
@@ -263,39 +265,46 @@ const LockerConfiguration = () => {
             />
           </div>
           <div className="flex items-center gap-3">
-            <Select value={selectedFloor} onValueChange={setSelectedFloor}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select floor" />
-              </SelectTrigger>
-              <SelectContent>
-                {floors.map((floor) => (
-                  <SelectItem key={floor.floor_id} value={floor.floor_number}>
-                    Floor {floor.floor_number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <ZoomControls
-              scale={scale}
-              onZoomIn={handleZoomIn}
-              onZoomOut={handleZoomOut}
-            />
-            <Button
-              variant="outline"
-              disabled={!hasChanges}
-              onClick={handleReset}
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Reset
-            </Button>
-            <Button
-              variant="highlight"
-              disabled={!hasChanges}
-              onClick={handleSave}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
+            <div data-tour="admin-locker-config-floor-selector">
+              <Select value={selectedFloor} onValueChange={setSelectedFloor}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select floor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {floors.map((floor) => (
+                    <SelectItem key={floor.floor_id} value={floor.floor_number}>
+                      Floor {floor.floor_number}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div data-tour="admin-locker-config-zoom">
+              <ZoomControls
+                scale={scale}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+              />
+            </div>
+            <div data-tour="admin-locker-config-actions">
+              <Button
+                variant="outline"
+                disabled={!hasChanges}
+                onClick={handleReset}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset
+              </Button>
+              <Button
+                variant="highlight"
+                disabled={!hasChanges}
+                onClick={handleSave}
+                className="ml-3"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -328,6 +337,7 @@ const LockerConfiguration = () => {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseLeave}
+              data-tour="admin-locker-config-canvas"
             >
               {layout ? (
                 <div
@@ -383,10 +393,11 @@ const LockerConfiguration = () => {
           )}
 
           <div className="mt-4 text-xs text-grey">
-            <p>Drag lockers to reposition them. Click and drag the canvas to pan. Use mouse wheel or zoom controls to zoom in/out. Changes are zone-relative.</p>
+            <p>Drag lockers to reposition them. Changes are zone-relative.</p>
           </div>
         </div>
       </div>
+      <PageTour steps={ADMIN_LOCKER_CONFIG_STEPS} pageName="Admin Locker Configuration" />
     </AdminLayout>
   )
 }

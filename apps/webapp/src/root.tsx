@@ -13,7 +13,6 @@ import './app.css';
 import { ViewModeProvider } from '@/shared/context/ViewModeContext';
 import { Toaster } from '@/components/ui/sonner';
 
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -25,6 +24,7 @@ const queryClient = new QueryClient({
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const links: Route.LinksFunction = () => [
+  { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
     rel: 'preconnect',

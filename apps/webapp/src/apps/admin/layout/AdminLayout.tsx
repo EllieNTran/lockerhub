@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router';
 import {
@@ -14,16 +15,17 @@ import {
 import { cn } from '@/utils/cn';
 import Header from '@/components/Header';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import Tutorial from '@/components/tutorial/Tutorial';
 
 const navItems = [
-  { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, end: true },
-  { label: 'Bookings', to: '/admin/bookings', icon: CalendarCheck },
-  { label: 'Lockers', to: '/admin/lockers', icon: Lock },
-  { label: 'Special Requests', to: '/admin/special-requests', icon: FileText },
-  { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
-  { label: 'Booking Rules', to: '/admin/rules', icon: Settings },
-  { label: 'Locker Configuration', to: '/admin/locker-configuration', icon: MapPinPen },
-  { label: 'Audit Logs', to: '/admin/audit', icon: ClipboardList },
+  { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, end: true, dataTour: 'admin-nav-home' },
+  { label: 'Bookings', to: '/admin/bookings', icon: CalendarCheck, dataTour: 'admin-nav-bookings' },
+  { label: 'Lockers', to: '/admin/lockers', icon: Lock, dataTour: 'admin-nav-lockers' },
+  { label: 'Special Requests', to: '/admin/special-requests', icon: FileText, dataTour: 'admin-nav-special-requests' },
+  { label: 'Analytics', to: '/admin/analytics', icon: BarChart3, dataTour: 'admin-nav-analytics' },
+  { label: 'Booking Rules', to: '/admin/rules', icon: Settings, dataTour: 'admin-nav-booking-rules' },
+  { label: 'Locker Configuration', to: '/admin/locker-configuration', icon: MapPinPen, dataTour: 'admin-nav-locker-configuration' },
+  { label: 'Audit Logs', to: '/admin/audit', icon: ClipboardList, dataTour: 'admin-nav-audit' },
 ];
 
 interface AdminLayoutProps {
@@ -31,6 +33,26 @@ interface AdminLayoutProps {
 }
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
+  const [hasSeenTutorial, setHasSeenTutorial] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const tutorialStatus = localStorage.getItem('hasSeenTutorial');
+      setHasSeenTutorial(tutorialStatus === 'true');
+
+      const handleStorageChange = () => {
+        const updatedStatus = localStorage.getItem('hasSeenTutorial');
+        setHasSeenTutorial(updatedStatus === 'true');
+      };
+
+      window.addEventListener('tutorialCompleted', handleStorageChange);
+
+      return () => {
+        window.removeEventListener('tutorialCompleted', handleStorageChange);
+      };
+    }
+  }, []);
+
   return (
     <ProtectedRoute requiredRole="admin">
       <div className="min-h-screen bg-background flex flex-col">
@@ -52,6 +74,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 key={item.to}
                 to={item.to}
                 end={item.end}
+                data-tour={item.dataTour}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
@@ -74,6 +97,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
         </main>
       </div>
+
+      <Tutorial mode="admin" hasSeenTutorial={hasSeenTutorial} isAdmin={true} />
     </div>
     </ProtectedRoute>
   );

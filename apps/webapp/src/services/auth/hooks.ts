@@ -1,7 +1,8 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { signup, login, logout } from './services/auth';
 import { getDepartments, getOffices, validateStaffNumber, checkAccount } from './services/metadata';
 import { requestPasswordReset, resetPassword, validateResetToken } from './services/password';
+import { updateTutorialStatus } from './services/tutorial';
 import type { SignupRequest, LoginRequest } from './services/auth';
 
 /**
@@ -96,5 +97,26 @@ export const useResetPassword = () => {
   return useMutation({
     mutationFn: ({ token, password }: { token: string; password: string }) =>
       resetPassword(token, password),
+  });
+};
+
+/**
+ * Mark tutorial as completed
+ */
+export const useCompleteTutorial = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateTutorialStatus,
+    onSuccess: () => {
+      const userRole = localStorage.getItem('userRole');
+      if (userRole) {
+        localStorage.setItem('hasSeenTutorial', 'true');
+
+        window.dispatchEvent(new Event('tutorialCompleted'));
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
   });
 };

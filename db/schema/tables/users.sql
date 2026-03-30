@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.users (
     role lockerhub.user_role NOT NULL DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    has_seen_tutorial BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_users_department FOREIGN KEY (department_id) REFERENCES lockerhub.departments(department_id) ON DELETE SET NULL
 );
 

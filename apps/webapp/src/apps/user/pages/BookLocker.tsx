@@ -20,6 +20,8 @@ import { toast } from '@/components/ui/sonner';
 import Heading from '@/components/Heading';
 import { useAvailableLockers, useFloors, useCreateBooking, useJoinFloorQueue } from '@/services/bookings';
 import FloorDropdown from '@/components/FloorDropdown';
+import PageTour from '@/components/tutorial/PageTour';
+import { BOOK_LOCKER_STEPS } from '@/components/tutorial/steps';
 
 const BookLocker = () => {
   const navigate = useNavigate();
@@ -151,15 +153,17 @@ const BookLocker = () => {
           />
 
           <div className="mt-5 flex flex-wrap items-end gap-4">
-            <DateRangePicker
-              startDate={startDate}
-              endDate={endDate}
-              onStartDateChange={setStartDate}
-              onEndDateChange={setEndDate}
-              labelClassName="text-xs font-medium text-grey"
-            />
+            <div data-tour="date-picker">
+              <DateRangePicker
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
+                labelClassName="text-xs font-medium text-grey"
+              />
+            </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1" data-tour="floor-selector">
               <label className="block text-xs font-medium text-grey">Floor</label>
               <FloorDropdown
                 value={selectedFloorId}
@@ -174,6 +178,7 @@ const BookLocker = () => {
               variant="highlight"
               onClick={handleBook}
               disabled={!isReadyToBook}
+              data-tour="book-btn"
             >
               <CheckCircle2 className="mr-2 h-4 w-4" />
               Book Locker
@@ -181,7 +186,7 @@ const BookLocker = () => {
           </div>
         </div>
 
-        <div className="mb-3 flex items-center gap-6 text-sm">
+        <div className="mb-3 flex items-center gap-6 text-sm" data-tour="availability-stats">
           <span className="text-grey">
             <span className="font-semibold text-dark-blue">Floor {selectedFloor?.floor_number}</span>
             {startDate && endDate && (
@@ -228,11 +233,24 @@ const BookLocker = () => {
                 disabled={isOnWaitlist}
                 onClick={() => setWaitlistOpen(true)}
                 className="shrink-0"
+                data-tour="join-waitlist-btn"
               >
                 <Clock className="mr-1.5 h-3.5 w-3.5" />
                 {isOnWaitlist ? 'On Waiting List' : 'Join Waiting List'}
               </Button>
             </div>
+            <div data-tour="search-results">
+              <TooltipProvider>
+                <SearchResults
+                  lockers={lockersWithSelection}
+                  onSelectLocker={handleSelectLocker}
+                  floorNumber={selectedFloor?.floor_number || ''}
+                />
+              </TooltipProvider>
+            </div>
+          </>
+        ) : (
+          <div data-tour="search-results">
             <TooltipProvider>
               <SearchResults
                 lockers={lockersWithSelection}
@@ -240,15 +258,7 @@ const BookLocker = () => {
                 floorNumber={selectedFloor?.floor_number || ''}
               />
             </TooltipProvider>
-          </>
-        ) : (
-          <TooltipProvider>
-            <SearchResults
-              lockers={lockersWithSelection}
-              onSelectLocker={handleSelectLocker}
-              floorNumber={selectedFloor?.floor_number || ''}
-            />
-          </TooltipProvider>
+          </div>
         )}
       </main>
 
@@ -323,6 +333,7 @@ const BookLocker = () => {
         </DialogContent>
       </Dialog>
       </div>
+      <PageTour steps={BOOK_LOCKER_STEPS} pageName="Book a Locker" />
     </UserLayout>
   );
 };

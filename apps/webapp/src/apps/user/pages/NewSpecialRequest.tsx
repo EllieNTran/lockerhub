@@ -18,6 +18,8 @@ import { format, differenceInDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import { useFloors, useAvailableLockers, useCreateSpecialRequest } from '@/services/bookings';
 import FloorDropdown from '@/components/FloorDropdown';
+import PageTour from '@/components/tutorial/PageTour';
+import { SPECIAL_REQUEST_STEPS } from '@/components/tutorial/steps';
 
 const NewSpecialRequest = () => {
   const navigate = useNavigate();
@@ -147,7 +149,7 @@ const NewSpecialRequest = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6 pt-5">
-              <div className="space-y-2">
+              <div className="space-y-2" data-tour="floor-selector">
                 <Label htmlFor="floor">
                   Floor <span className="text-red">*</span>
                 </Label>
@@ -160,7 +162,7 @@ const NewSpecialRequest = () => {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2" data-tour="date-picker">
                 <DateRangePicker
                   startDate={startDate}
                   endDate={isPermanent ? undefined : endDate}
@@ -169,7 +171,7 @@ const NewSpecialRequest = () => {
                   disableEndDate={isPermanent}
                   disableRules={true}
                 />
-                <div className="flex items-center space-x-2 mt-3">
+                <div className="flex items-center space-x-2 mt-3" data-tour="permanent-checkbox">
                   <Checkbox
                     id="permanent"
                     checked={isPermanent}
@@ -193,7 +195,7 @@ const NewSpecialRequest = () => {
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2" data-tour="locker-selector">
                 <Label htmlFor="locker">
                   Preferred Locker <span className="font-normal text-grey">(optional)</span>
                 </Label>
@@ -214,7 +216,7 @@ const NewSpecialRequest = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2" data-tour="justification">
                 <Label htmlFor="justification">
                   Justification <span className="text-red">*</span>
                 </Label>
@@ -246,6 +248,7 @@ const NewSpecialRequest = () => {
                   variant="highlight"
                   disabled={isPending || isDateRangeTooShort}
                   className="flex-1"
+                  data-tour="submit-btn"
                 >
                   <Send className="mr-2 h-4 w-4" />
                   {isPending ? 'Submitting...' : 'Submit Request'}
@@ -256,6 +259,7 @@ const NewSpecialRequest = () => {
 
         </main>
       </div>
+      <PageTour steps={SPECIAL_REQUEST_STEPS} pageName="Special Request" />
     </UserLayout>
   );
 };

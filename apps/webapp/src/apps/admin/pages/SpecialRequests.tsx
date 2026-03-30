@@ -6,6 +6,8 @@ import StatCard from '../components/StatCard';
 import SpecialRequestCard from '@/components/SpecialRequestCard';
 import { useAllSpecialRequests, useReviewSpecialRequest } from '@/services/admin';
 import Filters from '../components/Filters';
+import PageTour from '@/components/tutorial/PageTour';
+import { ADMIN_SPECIAL_REQUESTS_STEPS } from '@/components/tutorial/steps';
 
 const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
@@ -55,7 +57,7 @@ const SpecialRequests = () => {
           title="Special Requests"
           description="Review extended or permanent locker allocation requests."
         />
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-2" data-tour="admin-special-requests-stats">
           <StatCard
             label="Pending Review"
             value={pendingCount}
@@ -70,16 +72,18 @@ const SpecialRequests = () => {
           />
         </div>
 
-        <Filters
-          statusOptions={STATUS_OPTIONS}
-          placeholder="Search by employee name or staff number..."
-          searchQuery={searchQuery}
-          floorFilter={floorFilter}
-          statusFilter={statusFilter}
-          onSearchChange={setSearchQuery}
-          onFloorChange={setFloorFilter}
-          onStatusChange={setStatusFilter}
-        />
+        <div data-tour="admin-special-requests-filters">
+          <Filters
+            statusOptions={STATUS_OPTIONS}
+            placeholder="Search by employee name or staff number..."
+            searchQuery={searchQuery}
+            floorFilter={floorFilter}
+            statusFilter={statusFilter}
+            onSearchChange={setSearchQuery}
+            onFloorChange={setFloorFilter}
+            onStatusChange={setStatusFilter}
+          />
+        </div>
 
         { isLoading ? (
           <div className="flex items-center justify-center py-10">
@@ -106,6 +110,7 @@ const SpecialRequests = () => {
           </div>
         )}
       </main>
+      <PageTour steps={ADMIN_SPECIAL_REQUESTS_STEPS} pageName="Admin Special Requests" />
     </AdminLayout>
   );
 };

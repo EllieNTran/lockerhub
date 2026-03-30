@@ -23,13 +23,19 @@ const AdminHome = () => {
     pct: Math.round(floor.utilization_rate * 100),
   })) || [];
 
-  const activities: ActivityItem[] = recentActivityData?.activities?.map((activity, index) => ({
-    id: index + 1,
-    type: mapEntityTypeToActivityType(activity.entity_type),
-    action: activity.title,
-    user: activity.user_name || 'System',
-    time: formatDistanceToNow(new Date(activity.created_at), { addSuffix: true }),
-  })) || [];
+  const activities: ActivityItem[] = recentActivityData?.activities?.map((activity, index) => {
+    const timestamp = activity.created_at.includes('Z') || activity.created_at.includes('+')
+      ? activity.created_at
+      : `${activity.created_at}Z`;
+
+    return {
+      id: index + 1,
+      type: mapEntityTypeToActivityType(activity.entity_type),
+      action: activity.title,
+      user: activity.user_name || 'System',
+      time: formatDistanceToNow(new Date(timestamp), { addSuffix: true }),
+    };
+  }) || [];
 
   function mapEntityTypeToActivityType(entityType: string): ActivityItem['type'] {
     const mapping: Record<string, ActivityItem['type']> = {

@@ -17,6 +17,8 @@ import type { AdminBookingDetail } from '@/types/booking';
 import StaffTooltip from '../components/StaffTooltip';
 import Filters from '../components/Filters';
 import { Button } from '@/components/ui/button';
+import PageTour from '@/components/tutorial/PageTour';
+import { ADMIN_BOOKINGS_STEPS } from '@/components/tutorial/steps';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -84,24 +86,26 @@ const Bookings = () => {
           title="Bookings"
           description="Track all bookings, confirm key handovers, and record key returns."
         />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-tour="admin-bookings-stats">
           <StatCard label="Active Bookings" value={activeBookings} icon={CalendarDays} color="green" />
           <StatCard label="Pending Key Handover" value={pendingHandovers} icon={KeyRound} color="orange" />
           <StatCard label="Pending Key Return" value={pendingReturns} icon={Undo2} color="brightBlue" />
         </div>
 
-        <Filters
-          statusOptions={STATUS_OPTIONS}
-          placeholder="Search by employee, locker number or staff number..."
-          searchQuery={searchQuery}
-          floorFilter={floorFilter}
-          statusFilter={statusFilter}
-          onSearchChange={setSearchQuery}
-          onFloorChange={setFloorFilter}
-          onStatusChange={setStatusFilter}
-        />
+        <div data-tour="admin-bookings-filters">
+          <Filters
+            statusOptions={STATUS_OPTIONS}
+            placeholder="Search by employee, locker number or staff number..."
+            searchQuery={searchQuery}
+            floorFilter={floorFilter}
+            statusFilter={statusFilter}
+            onSearchChange={setSearchQuery}
+            onFloorChange={setFloorFilter}
+            onStatusChange={setStatusFilter}
+          />
+        </div>
 
-        <div className="rounded-xl border border-grey-outline bg-white shadow-sm">
+        <div className="rounded-xl border border-grey-outline bg-white shadow-sm" data-tour="admin-bookings-table">
           <TooltipProvider>
             <Table>
               <TableHeader>
@@ -122,14 +126,17 @@ const Bookings = () => {
                     </TableCell>
                   </TableRow>
                 ) : paginatedFilteredBookings.length > 0 ? (
-                  paginatedFilteredBookings.map((booking) => (
+                  paginatedFilteredBookings.map((booking, index) => (
                     <TableRow
                       key={booking.booking_id}
                       onClick={() => handleSelectBooking(booking)}
                       className="cursor-pointer h-16"
+                      data-tour={index === 0 ? 'admin-booking-row' : undefined}
                     >
                       <TableCell className="font-medium text-dark-blue pl-8">
-                        <StaffTooltip booking={booking} />
+                        <div data-tour="admin-booking-staff-tooltip">
+                          <StaffTooltip booking={booking} />
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Button
@@ -138,6 +145,7 @@ const Bookings = () => {
                           asChild
                           onClick={(e) => e.stopPropagation()}
                           className="h-auto p-0 text-grey"
+                          data-tour="admin-booking-locker-link"
                         >
                           <Link to={`/admin/lockers?locker=${booking.locker_number}`}>
                             {booking.locker_number}
@@ -187,6 +195,7 @@ const Bookings = () => {
           statusColor={statusColors[selectedBooking.booking_status as keyof typeof statusColors] ?? 'green'}
         />
       )}
+      <PageTour steps={ADMIN_BOOKINGS_STEPS} pageName="Admin Bookings" />
     </AdminLayout>
   );
 };
