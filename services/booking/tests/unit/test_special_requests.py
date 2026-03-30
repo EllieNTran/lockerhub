@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import patch, AsyncMock
 from datetime import date, datetime, timedelta
-from uuid import UUID
+from uuid import uuid4
 
 
 def create_special_request_dict(**overrides):
@@ -11,8 +11,8 @@ def create_special_request_dict(**overrides):
     today = date.today()
     default = {
         "request_id": 1,
-        "user_id": UUID("12345678-1234-1234-1234-123456789abc"),
-        "floor_id": UUID("87654321-4321-4321-4321-210987654321"),
+        "user_id": uuid4(),
+        "floor_id": uuid4(),
         "locker_id": None,
         "start_date": today,
         "end_date": today + timedelta(days=30),
@@ -327,7 +327,7 @@ class TestDeleteSpecialRequest:
         """
         from src.services.delete_special_request import delete_special_request
 
-        different_user_id = UUID("99999999-9999-9999-9999-999999999999")
+        different_user_id = uuid4()
         mock_db_connection.fetchrow.return_value = {"user_id": different_user_id}
 
         with patch("src.services.delete_special_request.db", mock_db):

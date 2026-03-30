@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import patch
 from datetime import date, timedelta
-from uuid import UUID
+from uuid import uuid4
 
 from ..conftest import create_booking_dict, create_user_details_dict
 
@@ -24,7 +24,7 @@ class TestCreateBooking:
 
         today = date.today()
         end_date = today + timedelta(days=2)
-        booking_id = UUID("12345678-1234-1234-1234-123456789abc")
+        booking_id = uuid4()
 
         mock_db.fetchrow.side_effect = [
             None,
@@ -119,7 +119,6 @@ class TestGetBooking:
         Expect ValueError with unauthorized message.
         """
         from src.services.get_booking import get_booking
-        from uuid import uuid4
 
         other_user_id = uuid4()
         booking_data = create_booking_dict(
@@ -463,4 +462,293 @@ class TestExtendBooking:
             with pytest.raises(ValueError, match="must be after current end date"):
                 await extend_booking(
                     str(sample_booking_id), str(new_end_date), str(sample_user_id)
+                )
+
+
+class TestDeleteBooking:
+    """Tests for the delete_booking service."""
+
+    @pytest.mark.asyncio
+    async def test_delete_booking_success(
+        self, mock_db_connection, mock_db, sample_user_id, sample_booking_id
+    ):
+        """
+        Verify successful booking deletion.
+        Mock database returns booking with user authorization.
+        Verify transaction management and key information returned.
+        """
+        from src.services.delete_booking import delete_booking
+
+        booking_data = {
+            "user_id": sample_user_id,
+            "locker_id": uuid4(),
+            "key_number": "AA123",
+            "key_status": "handed_over",
+        }
+        mock_db_connection.fetchrow.return_value = booking_data
+        mock_db_connection.fetchval.return_value = sample_booking_id
+
+        with patch("src.services.delete_booking.db", mock_db):
+            result = await delete_booking(str(sample_user_id), str(sample_booking_id))
+
+        assert result.booking_id == sample_booking_id
+        assert result.key_number == "AA123"
+        assert result.key_status == "handed_over"
+        assert mock_db_connection.fetchrow.call_count == 1
+        assert mock_db_connection.execute.call_count == 1
+        assert mock_db_connection.fetchval.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_delete_booking_not_found(
+        self, mock_db_connection, mock_db, sample_user_id
+    ):
+        """
+        Verify error when deleting non-existent booking.
+        Mock database returns None for booking lookup.
+        Expect ValueError with not found message.
+        """
+        from src.services.delete_booking import delete_booking
+
+        mock_db_connection.fetchrow.return_value = None
+
+        with patch("src.services.delete_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Booking not found"):
+                await delete_booking(str(sample_user_id), "nonexistent-id")
+
+    @pytest.mark.asyncio
+    async def test_delete_booking_unauthorized(
+        self, mock_db_connection, mock_db, sample_user_id, sample_booking_id
+    ):
+        """
+        Verify authorization check for booking deletion.
+        Mock database returns booking owned by different user.
+        Expect ValueError with unauthorized message.
+        """
+        from src.services.delete_booking import delete_booking
+
+        other_user_id = uuid4()
+        booking_data = {
+            "user_id": other_user_id,
+            "locker_id": uuid4(),
+            "key_number": "AA123",
+            "key_status": "handed_over",
+        }
+        mock_db_connection.fetchrow.return_value = booking_data
+
+        with patch("src.services.delete_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Unauthorized"):
+                await delete_booking(str(sample_user_id), str(sample_booking_id))
+
+
+class TestUpdateBooking:
+    """Tests for the update_booking service."""
+
+    @pytest.mark.asyncio
+    async def test_update_booking_shorten_end_date(
+        self, mock_db_connection, mock_db, sample_user_id, sample_booking_id
+    ):
+        """
+        Verify successful booking update by shortening end date.
+        Mock database returns booking and updates end date.
+        Verify updated booking_id is returned.
+        """
+        from src.services.update_booking import update_booking
+
+        today = date.today()
+        original_end = today + timedelta(days=5)
+        new_end_date = today + timedelta(days=3)
+
+        booking_data = {
+            "user_id": sample_user_id,
+            "start_date": today,
+            "end_date": original_end,
+        }
+        mock_db_connection.fetchrow.return_value = booking_data
+        mock_db_connection.fetchval.return_value = sample_booking_id
+
+        with patch("src.services.update_booking.db", mock_db):
+            result = await update_booking(
+                str(sample_user_id),
+                str(sample_booking_id),
+                new_end_date=str(new_end_date),
+            )
+
+        assert result.booking_id == sample_booking_id
+        assert mock_db_connection.fetchrow.call_count == 1
+        assert mock_db_connection.fetchval.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_update_booking_move_start_date_later(
+        self, mock_db_connection, mock_db, sample_user_id, sample_booking_id
+    ):
+        """
+        Verify successful booking update by moving start date later.
+        Mock database returns booking and updates start date.
+        Verify updated booking_id is returned.
+        """
+        from src.services.update_booking import update_booking
+
+        today = date.today()
+        original_start = today
+        new_start_date = today + timedelta(days=2)
+        end_date = today + timedelta(days=5)
+
+        booking_data = {
+            "user_id": sample_user_id,
+            "start_date": original_start,
+            "end_date": end_date,
+        }
+        mock_db_connection.fetchrow.return_value = booking_data
+        mock_db_connection.fetchval.return_value = sample_booking_id
+
+        with patch("src.services.update_booking.db", mock_db):
+            result = await update_booking(
+                str(sample_user_id),
+                str(sample_booking_id),
+                new_start_date=str(new_start_date),
+            )
+
+        assert result.booking_id == sample_booking_id
+
+    @pytest.mark.asyncio
+    async def test_update_booking_not_found(
+        self, mock_db_connection, mock_db, sample_user_id
+    ):
+        """
+        Verify error when updating non-existent booking.
+        Mock database returns None for booking lookup.
+        Expect ValueError with not found message.
+        """
+        from src.services.update_booking import update_booking
+
+        today = date.today()
+        mock_db_connection.fetchrow.return_value = None
+
+        with patch("src.services.update_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Booking not found"):
+                await update_booking(
+                    str(sample_user_id),
+                    "nonexistent-id",
+                    new_end_date=str(today + timedelta(days=3)),
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_booking_unauthorized(
+        self, mock_db_connection, mock_db, sample_user_id, sample_booking_id
+    ):
+        """
+        Verify authorization check for booking update.
+        Mock database returns booking owned by different user.
+        Expect ValueError with unauthorized message.
+        """
+        from src.services.update_booking import update_booking
+
+        today = date.today()
+        other_user_id = uuid4()
+        booking_data = {
+            "user_id": other_user_id,
+            "start_date": today,
+            "end_date": today + timedelta(days=5),
+        }
+        mock_db_connection.fetchrow.return_value = booking_data
+
+        with patch("src.services.update_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Unauthorized"):
+                await update_booking(
+                    str(sample_user_id),
+                    str(sample_booking_id),
+                    new_end_date=str(today + timedelta(days=3)),
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_booking_extend_end_date_not_allowed(
+        self, mock_db_connection, mock_db, sample_user_id, sample_booking_id
+    ):
+        """
+        Verify error when trying to extend end date (not allowed in update).
+        Mock database returns booking with earlier end date.
+        Expect ValueError indicating extension requests should be used.
+        """
+        from src.services.update_booking import update_booking
+
+        today = date.today()
+        original_end = today + timedelta(days=3)
+        new_end_date = today + timedelta(days=5)
+
+        booking_data = {
+            "user_id": sample_user_id,
+            "start_date": today,
+            "end_date": original_end,
+        }
+        mock_db_connection.fetchrow.return_value = booking_data
+
+        with patch("src.services.update_booking.db", mock_db):
+            with pytest.raises(
+                ValueError, match="Cannot move end date later.*extension request"
+            ):
+                await update_booking(
+                    str(sample_user_id),
+                    str(sample_booking_id),
+                    new_end_date=str(new_end_date),
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_booking_move_start_date_earlier_not_allowed(
+        self, mock_db_connection, mock_db, sample_user_id, sample_booking_id
+    ):
+        """
+        Verify error when trying to move start date earlier (not allowed).
+        Mock database returns booking with later start date.
+        Expect ValueError indicating start date cannot be moved earlier.
+        """
+        from src.services.update_booking import update_booking
+
+        today = date.today()
+        original_start = today + timedelta(days=2)
+        new_start_date = today
+
+        booking_data = {
+            "user_id": sample_user_id,
+            "start_date": original_start,
+            "end_date": today + timedelta(days=5),
+        }
+        mock_db_connection.fetchrow.return_value = booking_data
+
+        with patch("src.services.update_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Cannot move start date earlier"):
+                await update_booking(
+                    str(sample_user_id),
+                    str(sample_booking_id),
+                    new_start_date=str(new_start_date),
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_booking_invalid_date_range(
+        self, mock_db_connection, mock_db, sample_user_id, sample_booking_id
+    ):
+        """
+        Verify error when start date is after or equal to end date.
+        Mock database returns booking and validates date range.
+        Expect ValueError indicating invalid date range.
+        """
+        from src.services.update_booking import update_booking
+
+        today = date.today()
+        start_date = today + timedelta(days=3)
+        end_date = today + timedelta(days=2)
+
+        booking_data = {
+            "user_id": sample_user_id,
+            "start_date": today,
+            "end_date": today + timedelta(days=5),
+        }
+        mock_db_connection.fetchrow.return_value = booking_data
+
+        with patch("src.services.update_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Start date must be before end date"):
+                await update_booking(
+                    str(sample_user_id),
+                    str(sample_booking_id),
+                    new_start_date=str(start_date),
+                    new_end_date=str(end_date),
                 )

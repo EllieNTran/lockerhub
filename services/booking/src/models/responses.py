@@ -44,6 +44,14 @@ class UpdateBookingResponse(BaseModel):
     booking_id: UUID
 
 
+class DeleteBookingResponse(BaseModel):
+    """Response model for deleting a booking."""
+
+    booking_id: UUID
+    key_number: str
+    key_status: str
+
+
 class ExtendBookingResponse(BaseModel):
     """Response model for extending a booking."""
 

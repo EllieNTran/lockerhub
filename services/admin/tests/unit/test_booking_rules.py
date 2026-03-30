@@ -2,6 +2,8 @@
 
 import pytest
 from unittest.mock import patch
+from uuid import uuid4
+from datetime import datetime
 
 
 @pytest.mark.unit
@@ -16,7 +18,6 @@ class TestGetBookingRules:
         names, values, and rule types.
         """
         from src.services.booking_rules.get_booking_rules import get_booking_rules
-        from uuid import uuid4
 
         rules = [
             {
@@ -73,7 +74,6 @@ class TestUpdateBookingRules:
         and returns the updated rule details.
         """
         from src.services.booking_rules.update_booking_rules import update_booking_rules
-        from uuid import uuid4
 
         mock_db_connection.fetchrow.return_value = {
             "booking_rule_id": uuid4(),
@@ -102,7 +102,6 @@ class TestUpdateBookingRules:
         and returns the complete list of updated rules.
         """
         from src.services.booking_rules.update_booking_rules import update_booking_rules
-        from uuid import uuid4
 
         mock_db_connection.fetchrow.side_effect = [
             {
@@ -151,7 +150,6 @@ class TestUpdateBookingRules:
         the boolean value to integer and updates the rule.
         """
         from src.services.booking_rules.update_booking_rules import update_booking_rules
-        from uuid import uuid4
 
         mock_db_connection.fetchrow.return_value = {
             "booking_rule_id": uuid4(),
@@ -290,7 +288,6 @@ class TestUpdateFloorStatus:
         raises a ValueError with the message 'Floor not found'.
         """
         from src.services.booking_rules.update_floor_status import update_floor_status
-        from uuid import uuid4
 
         mock_db_connection.fetchrow.return_value = None
 
@@ -301,3 +298,181 @@ class TestUpdateFloorStatus:
                     status="closed",
                     user_id=str(sample_user_id),
                 )
+
+
+@pytest.mark.unit
+class TestGetAllFloors:
+    """Tests for get_all_floors service."""
+
+    @pytest.mark.asyncio
+    async def test_get_all_floors_success(self, mock_db):
+        """Test retrieving all floors with locker counts.
+
+        Verifies that fetching all floors returns a list with floor details,
+        total locker counts, and closures.
+        """
+        from src.services.booking_rules.get_all_floors import get_all_floors
+
+        floors = [
+            {
+                "floor_id": uuid4(),
+                "floor_number": "2",
+                "status": "open",
+                "created_at": datetime.now(),
+                "updated_at": datetime.now(),
+                "total_lockers": 50,
+                "closures": None,
+            },
+            {
+                "floor_id": uuid4(),
+                "floor_number": "10",
+                "status": "open",
+                "created_at": datetime.now(),
+                "updated_at": datetime.now(),
+                "total_lockers": 75,
+                "closures": None,
+            },
+            {
+                "floor_id": uuid4(),
+                "floor_number": "11",
+                "status": "closed",
+                "created_at": datetime.now(),
+                "updated_at": datetime.now(),
+                "total_lockers": 60,
+                "closures": '[{"closure_id": 1, "start_date": "2026-03-30", "end_date": "2026-04-05", "reason": "Maintenance"}]',
+            },
+        ]
+        mock_db.fetch.return_value = floors
+
+        with patch("src.services.booking_rules.get_all_floors.db", mock_db):
+            result = await get_all_floors()
+
+            assert len(result.floors) == 3
+            assert result.floors[0].floor_number == "2"
+            assert result.floors[0].status == "open"
+            assert result.floors[0].total_lockers == 50
+            assert result.floors[0].closures is None
+            assert result.floors[1].total_lockers == 75
+            assert result.floors[2].status == "closed"
+            assert result.floors[2].total_lockers == 60
+            assert result.floors[2].closures is not None
+            assert isinstance(result.floors[2].closures, list)
+            assert len(result.floors[2].closures) == 1
+            assert result.floors[2].closures[0]["reason"] == "Maintenance"
+
+    @pytest.mark.asyncio
+    async def test_get_all_floors_empty(self, mock_db):
+        """Test retrieving floors when none exist.
+
+        Verifies that fetching floors from an empty database returns an empty list.
+        """
+        from src.services.booking_rules.get_all_floors import get_all_floors
+
+        mock_db.fetch.return_value = []
+
+        with patch("src.services.booking_rules.get_all_floors.db", mock_db):
+            result = await get_all_floors()
+
+            assert len(result.floors) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_all_floors_with_multiple_closures(self, mock_db):
+        """Test retrieving floors with multiple closures.
+
+        Verifies that floors with multiple closures have all closures
+        properly parsed and returned.
+        """
+        from src.services.booking_rules.get_all_floors import get_all_floors
+
+        floors = [
+            {
+                "floor_id": uuid4(),
+                "floor_number": "10",
+                "status": "closed",
+                "created_at": datetime.now(),
+                "updated_at": datetime.now(),
+                "total_lockers": 75,
+                "closures": '[{"closure_id": 1, "start_date": "2026-03-30", "end_date": "2026-04-05", "reason": "Maintenance"}, {"closure_id": 2, "start_date": "2026-04-10", "end_date": "2026-04-15", "reason": "Renovation"}]',
+            }
+        ]
+        mock_db.fetch.return_value = floors
+
+        with patch("src.services.booking_rules.get_all_floors.db", mock_db):
+            result = await get_all_floors()
+
+            assert len(result.floors) == 1
+            assert result.floors[0].closures is not None
+            assert len(result.floors[0].closures) == 2
+            assert result.floors[0].closures[0]["reason"] == "Maintenance"
+            assert result.floors[0].closures[1]["reason"] == "Renovation"
+
+    @pytest.mark.asyncio
+    async def test_get_all_floors_no_lockers(self, mock_db):
+        """Test retrieving floors with no lockers.
+
+        Verifies that floors with zero lockers are handled correctly.
+        """
+        from src.services.booking_rules.get_all_floors import get_all_floors
+
+        floors = [
+            {
+                "floor_id": uuid4(),
+                "floor_number": "13",
+                "status": "open",
+                "created_at": datetime.now(),
+                "updated_at": datetime.now(),
+                "total_lockers": 0,
+                "closures": None,
+            }
+        ]
+        mock_db.fetch.return_value = floors
+
+        with patch("src.services.booking_rules.get_all_floors.db", mock_db):
+            result = await get_all_floors()
+
+            assert len(result.floors) == 1
+            assert result.floors[0].total_lockers == 0
+
+    @pytest.mark.asyncio
+    async def test_get_all_floors_sorted_numerically(self, mock_db):
+        """Test that floors are sorted numerically.
+
+        Verifies that floors are returned in numerical order (2, 10, 11)
+        not lexicographical order (10, 11, 2).
+        """
+        from src.services.booking_rules.get_all_floors import get_all_floors
+
+        floors = [
+            {
+                "floor_id": uuid4(),
+                "floor_number": "11",
+                "status": "open",
+                "created_at": datetime.now(),
+                "updated_at": datetime.now(),
+                "total_lockers": 60,
+                "closures": None,
+            },
+            {
+                "floor_id": uuid4(),
+                "floor_number": "2",
+                "status": "open",
+                "created_at": datetime.now(),
+                "updated_at": datetime.now(),
+                "total_lockers": 50,
+                "closures": None,
+            },
+            {
+                "floor_id": uuid4(),
+                "floor_number": "10",
+                "status": "open",
+                "created_at": datetime.now(),
+                "updated_at": datetime.now(),
+                "total_lockers": 75,
+                "closures": None,
+            },
+        ]
+        mock_db.fetch.return_value = floors
+
+        with patch("src.services.booking_rules.get_all_floors.db", mock_db):
+            result = await get_all_floors()
+            assert len(result.floors) == 3

@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import patch
-from uuid import UUID, uuid4
+from uuid import uuid4
 from datetime import datetime
 
 
@@ -22,12 +22,12 @@ class TestGetAuditLogs:
         logs = [
             {
                 "audit_log_id": uuid4(),
-                "user_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "user_id": uuid4(),
                 "user_name": "John Doe",
                 "user_role": "user",
                 "action": "create",
                 "entity_type": "booking",
-                "entity_id": UUID("22222222-2222-2222-2222-222222222222"),
+                "entity_id": uuid4(),
                 "reference": "Booking created",
                 "old_value": None,
                 "new_value": {"status": "upcoming"},
@@ -35,12 +35,12 @@ class TestGetAuditLogs:
             },
             {
                 "audit_log_id": uuid4(),
-                "user_id": UUID("33333333-3333-3333-3333-333333333333"),
+                "user_id": uuid4(),
                 "user_name": "Jane Smith",
                 "user_role": "admin",
                 "action": "update",
                 "entity_type": "locker",
-                "entity_id": UUID("44444444-4444-4444-4444-444444444444"),
+                "entity_id": uuid4(),
                 "reference": "Locker status changed",
                 "old_value": {"status": "available"},
                 "new_value": {"status": "maintenance"},
@@ -74,12 +74,12 @@ class TestGetAuditLogs:
         logs = [
             {
                 "audit_log_id": uuid4(),
-                "user_id": UUID("55555555-5555-5555-5555-555555555555"),
+                "user_id": uuid4(),
                 "user_name": "Admin User",
                 "user_role": "admin",
                 "action": "delete",
                 "entity_type": "key",
-                "entity_id": UUID("66666666-6666-6666-6666-666666666666"),
+                "entity_id": uuid4(),
                 "reference": "Key deleted",
                 "old_value": {"key_number": "AA123"},
                 "new_value": None,
@@ -131,12 +131,12 @@ class TestGetAuditLogs:
         logs = [
             {
                 "audit_log_id": uuid4(),
-                "user_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "user_id": uuid4(),
                 "user_name": "Test User",
                 "user_role": "user",
                 "action": "create",
                 "entity_type": "booking",
-                "entity_id": UUID("22222222-2222-2222-2222-222222222222"),
+                "entity_id": uuid4(),
                 "reference": "Test",
                 "old_value": None,
                 "new_value": {"test": "data"},
@@ -168,12 +168,12 @@ class TestGetAuditLogs:
             logs.append(
                 {
                     "audit_log_id": uuid4(),
-                    "user_id": UUID("11111111-1111-1111-1111-111111111111"),
+                    "user_id": uuid4(),
                     "user_name": f"User {i}",
                     "user_role": "user",
                     "action": "create",
                     "entity_type": "booking",
-                    "entity_id": UUID("22222222-2222-2222-2222-222222222222"),
+                    "entity_id": uuid4(),
                     "reference": f"Action {i}",
                     "old_value": None,
                     "new_value": {"test": "data"},
@@ -209,7 +209,7 @@ class TestGetAuditLogs:
                 "user_role": None,
                 "action": "update",
                 "entity_type": "booking",
-                "entity_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "entity_id": uuid4(),
                 "reference": "Automated status update",
                 "old_value": {"status": "upcoming"},
                 "new_value": {"status": "active"},
@@ -259,12 +259,12 @@ class TestGetAuditLogs:
         logs = [
             {
                 "audit_log_id": uuid4(),
-                "user_id": UUID("77777777-7777-7777-7777-777777777777"),
+                "user_id": uuid4(),
                 "user_name": "Last User",
                 "user_role": "user",
                 "action": "update",
                 "entity_type": "locker",
-                "entity_id": UUID("88888888-8888-8888-8888-888888888888"),
+                "entity_id": uuid4(),
                 "reference": "Final update",
                 "old_value": {"test": "old"},
                 "new_value": {"test": "updated"},
@@ -295,12 +295,12 @@ class TestGetAuditLogs:
         logs = [
             {
                 "audit_log_id": uuid4(),
-                "user_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "user_id": uuid4(),
                 "user_name": "User A",
                 "user_role": "user",
                 "action": "create",
                 "entity_type": "booking",
-                "entity_id": UUID("22222222-2222-2222-2222-222222222222"),
+                "entity_id": uuid4(),
                 "reference": "Created",
                 "old_value": None,
                 "new_value": {"booking": "new"},
@@ -308,12 +308,12 @@ class TestGetAuditLogs:
             },
             {
                 "audit_log_id": uuid4(),
-                "user_id": UUID("33333333-3333-3333-3333-333333333333"),
+                "user_id": uuid4(),
                 "user_name": "User B",
                 "user_role": "admin",
                 "action": "update",
                 "entity_type": "locker",
-                "entity_id": UUID("44444444-4444-4444-4444-444444444444"),
+                "entity_id": uuid4(),
                 "reference": "Updated",
                 "old_value": {"value": "old"},
                 "new_value": {"value": "new"},
@@ -321,12 +321,12 @@ class TestGetAuditLogs:
             },
             {
                 "audit_log_id": uuid4(),
-                "user_id": UUID("55555555-5555-5555-5555-555555555555"),
+                "user_id": uuid4(),
                 "user_name": "User C",
                 "user_role": "admin",
                 "action": "delete",
                 "entity_type": "key",
-                "entity_id": UUID("66666666-6666-6666-6666-666666666666"),
+                "entity_id": uuid4(),
                 "reference": "Deleted",
                 "old_value": {"key": "deleted"},
                 "new_value": None,

@@ -2,7 +2,8 @@
 
 import pytest
 from unittest.mock import patch
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+from uuid import uuid4
 from ..conftest import create_booking_dict
 
 
@@ -172,12 +173,11 @@ class TestCreateBooking:
         and no conflicting bookings exist.
         """
         from src.services.bookings.create_booking import create_booking
-        from uuid import UUID
 
         today = date.today()
         start_date = today + timedelta(days=1)
         end_date = today + timedelta(days=3)
-        new_booking_id = UUID("12345678-1234-5678-1234-567812345678")
+        new_booking_id = uuid4()
 
         mock_db.fetchval.return_value = new_booking_id
         mock_db.fetchrow.return_value = {
@@ -222,20 +222,18 @@ class TestConfirmKeyHandover:
         and the locker status to occupied. Returns the updated key details.
         """
         from src.services.bookings.confirm_key_handover import confirm_key_handover
-        from uuid import UUID
-        from datetime import datetime
 
         mock_db_connection.fetchrow.side_effect = [
             {
                 "booking_id": sample_booking_id,
                 "status": "upcoming",
-                "locker_id": UUID("12345678-1234-5678-1234-567812345678"),
+                "locker_id": uuid4(),
                 "start_date": datetime.now().date(),
                 "user_id": sample_user_id,
                 "locker_number": "DL10-01-01",
             },
             {
-                "key_id": UUID("87654321-4321-8765-4321-876543218765"),
+                "key_id": uuid4(),
                 "key_number": "AA123",
                 "status": "with_employee",
             },
@@ -274,19 +272,18 @@ class TestConfirmKeyReturn:
         key status to available, and locker status to available.
         """
         from src.services.bookings.confirm_key_return import confirm_key_return
-        from uuid import UUID
 
         mock_db_connection.fetchrow.side_effect = [
             {
                 "booking_id": sample_booking_id,
                 "status": "active",
-                "locker_id": UUID("12345678-1234-5678-1234-567812345678"),
+                "locker_id": uuid4(),
                 "special_request_id": None,
                 "user_id": sample_user_id,
                 "locker_number": "DL10-01-01",
             },
             {
-                "key_id": UUID("87654321-4321-8765-4321-876543218765"),
+                "key_id": uuid4(),
                 "key_number": "AA123",
                 "status": "available",
             },
@@ -315,12 +312,11 @@ class TestConfirmKeyReturn:
         raises a ValueError.
         """
         from src.services.bookings.confirm_key_return import confirm_key_return
-        from uuid import UUID
 
         mock_db_connection.fetchrow.return_value = {
             "booking_id": sample_booking_id,
             "status": "upcoming",
-            "locker_id": UUID("12345678-1234-5678-1234-567812345678"),
+            "locker_id": uuid4(),
             "special_request_id": None,
         }
 
