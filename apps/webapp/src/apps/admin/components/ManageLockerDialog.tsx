@@ -432,16 +432,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
         return (
           <>
             {renderCreateKeyButton()}
-            <Button
-              variant="outline"
-              className="w-full flex items-center justify-start h-12 font-normal"
-              onClick={handleMarkFixed}
-              disabled={markAvailableMutation.isPending}
-            >
-              <CircleCheckBig className="mr-2 h-4 w-4" />
-              Mark as Fixed
-            </Button>
-            {locker?.key_status === 'lost' && (
+            {locker?.key_status === 'lost' ? (
               <Button
                 variant="outline"
                 className="w-full flex items-center justify-start h-12 font-normal"
@@ -450,6 +441,16 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
               >
                 <KeyRound className="mr-2 h-4 w-4" />
                 Mark Replacement Key as Ordered
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full flex items-center justify-start h-12 font-normal"
+                onClick={handleMarkFixed}
+                disabled={markAvailableMutation.isPending}
+              >
+                <CircleCheckBig className="mr-2 h-4 w-4" />
+                Mark as Fixed
               </Button>
             )}
           </>

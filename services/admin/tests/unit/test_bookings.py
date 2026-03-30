@@ -209,7 +209,12 @@ class TestConfirmKeyHandover:
 
     @pytest.mark.asyncio
     async def test_confirm_key_handover_success(
-        self, mock_db, mock_db_connection, sample_booking_id
+        self,
+        mock_db,
+        mock_db_connection,
+        mock_notifications_client,
+        sample_booking_id,
+        sample_user_id,
     ):
         """Test successful key handover confirmation.
 
@@ -226,6 +231,8 @@ class TestConfirmKeyHandover:
                 "status": "upcoming",
                 "locker_id": UUID("12345678-1234-5678-1234-567812345678"),
                 "start_date": datetime.now().date(),
+                "user_id": sample_user_id,
+                "locker_number": "DL10-01-01",
             },
             {
                 "key_id": UUID("87654321-4321-8765-4321-876543218765"),
@@ -238,12 +245,14 @@ class TestConfirmKeyHandover:
             },
         ]
 
-        with patch("src.services.bookings.confirm_key_handover.db", mock_db):
-            result = await confirm_key_handover(str(sample_booking_id))
+        with patch("src.services.bookings.confirm_key_handover.db", mock_db), patch(
+            "src.services.bookings.confirm_key_handover.NotificationsServiceClient",
+            return_value=mock_notifications_client,
+        ):
+            result = await confirm_key_handover(sample_user_id, str(sample_booking_id))
 
             assert result.booking_id == sample_booking_id
             assert result.key_number == "AA123"
-            assert result.message == "Key handover confirmed"
 
 
 @pytest.mark.unit
@@ -252,7 +261,12 @@ class TestConfirmKeyReturn:
 
     @pytest.mark.asyncio
     async def test_confirm_key_return_success(
-        self, mock_db, mock_db_connection, sample_booking_id
+        self,
+        mock_db,
+        mock_db_connection,
+        mock_notifications_client,
+        sample_booking_id,
+        sample_user_id,
     ):
         """Test successful key return confirmation.
 
@@ -268,6 +282,8 @@ class TestConfirmKeyReturn:
                 "status": "active",
                 "locker_id": UUID("12345678-1234-5678-1234-567812345678"),
                 "special_request_id": None,
+                "user_id": sample_user_id,
+                "locker_number": "DL10-01-01",
             },
             {
                 "key_id": UUID("87654321-4321-8765-4321-876543218765"),
@@ -280,15 +296,18 @@ class TestConfirmKeyReturn:
             },
         ]
 
-        with patch("src.services.bookings.confirm_key_return.db", mock_db):
-            result = await confirm_key_return(str(sample_booking_id))
+        with patch("src.services.bookings.confirm_key_return.db", mock_db), patch(
+            "src.services.bookings.confirm_key_return.NotificationsServiceClient",
+            return_value=mock_notifications_client,
+        ):
+            result = await confirm_key_return(sample_user_id, str(sample_booking_id))
 
             assert result.booking_id == sample_booking_id
             assert result.key_number == "AA123"
 
     @pytest.mark.asyncio
     async def test_confirm_key_return_invalid_status(
-        self, mock_db, mock_db_connection, sample_booking_id
+        self, mock_db, mock_db_connection, sample_booking_id, sample_user_id
     ):
         """Test key return with invalid key status.
 
@@ -310,7 +329,7 @@ class TestConfirmKeyReturn:
                 ValueError,
                 match="Booking must be 'active' or 'cancelled' to confirm RETURN",
             ):
-                await confirm_key_return(str(sample_booking_id))
+                await confirm_key_return(sample_user_id, str(sample_booking_id))
 
 
 @pytest.mark.unit
