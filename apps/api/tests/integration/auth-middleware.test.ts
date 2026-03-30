@@ -38,7 +38,7 @@ const createTestApp = () => {
   })
 
   // Protected route that requires authentication
-  // lgtm[js/missing-rate-limiting]
+  // codeql[js/missing-rate-limiting]
   app.get('/protected', authenticate, (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest
     res.json({
@@ -48,7 +48,7 @@ const createTestApp = () => {
   })
 
   // Admin-only route
-  // lgtm[js/missing-rate-limiting]
+  // codeql[js/missing-rate-limiting]
   app.get(
     '/admin-only',
     authenticate,
