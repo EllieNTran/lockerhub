@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Joyride, type EventData, type Controls, STATUS, ACTIONS } from 'react-joyride';
-import { useCompleteTutorial } from '@/shared/hooks/use-tutorial';
+import { useCompleteTutorial } from '@/services/auth';
 import { USER_TUTORIAL_STEPS, ADMIN_TUTORIAL_STEPS } from './steps';
 
 interface TutorialProps {

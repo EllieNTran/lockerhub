@@ -7,8 +7,8 @@ import { FileText, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserSpecialRequests, useDeleteSpecialRequest } from '@/services/bookings';
 import { toast } from '@/components/ui/sonner';
-import { SPECIAL_REQUEST_STEPS } from '@/shared/components/tutorial/steps';
-import PageTour from '@/shared/components/tutorial/PageTour';
+import { SPECIAL_REQUEST_STEPS } from '@/components/tutorial/steps';
+import PageTour from '@/components/tutorial/PageTour';
 
 const SpecialRequests = () => {
   const navigate = useNavigate();
