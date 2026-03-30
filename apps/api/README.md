@@ -41,6 +41,7 @@ Client → API Gateway → Auth Service
                     → Booking Service
                     → Admin Service
                     → Notifications Service
+                    → Analytics Service
 ```
 
 ## Authentication Flow
