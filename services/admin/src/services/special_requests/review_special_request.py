@@ -99,7 +99,7 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
             if not locker:
                 raise ValueError("No available lockers found on the requested floor")
 
-            booking_id = await db.fetchval(
+            await db.fetchval(
                 CREATE_BOOKING_QUERY,
                 request["user_id"],
                 locker["locker_id"],

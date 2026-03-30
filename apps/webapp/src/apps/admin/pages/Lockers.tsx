@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router';
 import { Lock, CircleCheckBig, Wrench, Plus } from 'lucide-react'
 import AdminLayout from '../layout/AdminLayout'
 import Heading from '@/components/Heading'
@@ -32,6 +33,7 @@ const STATUS_OPTIONS = [
 ];
 
 const Lockers = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [selectedLocker, setSelectedLocker] = useState<Locker | null>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -41,6 +43,14 @@ const Lockers = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false)
 
   const { data: lockersData, isLoading: lockersLoading } = useAllLockers()
+
+  useEffect(() => {
+    const lockerParam = searchParams.get('locker');
+    if (lockerParam) {
+      setSearchQuery(lockerParam);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const totalLockers = lockersData?.length || 0
   const availableLockers = lockersData?.filter((locker) => locker.locker_status === 'available').length || 0

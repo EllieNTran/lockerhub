@@ -3,15 +3,20 @@
 from datetime import datetime
 from src.logger import logger
 from src.connectors.db import db
+from src.connectors.notifications_service import NotificationsServiceClient
 from src.models.responses import KeyHandoverResponse
 
 GET_BOOKING_QUERY = """
 SELECT 
-    booking_id,
-    locker_id,
-    status,
-    start_date
-FROM lockerhub.bookings
+    b.booking_id,
+    b.locker_id,
+    b.status,
+    b.start_date,
+    u.user_id,
+    l.locker_number
+FROM lockerhub.bookings b
+INNER JOIN lockerhub.users u ON b.user_id = u.user_id
+INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
 WHERE booking_id = $1
 """
 
@@ -36,10 +41,11 @@ WHERE locker_id = $1
 """
 
 
-async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
+async def confirm_key_handover(user_id: str, booking_id: str) -> KeyHandoverResponse:
     """Confirm that a key has been handed over to a user.
 
     Args:
+        user_id: ID of the admin confirming the handover
         booking_id: ID of the booking to confirm handover for
 
     Returns:
@@ -72,6 +78,20 @@ async def confirm_key_handover(booking_id: str) -> KeyHandoverResponse:
 
             updated_booking = await connection.fetchrow(
                 UPDATE_BOOKING_STATUS_QUERY, booking_id
+            )
+
+            await NotificationsServiceClient().post(
+                "/",
+                {
+                    "title": "Key Handed Over",
+                    "adminTitle": f"Key {key['key_number']} handed over for Locker {booking['locker_number']}",
+                    "caption": f"You are now in possession of the key {key['key_number']}. Please return it by the end of your booking.",
+                    "type": "info",
+                    "entityType": "key",
+                    "scope": "user",
+                    "userIds": [str(booking["user_id"])],
+                    "createdBy": str(user_id),
+                },
             )
 
             logger.info("Confirmed key handover for booking")
