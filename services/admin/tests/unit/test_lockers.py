@@ -2,6 +2,7 @@
 
 import pytest
 from unittest.mock import patch
+from uuid import uuid4
 
 
 @pytest.mark.unit
@@ -18,10 +19,9 @@ class TestCreateLocker:
         Mocks database responses for floor validation, locker creation, and key creation.
         """
         from src.services.lockers.create_locker import create_locker
-        from uuid import UUID
 
-        locker_id = UUID("12345678-1234-5678-1234-567812345678")
-        key_id = UUID("87654321-4321-8765-4321-876543218765")
+        locker_id = uuid4()
+        key_id = uuid4()
 
         mock_db_connection.fetchrow.side_effect = [
             {"floor_id": sample_floor_id},
@@ -82,9 +82,8 @@ class TestCreateLockerKey:
         and returns the new key ID and key number.
         """
         from src.services.lockers.create_locker_key import create_locker_key
-        from uuid import UUID
 
-        key_id = UUID("87654321-4321-8765-4321-876543218765")
+        key_id = uuid4()
 
         mock_db_connection.fetchrow.side_effect = [
             {"locker_id": sample_locker_id},
@@ -441,3 +440,107 @@ class TestUpdateLockerCoordinates:
             assert result["locker_id"] == sample_locker_id
             assert result["x_coordinate"] == 150
             assert result["y_coordinate"] == 250
+
+
+@pytest.mark.unit
+class TestGetLockerAvailabilityStats:
+    """Tests for get_locker_availability_statistics service."""
+
+    @pytest.mark.asyncio
+    async def test_get_locker_availability_stats_success(self, mock_db):
+        """Test retrieving locker availability statistics.
+
+        Verifies that fetching locker statistics returns total lockers,
+        available lockers, and lockers under maintenance.
+        """
+        from src.services.lockers.get_locker_availability_stats import (
+            get_locker_availability_statistics,
+        )
+
+        stats = {
+            "total_lockers": 200,
+            "total_available": 150,
+            "total_maintenance": 10,
+        }
+        mock_db.fetchrow.return_value = stats
+
+        with patch("src.services.lockers.get_locker_availability_stats.db", mock_db):
+            result = await get_locker_availability_statistics()
+
+            assert result.total_lockers == 200
+            assert result.total_available == 150
+            assert result.total_maintenance == 10
+
+    @pytest.mark.asyncio
+    async def test_get_locker_availability_stats_no_lockers(self, mock_db):
+        """Test retrieving statistics when no lockers exist.
+
+        Verifies that fetching statistics with zero lockers returns
+        zero for all counts.
+        """
+        from src.services.lockers.get_locker_availability_stats import (
+            get_locker_availability_statistics,
+        )
+
+        stats = {
+            "total_lockers": 0,
+            "total_available": 0,
+            "total_maintenance": 0,
+        }
+        mock_db.fetchrow.return_value = stats
+
+        with patch("src.services.lockers.get_locker_availability_stats.db", mock_db):
+            result = await get_locker_availability_statistics()
+
+            assert result.total_lockers == 0
+            assert result.total_available == 0
+            assert result.total_maintenance == 0
+
+    @pytest.mark.asyncio
+    async def test_get_locker_availability_stats_all_occupied(self, mock_db):
+        """Test retrieving statistics when all lockers are occupied.
+
+        Verifies that statistics correctly reflect zero available lockers
+        when all lockers are occupied or in maintenance.
+        """
+        from src.services.lockers.get_locker_availability_stats import (
+            get_locker_availability_statistics,
+        )
+
+        stats = {
+            "total_lockers": 100,
+            "total_available": 0,
+            "total_maintenance": 5,
+        }
+        mock_db.fetchrow.return_value = stats
+
+        with patch("src.services.lockers.get_locker_availability_stats.db", mock_db):
+            result = await get_locker_availability_statistics()
+
+            assert result.total_lockers == 100
+            assert result.total_available == 0
+            assert result.total_maintenance == 5
+
+    @pytest.mark.asyncio
+    async def test_get_locker_availability_stats_all_maintenance(self, mock_db):
+        """Test retrieving statistics when many lockers are in maintenance.
+
+        Verifies that statistics accurately reflect high maintenance counts.
+        """
+        from src.services.lockers.get_locker_availability_stats import (
+            get_locker_availability_statistics,
+        )
+
+        stats = {
+            "total_lockers": 100,
+            "total_available": 20,
+            "total_maintenance": 80,
+        }
+        mock_db.fetchrow.return_value = stats
+
+        with patch("src.services.lockers.get_locker_availability_stats.db", mock_db):
+            result = await get_locker_availability_statistics()
+
+            assert result.total_lockers == 100
+            assert result.total_available == 20
+            assert result.total_maintenance == 80

@@ -2,7 +2,8 @@
 
 import pytest
 from unittest.mock import patch
-from datetime import date
+from datetime import date, datetime
+from uuid import uuid4
 
 
 @pytest.mark.unit
@@ -19,17 +20,15 @@ class TestGetAllSpecialRequests:
         from src.services.special_requests.get_all_special_requests import (
             get_all_special_requests,
         )
-        from uuid import UUID
-        from datetime import datetime
 
         requests = [
             {
                 "request_id": 1,
-                "user_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "user_id": uuid4(),
                 "employee_name": "John Doe",
                 "staff_number": "123456",
                 "department_name": "IT Department",
-                "floor_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "floor_id": uuid4(),
                 "floor_number": "10",
                 "locker_id": None,
                 "booking_id": None,
@@ -45,14 +44,14 @@ class TestGetAllSpecialRequests:
             },
             {
                 "request_id": 2,
-                "user_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "user_id": uuid4(),
                 "employee_name": "Jane Smith",
                 "staff_number": "654321",
                 "department_name": "HR Department",
-                "floor_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "floor_id": uuid4(),
                 "floor_number": "11",
-                "locker_id": UUID("55555555-5555-5555-5555-555555555555"),
-                "booking_id": UUID("66666666-6666-6666-6666-666666666666"),
+                "locker_id": uuid4(),
+                "booking_id": uuid4(),
                 "start_date": date(2026, 3, 20),
                 "end_date": date(2026, 4, 20),
                 "request_type": "special",
@@ -60,7 +59,7 @@ class TestGetAllSpecialRequests:
                 "status": "approved",
                 "created_at": datetime(2026, 3, 20, 9, 0, 0),
                 "reviewed_at": datetime(2026, 3, 21, 8, 0, 0),
-                "reviewed_by": UUID("77777777-7777-7777-7777-777777777777"),
+                "reviewed_by": uuid4(),
                 "reason": None,
             },
         ]
@@ -115,17 +114,15 @@ class TestGetAllSpecialRequests:
         from src.services.special_requests.get_all_special_requests import (
             get_all_special_requests,
         )
-        from uuid import UUID
-        from datetime import datetime
 
         requests = [
             {
                 "request_id": 1,
-                "user_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "user_id": uuid4(),
                 "employee_name": "User One",
                 "staff_number": "111111",
                 "department_name": "IT",
-                "floor_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "floor_id": uuid4(),
                 "floor_number": "10",
                 "locker_id": None,
                 "booking_id": None,
@@ -141,11 +138,11 @@ class TestGetAllSpecialRequests:
             },
             {
                 "request_id": 2,
-                "user_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "user_id": uuid4(),
                 "employee_name": "User Two",
                 "staff_number": "222222",
                 "department_name": "HR",
-                "floor_id": UUID("11111111-1111-1111-1111-111111111111"),
+                "floor_id": uuid4(),
                 "floor_number": "11",
                 "locker_id": None,
                 "booking_id": None,
@@ -156,7 +153,7 @@ class TestGetAllSpecialRequests:
                 "status": "rejected",
                 "created_at": datetime(2026, 3, 20, 9, 0, 0),
                 "reviewed_at": datetime(2026, 3, 21, 8, 0, 0),
-                "reviewed_by": UUID("77777777-7777-7777-7777-777777777777"),
+                "reviewed_by": uuid4(),
                 "reason": "Not enough justification",
             },
         ]
@@ -191,12 +188,10 @@ class TestReviewSpecialRequest:
         from src.services.special_requests.review_special_request import (
             review_special_request,
         )
-        from unittest.mock import AsyncMock
-        from uuid import UUID
 
-        user_id = UUID("11111111-1111-1111-1111-111111111111")
-        floor_id = UUID("22222222-2222-2222-2222-222222222222")
-        booking_id = UUID("33333333-3333-3333-3333-333333333333")
+        user_id = uuid4()
+        floor_id = uuid4()
+        booking_id = uuid4()
 
         # Mock request details
         request_details = {
@@ -280,11 +275,10 @@ class TestReviewSpecialRequest:
         from src.services.special_requests.review_special_request import (
             review_special_request,
         )
-        from uuid import UUID
 
-        user_id = UUID("11111111-1111-1111-1111-111111111111")
-        floor_id = UUID("22222222-2222-2222-2222-222222222222")
-        booking_id = UUID("33333333-3333-3333-3333-333333333333")
+        user_id = uuid4()
+        floor_id = uuid4()
+        booking_id = uuid4()
 
         # Mock request details with no end date
         request_details = {
@@ -336,10 +330,9 @@ class TestReviewSpecialRequest:
         from src.services.special_requests.review_special_request import (
             review_special_request,
         )
-        from uuid import UUID
 
-        user_id = UUID("11111111-1111-1111-1111-111111111111")
-        floor_id = UUID("22222222-2222-2222-2222-222222222222")
+        user_id = uuid4()
+        floor_id = uuid4()
 
         request_details = {
             "user_id": user_id,
@@ -386,13 +379,12 @@ class TestReviewSpecialRequest:
         from src.services.special_requests.review_special_request import (
             review_special_request,
         )
-        from uuid import UUID
 
-        user_id = UUID("11111111-1111-1111-1111-111111111111")
+        user_id = uuid4()
 
         request_details = {
             "user_id": user_id,
-            "floor_id": UUID("22222222-2222-2222-2222-222222222222"),
+            "floor_id": uuid4(),
             "start_date": date(2026, 3, 25),
             "end_date": date(2026, 4, 25),
             "email": "john.doe@example.com",

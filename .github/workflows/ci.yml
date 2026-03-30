@@ -85,14 +85,30 @@ jobs:
               - 'services/admin/**'
             analytics:
               - 'services/analytics/**'
+            api:
+              - 'apps/api/**'
 
-      # Auth Service Tests (TypeScript)
-      - name: Setup Node.js for Auth
-        if: steps.changes.outputs.auth == 'true'
+      # Setup Node.js once for all TypeScript services
+      - name: Setup Node.js
+        if: |
+          steps.changes.outputs.auth == 'true' ||
+          steps.changes.outputs.notifications == 'true' ||
+          steps.changes.outputs.api == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      # Setup Python once for all Python services
+      - name: Setup Python
+        if: |
+          steps.changes.outputs.booking == 'true' ||
+          steps.changes.outputs.admin == 'true' ||
+          steps.changes.outputs.analytics == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Auth Service Tests
       - name: Install Auth dependencies
         if: steps.changes.outputs.auth == 'true'
         working-directory: services/auth
@@ -103,7 +119,7 @@ jobs:
         working-directory: services/auth
         run: npm test
 
-      # Notifications Service Tests (TypeScript)
+      # Notifications Service Tests
       - name: Install Notifications dependencies
         if: steps.changes.outputs.notifications == 'true'
         working-directory: services/notifications
@@ -114,13 +130,18 @@ jobs:
         working-directory: services/notifications
         run: npm test
 
-      # Booking Service Tests (Python)
-      - name: Setup Python for Booking
-        if: steps.changes.outputs.booking == 'true'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      # API Tests
+      - name: Install API dependencies
+        if: steps.changes.outputs.api == 'true'
+        working-directory: apps/api
+        run: npm ci
 
+      - name: Run API tests
+        if: steps.changes.outputs.api == 'true'
+        working-directory: apps/api
+        run: npm test
+
+      # Booking Service Tests
       - name: Install Booking dependencies
         if: steps.changes.outputs.booking == 'true'
         working-directory: services/booking
@@ -133,13 +154,7 @@ jobs:
         working-directory: services/booking/tests
         run: pytest -v
 
-      # Admin Service Tests (Python)
-      - name: Setup Python for Admin
-        if: steps.changes.outputs.admin == 'true'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
+      # Admin Service Tests
       - name: Install Admin dependencies
         if: steps.changes.outputs.admin == 'true'
         working-directory: services/admin
@@ -152,13 +167,7 @@ jobs:
         working-directory: services/admin/tests
         run: pytest -v
 
-      # Analytics Service Tests (Python)
-      - name: Setup Python for Analytics
-        if: steps.changes.outputs.analytics == 'true'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
+      # Analytics Service Tests
       - name: Install Analytics dependencies
         if: steps.changes.outputs.analytics == 'true'
         working-directory: services/analytics

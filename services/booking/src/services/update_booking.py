@@ -48,9 +48,7 @@ async def update_booking(
                 raise ValueError("Booking not found")
 
             if str(booking["user_id"]) != user_id:
-                logger.warning(
-                    f"User {user_id} attempted to update booking {booking_id} not owned by them"
-                )
+                logger.warning("User attempted to update booking not owned by them")
                 raise ValueError("Unauthorized")
 
             original_start = booking["start_date"]
