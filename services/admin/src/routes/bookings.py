@@ -68,11 +68,11 @@ async def cancel_booking_endpoint(
 @router.post("/{booking_id}/handover", response_model=KeyHandoverResponse)
 async def confirm_key_handover_endpoint(
     booking_id: str,
-    _: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Confirm key handover to employee."""
     try:
-        return await confirm_key_handover(booking_id)
+        return await confirm_key_handover(current_user["user_id"], booking_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
@@ -82,11 +82,11 @@ async def confirm_key_handover_endpoint(
 @router.post("/{booking_id}/return", response_model=KeyReturnResponse)
 async def confirm_key_return_endpoint(
     booking_id: str,
-    _: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Confirm key return from employee."""
     try:
-        return await confirm_key_return(booking_id)
+        return await confirm_key_return(current_user["user_id"], booking_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:

@@ -2,16 +2,21 @@
 
 from src.logger import logger
 from src.connectors.db import db
+from src.connectors.notifications_service import NotificationsServiceClient
 from src.models.responses import KeyReturnResponse
 
 GET_BOOKING_QUERY = """
 SELECT 
-    booking_id,
-    locker_id,
-    status,
-    special_request_id
-FROM lockerhub.bookings
-WHERE booking_id = $1
+    b.booking_id,
+    b.locker_id,
+    b.status,
+    b.special_request_id,
+    u.user_id,
+    l.locker_number
+FROM lockerhub.bookings b
+INNER JOIN lockerhub.users u ON b.user_id = u.user_id
+INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
+WHERE b.booking_id = $1
 """
 
 UPDATE_KEY_STATUS_QUERY = """
@@ -41,10 +46,11 @@ WHERE request_id = $1
 """
 
 
-async def confirm_key_return(booking_id: str) -> KeyReturnResponse:
+async def confirm_key_return(user_id: str, booking_id: str) -> KeyReturnResponse:
     """Confirm that a key has been returned by a user.
 
     Args:
+        user_id: ID of the admin confirming the return
         booking_id: ID of the booking to confirm return for
 
     Returns:
@@ -81,6 +87,20 @@ async def confirm_key_return(booking_id: str) -> KeyReturnResponse:
 
             updated_booking = await connection.fetchrow(
                 UPDATE_BOOKING_STATUS_QUERY, booking_id
+            )
+
+            await NotificationsServiceClient().post(
+                "/",
+                {
+                    "title": "Key Returned",
+                    "adminTitle": f"Key {key['key_number']} returned for Locker {booking['locker_number']}",
+                    "caption": f"Your key {key['key_number']} has been successfully returned. Thank you!",
+                    "type": "success",
+                    "entityType": "key",
+                    "scope": "user",
+                    "userIds": [str(booking["user_id"])],
+                    "createdBy": str(user_id),
+                },
             )
 
             logger.info("Confirmed key return for booking")
