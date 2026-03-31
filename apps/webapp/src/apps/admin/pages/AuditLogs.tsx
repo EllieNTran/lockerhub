@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { Building2, Settings, CalendarDays, FileText, Lock, KeyRound, ListEnd } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { format, addHours } from 'date-fns';
+import { Building2, Settings, CalendarDays, FileText, Lock, KeyRound, ListEnd, ChevronDown, ChevronUp } from 'lucide-react';
 import AdminLayout from '../layout/AdminLayout';
 import Heading from '@/components/Heading';
 import PaginationControls from '@/components/PaginationControls'
@@ -50,26 +50,65 @@ const ENTITY_TYPE_CONFIG = {
   waiting_list: { color: 'babyBlue' as const, icon: ListEnd },
 };
 
+const isObject = (val: unknown): val is Record<string, unknown> => {
+  return val !== null && typeof val === 'object' && !Array.isArray(val);
+};
+
+const formatValue = (val: unknown): string => {
+  if (val === null || val === undefined) return 'null';
+  if (typeof val === 'boolean') return val ? 'true' : 'false';
+  return String(val);
+};
+
+const shouldSkipKey = (key: string): boolean => {
+  return key.endsWith('_at') || key.endsWith('_by') || key.endsWith('_id');
+};
+
+const formatTimestamp = (date: Date): { date: string; time: string } => {
+  const adjustedDate = addHours(date, 1);
+  return {
+    date: format(adjustedDate, 'd MMM yyyy'),
+    time: format(adjustedDate, 'HH:mm:ss'),
+  };
+};
+
+const toDropdownItems = <T extends { value: string; label: string }>(options: T[]) =>
+  options.map(opt => ({ id: opt.value, label: opt.label }));
+
 const AuditLogs = () => {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [actionFilter, setActionFilter] = useState<string>('all')
   const [entityFilter, setEntityFilter] = useState<string>('all')
   const [roleFilter, setRoleFilter] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState<number>(1)
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
 
   const { data: paginatedAuditLogs, isLoading } = useAuditLogs({
     page: currentPage,
     limit: 12,
-    action: actionFilter !== 'all' ? actionFilter as AuditAction : undefined,
-    entity_type: entityFilter !== 'all' ? entityFilter as EntityType : undefined,
-    user_role: roleFilter !== 'all' ? roleFilter as UserRole | 'system' : undefined,
+    action: actionFilter !== 'all' ? (actionFilter as AuditAction) : undefined,
+    entity_type: entityFilter !== 'all' ? (entityFilter as EntityType) : undefined,
+    user_role: roleFilter !== 'all' ? (roleFilter as UserRole | 'system') : undefined,
     search: searchQuery || undefined,
   })
   const auditLogs = paginatedAuditLogs?.logs || []
 
   useEffect(() => {
     setCurrentPage(1);
+    setExpandedRows(new Set());
   }, [actionFilter, entityFilter, roleFilter, searchQuery]);
+
+  const toggleRowExpanded = useCallback((auditLogId: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(auditLogId)) {
+        newSet.delete(auditLogId);
+      } else {
+        newSet.add(auditLogId);
+      }
+      return newSet;
+    });
+  }, []);
 
   const formatEntityType = (entityType: string) => {
     return entityType
@@ -92,37 +131,92 @@ const AuditLogs = () => {
   };
 
   const formatDetails = (log: AuditLog) => {
-    if (!!log.old_value !== !!log.new_value) {
-      return <span className="text-xs text-grey">-</span>;
+    const isExpanded = expandedRows.has(log.audit_log_id);
+    const emptyState = <span className="text-xs text-grey">-</span>;
+
+    if (!!log.old_value !== !!log.new_value || !log.old_value || !log.new_value) {
+      return emptyState;
     }
 
-    if (log.old_value && log.new_value) {
-      try {
-        const oldData = typeof log.old_value === 'string' ? JSON.parse(log.old_value) : log.old_value;
-        const newData = typeof log.new_value === 'string' ? JSON.parse(log.new_value) : log.new_value;
-        const changes: string[] = [];
+    try {
+      const oldData: unknown = typeof log.old_value === 'string' ? JSON.parse(log.old_value) : log.old_value;
+      const newData: unknown = typeof log.new_value === 'string' ? JSON.parse(log.new_value) : log.new_value;
 
-        Object.keys(newData).forEach(key => {
-          if (oldData[key] !== newData[key] && !key.includes('_at') && !key.includes('_by')) {
-            changes.push(`${key}: ${oldData[key]} → ${newData[key]}`);
+      if (!isObject(oldData) || !isObject(newData)) {
+        return emptyState;
+      }
+
+      const changes: string[] = [];
+
+      const compareNestedObjects = (parentKey: string, oldVal: Record<string, unknown>, newVal: Record<string, unknown>) => {
+        const allKeys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
+
+        allKeys.forEach(key => {
+          if (shouldSkipKey(key)) return;
+
+          if (oldVal[key] !== newVal[key]) {
+            const formattedKey = `${parentKey} ${key}`.replace(/_/g, ' ');
+            changes.push(`${formattedKey}: ${formatValue(oldVal[key])} → ${formatValue(newVal[key])}`);
           }
         });
+      };
 
-        if (changes.length > 0) {
-          return (
-            <div className="text-xs text-grey max-w-xs line-clamp-2" title={changes.join(', ')}>
-              {changes.slice(0, 2).map((change, index) => (
-                <div key={index}>{change}</div>
-              ))}
-            </div>
-          );
+      Object.keys(newData).forEach(key => {
+        if (shouldSkipKey(key)) return;
+
+        const oldVal = oldData[key];
+        const newVal = newData[key];
+
+        if (isObject(oldVal) && isObject(newVal)) {
+          compareNestedObjects(key, oldVal, newVal);
+        } else if (oldVal !== newVal) {
+          const formattedKey = key.replace(/_/g, ' ');
+          changes.push(`${formattedKey}: ${formatValue(oldVal)} → ${formatValue(newVal)}`);
         }
-      } catch {
-        return <span className="text-xs text-grey">Modified</span>;
-      }
-    }
+      });
 
-    return <span className="text-xs text-grey">-</span>;
+      if (changes.length === 0) {
+        return emptyState;
+      }
+
+      const displayedChanges = isExpanded ? changes : changes.slice(0, 2);
+      const hasMore = changes.length > 2;
+
+      return (
+        <div className="text-xs text-grey">
+          <div className="space-y-1">
+            {displayedChanges.map((change, index) => (
+              <div key={index} className="truncate max-w-xs" title={change}>
+                {change}
+              </div>
+            ))}
+          </div>
+          {hasMore && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleRowExpanded(log.audit_log_id);
+              }}
+              className="mt-2 flex items-center gap-1 text-bright-blue hover:text-blue transition-colors"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-3 h-3" />
+                  <span>Show less</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3 h-3" />
+                  <span>Show {changes.length - 2} more</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      );
+    } catch {
+      return <span className="text-xs text-grey">Modified</span>;
+    }
   };
 
   return (
@@ -145,21 +239,21 @@ const AuditLogs = () => {
             <CustomDropdown
               value={actionFilter}
               onChange={setActionFilter}
-              items={ACTION_OPTIONS.map(opt => ({ id: opt.value, label: opt.label }))}
+              items={toDropdownItems(ACTION_OPTIONS)}
               placeholder='Select action'
               allOptionLabel='All Actions'
             />
             <CustomDropdown
               value={entityFilter}
               onChange={setEntityFilter}
-              items={ENTITY_OPTIONS.map(opt => ({ id: opt.value, label: opt.label }))}
+              items={toDropdownItems(ENTITY_OPTIONS)}
               placeholder='Select entity'
               allOptionLabel='All Entities'
             />
             <CustomDropdown
               value={roleFilter}
               onChange={setRoleFilter}
-              items={ROLE_OPTIONS.map(opt => ({ id: opt.value, label: opt.label }))}
+              items={toDropdownItems(ROLE_OPTIONS)}
               placeholder='Select role'
               allOptionLabel='All Roles'
             />
@@ -185,32 +279,35 @@ const AuditLogs = () => {
                   </TableCell>
                 </TableRow>
               ) : auditLogs.length > 0 ? (
-                auditLogs.map((log, index) => (
-                  <TableRow key={log.audit_log_id} data-tour={index === 0 ? 'admin-audit-log-row' : undefined}>
-                    <TableCell className="pl-8">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-dark-blue">{format(new Date(log.audit_date), 'd MMM yyyy')}</span>
-                        <span className="text-sm text-grey">{format(new Date(log.audit_date), 'HH:mm:ss')}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {log.user_name !== null ? (
+                auditLogs.map((log, index) => {
+                  const timestamp = formatTimestamp(new Date(log.audit_date));
+                  return (
+                    <TableRow key={log.audit_log_id} data-tour={index === 0 ? 'admin-audit-log-row' : undefined}>
+                      <TableCell className="pl-8">
                         <div className="flex flex-col">
-                          <span className="font-medium text-dark-blue">{log.user_name}</span>
-                          <span className="text-sm text-grey capitalize">{log.user_role || 'N/A'}</span>
+                          <span className="font-medium text-dark-blue">{timestamp.date}</span>
+                          <span className="text-sm text-grey">{timestamp.time}</span>
                         </div>
-                      ) : (
-                        <span className="font-medium text-dark-blue">System</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="capitalize text-dark-blue">{log.action}</TableCell>
-                    <TableCell>
-                      {renderEntityBadge(log.entity_type)}
-                    </TableCell>
-                    <TableCell className="capitalize">{log.reference || 'N/A'}</TableCell>
-                    <TableCell className="pr-8">{formatDetails(log)}</TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell>
+                        {log.user_id !== null ? (
+                          <div className="flex flex-col">
+                            <span className="font-medium text-dark-blue">{log.user_name}</span>
+                            <span className="text-sm text-grey capitalize">{log.user_role || 'N/A'}</span>
+                          </div>
+                        ) : (
+                          <span className="font-medium text-dark-blue">System</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="capitalize text-dark-blue">{log.action}</TableCell>
+                      <TableCell>
+                        {renderEntityBadge(log.entity_type)}
+                      </TableCell>
+                      <TableCell className="capitalize">{log.reference || 'N/A'}</TableCell>
+                      <TableCell className="pr-8">{formatDetails(log)}</TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-grey py-8">

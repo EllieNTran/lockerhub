@@ -20,7 +20,7 @@ WITH updated_bookings AS (
         AND (k.key_id IS NULL OR k.status = 'available')
 )
 UPDATE lockerhub.lockers
-SET status = 'reserved', updated_at = CURRENT_TIMESTAMP
+SET status = 'reserved', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
 FROM updated_bookings
 WHERE lockerhub.lockers.locker_id = updated_bookings.locker_id
 RETURNING updated_bookings.booking_id, updated_bookings.locker_id, updated_bookings.key_id;
@@ -28,7 +28,7 @@ RETURNING updated_bookings.booking_id, updated_bookings.locker_id, updated_booki
 
 UPDATE_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'awaiting_handover', updated_at = CURRENT_TIMESTAMP
+SET status = 'awaiting_handover', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
 WHERE key_id = ANY($1::uuid[]);
 """
 
@@ -46,7 +46,7 @@ WHERE b.end_date = $1
 
 UPDATE_KEY_AWAITING_RETURN_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'awaiting_return', updated_at = CURRENT_TIMESTAMP
+SET status = 'awaiting_return', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
 WHERE key_id = ANY($1::uuid[]);
 """
 
@@ -97,7 +97,7 @@ async def update_booking_statuses():
     """
     Update booking statuses for bookings starting or ending today.
 
-    This job runs daily at midnight and:
+    This job runs hourly and:
 
     For bookings starting today:
     1. Finds all bookings where start_date = today AND status = 'upcoming'
@@ -111,6 +111,8 @@ async def update_booking_statuses():
 
     Note: Only processes bookings for lockers that are currently 'available'
     to avoid conflicts with maintenance or other states.
+    
+    Running hourly ensures bookings created during the day are processed promptly.
     """
     try:
         today = date.today()

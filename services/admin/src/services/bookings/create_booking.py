@@ -13,9 +13,11 @@ INSERT INTO lockerhub.bookings (
     user_id,
     locker_id,
     start_date,
-    end_date
+    end_date,
+    created_by,
+    updated_by
 )
-VALUES ($1, $2, $3, $4)
+VALUES ($1, $2, $3, $4, $5, $5)
 RETURNING booking_id
 """
 
@@ -33,7 +35,7 @@ WHERE u.user_id = $2
 
 
 async def create_booking(
-    user_id: str, locker_id: str, start_date: date, end_date: date
+    user_id: str, locker_id: str, start_date: date, end_date: date, admin_id: str
 ) -> CreateBookingResponse:
     """
     Create a new booking for a user (admin override).
@@ -50,6 +52,7 @@ async def create_booking(
         locker_id: ID of the locker to book
         start_date: Start date of the booking
         end_date: End date of the booking
+        admin_id: ID of the admin creating the booking
 
     Returns:
         CreateBookingResponse with the booking ID
@@ -59,7 +62,7 @@ async def create_booking(
     """
     try:
         booking_id = await db.fetchval(
-            CREATE_BOOKING_QUERY, user_id, locker_id, start_date, end_date
+            CREATE_BOOKING_QUERY, user_id, locker_id, start_date, end_date, admin_id
         )
         booking_details = await db.fetchrow(
             GET_BOOKING_DETAILS_QUERY, locker_id, user_id

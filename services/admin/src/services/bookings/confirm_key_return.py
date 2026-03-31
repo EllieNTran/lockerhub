@@ -21,20 +21,22 @@ WHERE b.booking_id = $1
 
 UPDATE_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'available', updated_at = CURRENT_TIMESTAMP
+SET status = 'available', updated_at = CURRENT_TIMESTAMP, updated_by = $2
 WHERE locker_id = $1 AND status IN ('with_employee', 'awaiting_return')
 RETURNING key_id, key_number, status
 """
 
 UPDATE_LOCKER_STATUS_QUERY = """
 UPDATE lockerhub.lockers
-SET status = 'available', updated_at = CURRENT_TIMESTAMP
+SET status = 'available', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
 WHERE locker_id = $1
 """
 
 UPDATE_BOOKING_STATUS_QUERY = """
 UPDATE lockerhub.bookings
-SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+SET status = 'completed',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = NULL
 WHERE booking_id = $1
 RETURNING booking_id, status
 """
@@ -46,11 +48,11 @@ WHERE request_id = $1
 """
 
 
-async def confirm_key_return(user_id: str, booking_id: str) -> KeyReturnResponse:
+async def confirm_key_return(admin_id: str, booking_id: str) -> KeyReturnResponse:
     """Confirm that a key has been returned by a user.
 
     Args:
-        user_id: ID of the admin confirming the return
+        admin_id: ID of the admin confirming the return
         booking_id: ID of the booking to confirm return for
 
     Returns:
@@ -70,7 +72,7 @@ async def confirm_key_return(user_id: str, booking_id: str) -> KeyReturnResponse
                 )
 
             key = await connection.fetchrow(
-                UPDATE_KEY_STATUS_QUERY, booking["locker_id"]
+                UPDATE_KEY_STATUS_QUERY, booking["locker_id"], admin_id
             )
             if not key:
                 logger.warning("Key not found for locker")
@@ -99,7 +101,7 @@ async def confirm_key_return(user_id: str, booking_id: str) -> KeyReturnResponse
                     "entityType": "key",
                     "scope": "user",
                     "userIds": [str(booking["user_id"])],
-                    "createdBy": str(user_id),
+                    "createdBy": str(admin_id),
                 },
             )
 

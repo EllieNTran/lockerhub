@@ -6,9 +6,7 @@ EXECUTE FUNCTION lockerhub.log_audit('booking', 'create');
 CREATE TRIGGER booking_updated
 AFTER UPDATE ON lockerhub.bookings
 FOR EACH ROW
-WHEN (OLD.* IS DISTINCT FROM NEW.* AND 
-      NOT (NEW.status = 'active' AND OLD.status = 'upcoming') AND
-      NOT (NEW.status = 'completed' AND OLD.status IN ('active', 'expired')))
+WHEN (OLD.* IS DISTINCT FROM NEW.*)
 EXECUTE FUNCTION lockerhub.log_audit('booking', 'update');
 
 CREATE TRIGGER booking_deleted
@@ -20,10 +18,10 @@ CREATE TRIGGER booking_handover
 AFTER UPDATE ON lockerhub.bookings
 FOR EACH ROW
 WHEN (NEW.status = 'active' AND OLD.status = 'upcoming')
-EXECUTE FUNCTION lockerhub.log_audit('booking', 'handover');
+EXECUTE FUNCTION lockerhub.log_audit('key', 'handover');
 
 CREATE TRIGGER booking_return
 AFTER UPDATE ON lockerhub.bookings
 FOR EACH ROW
 WHEN (NEW.status = 'completed' AND OLD.status IN ('active', 'expired'))
-EXECUTE FUNCTION lockerhub.log_audit('booking', 'return');
+EXECUTE FUNCTION lockerhub.log_audit('key', 'return');

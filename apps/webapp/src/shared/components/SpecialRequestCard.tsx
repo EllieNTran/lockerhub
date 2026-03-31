@@ -1,6 +1,6 @@
 import { useEffect, useState, type SetStateAction } from 'react'
 import { format } from 'date-fns'
-import { Clock, CalendarDays, MapPin, Hourglass, Loader, AlertTriangle, CircleCheckBig, X, CircleX, CircleCheck } from 'lucide-react'
+import { Clock, CalendarDays, MapPin, Hourglass, Loader, Ban, X, CircleCheckBig, CircleX, CircleCheck } from 'lucide-react'
 import formatDuration from '@/utils/duration-format'
 import ColorBadge from '@/components/ColorBadge'
 import { formatTimeAgo } from '@/utils/date-format'
@@ -72,7 +72,7 @@ const SpecialRequestCard = ({ specialRequest, onCancel, onReview, isAdmin = fals
       case 'rejected':
         return <X className='h-6 w-6' />
       default:
-        return <AlertTriangle className='h-6 w-6' />
+        return <Ban className='h-6 w-6' />
     }
   }
 

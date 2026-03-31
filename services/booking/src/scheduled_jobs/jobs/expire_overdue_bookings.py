@@ -19,7 +19,7 @@ WITH expired_bookings AS (
         AND l.status IN ('occupied', 'reserved')
 )
 UPDATE lockerhub.lockers
-SET status = 'available', updated_at = CURRENT_TIMESTAMP
+SET status = 'available', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
 FROM expired_bookings
 WHERE lockerhub.lockers.locker_id = expired_bookings.locker_id
 RETURNING expired_bookings.booking_id, expired_bookings.locker_id, expired_bookings.key_id;
@@ -27,13 +27,13 @@ RETURNING expired_bookings.booking_id, expired_bookings.locker_id, expired_booki
 
 UPDATE_EXPIRED_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'available', updated_at = CURRENT_TIMESTAMP
+SET status = 'available', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
 WHERE key_id = ANY($1::uuid[]);
 """
 
 UPDATE_EXPIRED_BOOKING_STATUS_QUERY = """
 UPDATE lockerhub.bookings
-SET status = 'expired', updated_at = CURRENT_TIMESTAMP
+SET status = 'expired', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
 WHERE booking_id = ANY($1::uuid[]);
 """
 

@@ -33,7 +33,8 @@ WHERE b.booking_id = $1
 CANCEL_BOOKING_QUERY = """
 UPDATE lockerhub.bookings
 SET status = 'cancelled',
-    updated_at = CURRENT_TIMESTAMP
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = $2
 WHERE booking_id = $1
 RETURNING booking_id, status
 """
@@ -57,7 +58,7 @@ WHERE locker_id = $1 AND status = 'reserved'
 """
 
 
-async def cancel_booking(booking_id: str) -> CancelBookingResponse:
+async def cancel_booking(booking_id: str, admin_id: str) -> CancelBookingResponse:
     """Cancel a booking by setting its status to 'cancelled'.
 
     If the booking has a key in 'awaiting_handover' status, reset it to 'available'.
@@ -65,6 +66,7 @@ async def cancel_booking(booking_id: str) -> CancelBookingResponse:
 
     Args:
         booking_id: ID of the booking to cancel
+        admin_id: ID of the admin cancelling the booking
 
     Returns:
         The cancelled booking response
@@ -78,7 +80,9 @@ async def cancel_booking(booking_id: str) -> CancelBookingResponse:
                 logger.warning("Booking not found for cancellation")
                 raise ValueError("Booking not found")
 
-            result = await connection.fetchrow(CANCEL_BOOKING_QUERY, booking_id)
+            result = await connection.fetchrow(
+                CANCEL_BOOKING_QUERY, booking_id, admin_id
+            )
 
             if booking_details["special_request_id"]:
                 await connection.execute(

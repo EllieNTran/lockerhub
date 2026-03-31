@@ -95,9 +95,10 @@ All endpoints require JWT authentication: `Authorization: Bearer <token>`
 
 Automated tasks run via APScheduler:
 
-- **Update Booking Statuses** - Daily at 00:00
-  - Transitions bookings from `upcoming` to `active` when start date arrives
-  - Updates locker and key status to `reserved`
+- **Update Booking Statuses** - Hourly (every hour)
+  - Updates locker status to `reserved` and key status to `awaiting_handover` for bookings starting today
+  - Updates key status to `awaiting_return` for bookings ending today
+  - Runs frequently to handle bookings created during the day
 
 - **Expire Overdue Bookings** - Daily at 00:00
   - Expires bookings past their end date

@@ -15,13 +15,13 @@ def configure_jobs():
     """Configure all scheduled jobs."""
     scheduler.add_job(
         update_booking_statuses,
-        trigger=CronTrigger(hour=0, minute=0),
+        trigger=CronTrigger(minute=0),
         id="update_booking_statuses",
         name="Update booking statuses for bookings starting or ending today",
         replace_existing=True,
     )
     logger.info(
-        "Configured scheduled job: update_booking_statuses (runs daily at midnight)"
+        "Configured scheduled job: update_booking_statuses (runs hourly)"
     )
 
     scheduler.add_job(

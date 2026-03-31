@@ -18,9 +18,9 @@ class CreateBookingRequest(BaseModel):
     @field_validator("end_date")
     @classmethod
     def validate_end_date(cls, v: date, info) -> date:
-        """Ensure end_date is after start_date."""
-        if "start_date" in info.data and v <= info.data["start_date"]:
-            raise ValueError("end_date must be after start_date")
+        """Ensure end_date is not before start_date."""
+        if "start_date" in info.data and v < info.data["start_date"]:
+            raise ValueError("end_date cannot be before start_date")
         return v
 
 
