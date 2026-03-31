@@ -10,7 +10,6 @@ docker compose \
   -f infra.yaml \
   -f postgres/setup.yaml \
   -f services.yaml \
-  -f waitlist-scheduler.yaml \
   -p lockerhub \
   up -d --build
 

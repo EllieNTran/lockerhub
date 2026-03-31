@@ -83,7 +83,6 @@ All endpoints require JWT authentication: `Authorization: Bearer <token>`
 
 **Waitlist**
 - `POST /bookings/waitlist/join` - Join floor queue
-- `POST /bookings/queues/process` - Process floor queues (scheduled job)
 
 **Booking Rules**
 - `GET /bookings/booking-rule/{rule_type}` - Get specific booking rule
@@ -95,7 +94,7 @@ All endpoints require JWT authentication: `Authorization: Bearer <token>`
 
 Automated tasks run via APScheduler:
 
-- **Update Booking Statuses** - Hourly (every hour)
+- **Update Booking Statuses** - Every 30 minutes
   - Updates locker status to `reserved` and key status to `awaiting_handover` for bookings starting today
   - Updates key status to `awaiting_return` for bookings ending today
   - Runs frequently to handle bookings created during the day
@@ -107,3 +106,14 @@ Automated tasks run via APScheduler:
 - **Send Key Return Reminders** - Daily at 09:00
   - Emails users whose bookings end today
   - Reminds them to return keys
+
+- **Process Floor Queues** - Every 15 minutes
+  - Auto-allocates available lockers to waitlisted users (FCFS)
+  - Removes users from queue who already have active bookings
+  - Sends booking confirmation emails
+
+**Manual Triggers** (for testing):
+- `POST /scheduled-jobs/update-booking-statuses`
+- `POST /scheduled-jobs/expire-overdue-bookings`
+- `POST /scheduled-jobs/send-key-return-reminders`
+- `POST /scheduled-jobs/process-floor-queues`

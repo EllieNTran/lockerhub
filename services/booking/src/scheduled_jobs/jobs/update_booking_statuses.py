@@ -97,8 +97,6 @@ async def update_booking_statuses():
     """
     Update booking statuses for bookings starting or ending today.
 
-    This job runs hourly and:
-
     For bookings starting today:
     1. Finds all bookings where start_date = today AND status = 'upcoming'
     2. Updates locker status from 'available' to 'reserved'
@@ -111,8 +109,6 @@ async def update_booking_statuses():
 
     Note: Only processes bookings for lockers that are currently 'available'
     to avoid conflicts with maintenance or other states.
-
-    Running hourly ensures bookings created during the day are processed promptly.
     """
     try:
         today = date.today()

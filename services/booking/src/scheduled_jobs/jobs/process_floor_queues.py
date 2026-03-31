@@ -1,4 +1,4 @@
-"""Process floor queues and auto-allocate available lockers to queued requests."""
+"""Scheduled job to process floor queues and auto-allocate lockers to waitlisted users."""
 
 from src.logger import logger
 from src.connectors.db import db
@@ -133,13 +133,14 @@ async def handle_active_booking(
 
 async def process_floor_queues() -> ProcessFloorQueuesResponse:
     """
-    Process all floor queues and auto-allocate available lockers.
+    Process floor queues and auto-allocate available lockers to waitlisted users.
 
-    For each floor with a queue:
-    1. Get queued requests in FCFS order (oldest first)
-    2. Try to find an available locker for the request dates
-    3. If found, create booking and update request status
-    4. Send notification to user
+    This job runs every 15 minutes and:
+    1. Gets all floors with queued requests
+    2. For each floor, processes requests in FCFS order (oldest first)
+    3. Tries to find an available locker for the request dates
+    4. If found, creates booking, updates request status, and sends notification
+    5. Removes users from queue who already have active bookings
 
     Returns:
         ProcessFloorQueuesResponse with count of allocations made
@@ -147,6 +148,8 @@ async def process_floor_queues() -> ProcessFloorQueuesResponse:
     allocations_made = 0
 
     try:
+        logger.info("Running process_floor_queues job")
+
         floors = await db.fetch(GET_FLOORS_WITH_QUEUES_QUERY)
 
         if not floors:
@@ -236,5 +239,5 @@ async def process_floor_queues() -> ProcessFloorQueuesResponse:
         )
 
     except Exception:
-        logger.error("Error processing floor queues")
+        logger.error("Error in process_floor_queues job")
         raise
