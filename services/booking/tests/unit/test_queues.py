@@ -122,7 +122,7 @@ class TestProcessFloorQueues:
         Mock database returns queued requests and available lockers.
         Verify bookings created and queue entries removed.
         """
-        from src.services.process_floor_queues import process_floor_queues
+        from src.scheduled_jobs.jobs.process_floor_queues import process_floor_queues
         from uuid import uuid4
 
         floor_data = [
@@ -151,8 +151,8 @@ class TestProcessFloorQueues:
         mock_db_connection.fetchval.return_value = uuid4()
         mock_db_connection.execute.return_value = None
 
-        with patch("src.services.process_floor_queues.db", mock_db), patch(
-            "src.services.process_floor_queues.NotificationsServiceClient"
+        with patch("src.scheduled_jobs.jobs.process_floor_queues.db", mock_db), patch(
+            "src.scheduled_jobs.jobs.process_floor_queues.NotificationsServiceClient"
         ) as mock_notif_class:
             mock_notif_instance = AsyncMock()
             mock_notif_instance.post = AsyncMock(return_value={"success": True})
@@ -170,11 +170,11 @@ class TestProcessFloorQueues:
         Mock database returns empty list for queued requests.
         Expect success response with zero allocations.
         """
-        from src.services.process_floor_queues import process_floor_queues
+        from src.scheduled_jobs.jobs.process_floor_queues import process_floor_queues
 
         mock_db.fetch.return_value = []
 
-        with patch("src.services.process_floor_queues.db", mock_db):
+        with patch("src.scheduled_jobs.jobs.process_floor_queues.db", mock_db):
             result = await process_floor_queues()
 
         assert result.success is True
@@ -189,7 +189,7 @@ class TestProcessFloorQueues:
         Mock database returns requests but empty locker list.
         Expect success with zero allocations.
         """
-        from src.services.process_floor_queues import process_floor_queues
+        from src.scheduled_jobs.jobs.process_floor_queues import process_floor_queues
         from uuid import uuid4
 
         floor_data = [
@@ -217,8 +217,8 @@ class TestProcessFloorQueues:
         mock_db.fetch.side_effect = [floor_data, queued_requests]
         mock_db_connection.fetchrow.return_value = None
 
-        with patch("src.services.process_floor_queues.db", mock_db), patch(
-            "src.services.process_floor_queues.NotificationsServiceClient"
+        with patch("src.scheduled_jobs.jobs.process_floor_queues.db", mock_db), patch(
+            "src.scheduled_jobs.jobs.process_floor_queues.NotificationsServiceClient"
         ) as mock_notif_class:
             mock_notif_instance = AsyncMock()
             mock_notif_instance.post = AsyncMock(return_value={"success": True})

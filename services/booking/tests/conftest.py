@@ -19,7 +19,6 @@ os.environ.setdefault("APP_HOST", "0.0.0.0")
 os.environ.setdefault("APP_PORT", "3004")
 os.environ.setdefault("AUTH_SERVICE_URL", "http://localhost:3003")
 os.environ.setdefault("NOTIFICATIONS_SERVICE_URL", "http://localhost:3006")
-os.environ.setdefault("INTERNAL_API_KEY", "test-api-key")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -312,18 +311,8 @@ def mock_get_current_user():
     return mock_user
 
 
-@pytest.fixture
-def mock_verify_api_key():
-    """Mock the verify_api_key dependency for integration tests."""
-
-    async def mock_verify():
-        return True
-
-    return mock_verify
-
-
 @pytest_asyncio.fixture
-async def test_client(mock_get_current_user, mock_verify_api_key):
+async def test_client(mock_get_current_user):
     """Create FastAPI test client with mocked authentication."""
     # Need to mock lifespan events to avoid DB connections
     from contextlib import asynccontextmanager
@@ -343,10 +332,8 @@ async def test_client(mock_get_current_user, mock_verify_api_key):
 
         # Override authentication dependencies
         from src.middleware.auth import get_current_user
-        from src.middleware.api_key import verify_api_key
 
         app.dependency_overrides[get_current_user] = mock_get_current_user
-        app.dependency_overrides[verify_api_key] = mock_verify_api_key
 
         # Create test client
         transport = ASGITransport(app=app)

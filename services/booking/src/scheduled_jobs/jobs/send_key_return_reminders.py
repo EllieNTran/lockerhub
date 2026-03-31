@@ -34,7 +34,6 @@ async def send_key_return_reminders():
     """
     Send key return reminder emails to staff when booking end date is today.
 
-    This job runs daily and:
     1. Finds all active bookings where end_date = today
     2. Sends a key return reminder email to each user via notifications service
     3. Notifies staff about upcoming key returns

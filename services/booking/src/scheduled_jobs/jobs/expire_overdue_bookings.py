@@ -42,7 +42,6 @@ async def expire_overdue_bookings():
     """
     Expire overdue bookings where end date has passed.
 
-    This job runs daily at midnight and:
     1. Finds all bookings where end_date < today AND status = 'active'
     2. Updates locker status to 'available'
     3. Updates key status to 'available' (if key exists)

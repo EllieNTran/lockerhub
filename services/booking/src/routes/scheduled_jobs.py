@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from src.scheduled_jobs.jobs.update_booking_statuses import update_booking_statuses
 from src.scheduled_jobs.jobs.expire_overdue_bookings import expire_overdue_bookings
 from src.scheduled_jobs.jobs.send_key_return_reminders import send_key_return_reminders
+from src.scheduled_jobs.jobs.process_floor_queues import process_floor_queues
 
 router = APIRouter(prefix="/scheduled-jobs", tags=["Scheduled Jobs"])
 
@@ -42,3 +43,15 @@ async def trigger_send_key_return_reminders():
     """
     await send_key_return_reminders()
     return {"message": "Send key return reminders job completed"}
+
+
+@router.post("/process-floor-queues")
+async def trigger_process_floor_queues():
+    """
+    Manually trigger the process floor queues job.
+
+    Processes waitlist and auto-allocates available lockers.
+    The job normally runs automatically every 15 minutes.
+    """
+    await process_floor_queues()
+    return {"message": "Process floor queues job completed"}

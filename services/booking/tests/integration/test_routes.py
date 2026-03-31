@@ -448,25 +448,26 @@ class TestScheduledJobRoutes:
     async def test_process_floor_queues(self, test_client):
         """
         Verify processing of floor queues through HTTP endpoint.
-        Mock service returns processing results.
+        Mock job returns processing results.
         Expect 200 status with allocation count.
         """
-        mock_result = {
-            "success": True,
-            "allocations_made": 3,
-            "message": "Processed floor queues",
-        }
+        from src.models.responses import ProcessFloorQueuesResponse
+
+        mock_result = ProcessFloorQueuesResponse(
+            success=True,
+            allocations_made=3,
+            message="Processed floor queues",
+        )
 
         with patch(
-            "src.routes.bookings.process_floor_queues",
+            "src.routes.scheduled_jobs.process_floor_queues",
             AsyncMock(return_value=mock_result),
         ):
-            response = await test_client.post("/bookings/queues/process")
+            response = await test_client.post("/scheduled-jobs/process-floor-queues")
 
         assert response.status_code == 200
         data = response.json()
-        assert data["success"] is True
-        assert data["allocations_made"] == 3
+        assert data["message"] == "Process floor queues job completed"
 
 
 class TestSpecialRequestRoutes:
