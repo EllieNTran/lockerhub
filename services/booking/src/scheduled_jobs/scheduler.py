@@ -20,9 +20,7 @@ def configure_jobs():
         name="Update booking statuses for bookings starting or ending today",
         replace_existing=True,
     )
-    logger.info(
-        "Configured scheduled job: update_booking_statuses (runs hourly)"
-    )
+    logger.info("Configured scheduled job: update_booking_statuses (runs hourly)")
 
     scheduler.add_job(
         expire_overdue_bookings,

@@ -111,7 +111,7 @@ async def update_booking_statuses():
 
     Note: Only processes bookings for lockers that are currently 'available'
     to avoid conflicts with maintenance or other states.
-    
+
     Running hourly ensures bookings created during the day are processed promptly.
     """
     try:
