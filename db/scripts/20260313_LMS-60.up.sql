@@ -1,4 +1,36 @@
--- Audit logging function for all entities
+-- Update audit logging for bookings and key handover/return
+-- 1. Add created_by/updated_by to bookings table
+-- 2. Update booking audit to use admin ID for manual bookings
+-- 3. Change key handover and return audit to log as 'key' entity (not 'booking')
+-- 4. Allow updated_by to be NULL for system-initiated updates
+
+-- Add created_by and updated_by columns to bookings table
+ALTER TABLE lockerhub.bookings 
+ADD COLUMN IF NOT EXISTS created_by UUID,
+ADD COLUMN IF NOT EXISTS updated_by UUID;
+
+ALTER TABLE lockerhub.bookings
+ADD CONSTRAINT fk_bookings_created_by 
+    FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE SET NULL,
+ADD CONSTRAINT fk_bookings_updated_by 
+    FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE SET NULL;
+
+UPDATE lockerhub.bookings 
+SET created_by = user_id, updated_by = user_id
+WHERE created_by IS NULL;
+
+-- Note: Removed separate key handover/return triggers - key updates will be logged by key_updated trigger
+DROP TRIGGER IF EXISTS booking_updated ON lockerhub.bookings;
+DROP TRIGGER IF EXISTS booking_handover ON lockerhub.bookings;
+DROP TRIGGER IF EXISTS booking_return ON lockerhub.bookings;
+
+CREATE TRIGGER booking_updated
+AFTER UPDATE ON lockerhub.bookings
+FOR EACH ROW
+WHEN (OLD.* IS DISTINCT FROM NEW.*)
+EXECUTE FUNCTION lockerhub.log_audit('booking', 'update');
+
+-- Note: Key updates will detect handover/return and log with appropriate action type
 CREATE OR REPLACE FUNCTION lockerhub.log_audit()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -12,11 +44,9 @@ DECLARE
     v_new_value_json JSONB;
     v_action TEXT;
 BEGIN
-    -- Default: use row_to_json for old/new values
     v_old_value_json := CASE WHEN TG_OP IN ('DELETE', 'UPDATE') THEN row_to_json(OLD)::JSONB ELSE NULL END;
     v_new_value_json := CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW)::JSONB ELSE NULL END;
-    
-    -- Default action from trigger argument
+
     v_action := TG_ARGV[1];
 
     -- Determine user_id and entity_id based on operation and entity type
@@ -129,3 +159,24 @@ BEGIN
     RETURN COALESCE(NEW, OLD);
 END;
 $$ LANGUAGE plpgsql;
+
+-- Allow updated_by to be NULL for system-initiated updates (scheduled jobs)
+ALTER TABLE lockerhub.lockers 
+ALTER COLUMN updated_by DROP NOT NULL;
+
+ALTER TABLE lockerhub.keys 
+ALTER COLUMN updated_by DROP NOT NULL;
+
+ALTER TABLE lockerhub.floors 
+ALTER COLUMN updated_by DROP NOT NULL;
+
+-- Change from inclusive end '[' to exclusive end ')' and add 1 day to end_date
+-- This allows a booking to start on the day another ends
+ALTER TABLE lockerhub.bookings
+DROP CONSTRAINT no_overlapping_bookings;
+
+ALTER TABLE lockerhub.bookings
+ADD CONSTRAINT no_overlapping_bookings EXCLUDE USING gist (
+    locker_id WITH =,
+    daterange(start_date, COALESCE(end_date, 'infinity'::date) + 1, '[)') WITH &&
+);

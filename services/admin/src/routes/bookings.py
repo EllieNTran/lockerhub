@@ -26,7 +26,7 @@ router = APIRouter(prefix="/bookings", tags=["admin-bookings"])
 @router.post("", response_model=CreateBookingResponse)
 async def create_booking_endpoint(
     request: CreateBookingRequest,
-    _: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Create a new booking for a user."""
     try:
@@ -35,6 +35,7 @@ async def create_booking_endpoint(
             str(request.locker_id),
             request.start_date,
             request.end_date,
+            current_user["user_id"],
         )
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
@@ -54,11 +55,11 @@ async def get_all_bookings_endpoint(_: dict = Depends(get_current_user)):
 @router.post("/{booking_id}/cancel", response_model=CancelBookingResponse)
 async def cancel_booking_endpoint(
     booking_id: str,
-    _: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Cancel a booking."""
     try:
-        return await cancel_booking(booking_id)
+        return await cancel_booking(booking_id, current_user["user_id"])
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:

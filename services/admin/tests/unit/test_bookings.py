@@ -32,7 +32,9 @@ class TestCancelBooking:
             return_value=mock_notifications_client,
         ):
 
-            result = await cancel_booking(str(sample_booking_data["booking_id"]))
+            result = await cancel_booking(
+                str(sample_booking_data["booking_id"]), "admin-id"
+            )
 
             assert result.booking_id == sample_booking_data["booking_id"]
             assert result.message == "Booking cancelled"
@@ -47,7 +49,7 @@ class TestCancelBooking:
 
         with patch("src.services.bookings.cancel_booking.db", mock_db):
             with pytest.raises(ValueError, match="Booking not found"):
-                await cancel_booking("non-existent-id")
+                await cancel_booking("non-existent-id", "admin-id")
 
     @pytest.mark.asyncio
     async def test_cancel_booking_resets_key_awaiting_handover(
@@ -77,7 +79,7 @@ class TestCancelBooking:
             return_value=mock_notifications_client,
         ):
 
-            await cancel_booking(booking_data["booking_id"])
+            await cancel_booking(booking_data["booking_id"], "admin-id")
 
             assert mock_db_connection.execute.call_count == 2
 
@@ -110,7 +112,7 @@ class TestCancelBooking:
             return_value=mock_notifications_client,
         ):
 
-            await cancel_booking(booking_data["booking_id"])
+            await cancel_booking(booking_data["booking_id"], "admin-id")
 
             # Verify special request cancellation + key reset + locker reset
             assert mock_db_connection.execute.call_count == 3
@@ -148,7 +150,7 @@ class TestCancelBooking:
             return_value=mock_notifications_client,
         ):
 
-            await cancel_booking(booking_data["booking_id"])
+            await cancel_booking(booking_data["booking_id"], "admin-id")
 
             # Should only have 2 execute calls (key reset + locker reset)
             assert mock_db_connection.execute.call_count == 2
@@ -197,6 +199,7 @@ class TestCreateBooking:
                 locker_id=sample_locker_id,
                 start_date=start_date,
                 end_date=end_date,
+                admin_id=sample_user_id,
             )
 
             assert result.booking_id == new_booking_id

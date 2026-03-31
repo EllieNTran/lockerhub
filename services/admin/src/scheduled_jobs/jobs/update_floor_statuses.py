@@ -8,7 +8,8 @@ from src.connectors.db import db
 CLOSE_FLOORS_QUERY = """
 UPDATE lockerhub.floors
 SET status = 'closed',
-    updated_at = CURRENT_TIMESTAMP
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = NULL
 WHERE floor_id IN (
     SELECT DISTINCT f.floor_id
     FROM lockerhub.floors f
@@ -23,7 +24,8 @@ RETURNING floor_id, floor_number
 REOPEN_FLOORS_QUERY = """
 UPDATE lockerhub.floors
 SET status = 'open',
-    updated_at = CURRENT_TIMESTAMP
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = NULL
 WHERE floor_id IN (
     SELECT f.floor_id
     FROM lockerhub.floors f

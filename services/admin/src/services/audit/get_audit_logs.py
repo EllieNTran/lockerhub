@@ -50,7 +50,7 @@ def build_audit_logs_query(
     if search:
         search_pattern = f"%{search}%"
         where_conditions.append(
-            f"(CONCAT(u.first_name, ' ', u.last_name) ILIKE ${param_counter} OR a.reference ILIKE ${param_counter})"
+            f"(CASE WHEN u.user_id IS NULL THEN NULL ELSE CONCAT(u.first_name, ' ', u.last_name) END ILIKE ${param_counter} OR a.reference ILIKE ${param_counter})"
         )
         params.append(search_pattern)
         param_counter += 1
@@ -61,7 +61,7 @@ def build_audit_logs_query(
     SELECT 
         a.audit_log_id,
         a.user_id,
-        CONCAT(u.first_name, ' ', u.last_name) as user_name,
+        CASE WHEN a.user_id IS NULL THEN NULL ELSE CONCAT(u.first_name, ' ', u.last_name) END as user_name,
         u.role as user_role,
         a.action,
         a.entity_type,

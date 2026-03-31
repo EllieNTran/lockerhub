@@ -22,30 +22,32 @@ WHERE booking_id = $1
 
 UPDATE_KEY_STATUS_QUERY = """
 UPDATE lockerhub.keys
-SET status = 'with_employee', updated_at = CURRENT_TIMESTAMP
+SET status = 'with_employee', updated_at = CURRENT_TIMESTAMP, updated_by = $2
 WHERE locker_id = $1 AND status = 'awaiting_handover'
 RETURNING key_id, key_number, status
 """
 
 UPDATE_BOOKING_STATUS_QUERY = """
 UPDATE lockerhub.bookings
-SET status = 'active', updated_at = CURRENT_TIMESTAMP
+SET status = 'active',
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by = NULL
 WHERE booking_id = $1
 RETURNING booking_id, status
 """
 
 UPDATE_LOCKER_STATUS_QUERY = """
 UPDATE lockerhub.lockers
-SET status = 'occupied', updated_at = CURRENT_TIMESTAMP
+SET status = 'occupied', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
 WHERE locker_id = $1
 """
 
 
-async def confirm_key_handover(user_id: str, booking_id: str) -> KeyHandoverResponse:
+async def confirm_key_handover(admin_id: str, booking_id: str) -> KeyHandoverResponse:
     """Confirm that a key has been handed over to a user.
 
     Args:
-        user_id: ID of the admin confirming the handover
+        admin_id: ID of the admin confirming the handover
         booking_id: ID of the booking to confirm handover for
 
     Returns:
@@ -68,7 +70,7 @@ async def confirm_key_handover(user_id: str, booking_id: str) -> KeyHandoverResp
                 raise ValueError("Cannot hand over key before booking start date")
 
             key = await connection.fetchrow(
-                UPDATE_KEY_STATUS_QUERY, booking["locker_id"]
+                UPDATE_KEY_STATUS_QUERY, booking["locker_id"], admin_id
             )
             if not key:
                 logger.warning("Key not found for locker")
@@ -90,7 +92,7 @@ async def confirm_key_handover(user_id: str, booking_id: str) -> KeyHandoverResp
                     "entityType": "key",
                     "scope": "user",
                     "userIds": [str(booking["user_id"])],
-                    "createdBy": str(user_id),
+                    "createdBy": str(admin_id),
                 },
             )
 
@@ -101,6 +103,6 @@ async def confirm_key_handover(user_id: str, booking_id: str) -> KeyHandoverResp
                 key_number=key["key_number"],
             )
 
-    except Exception:
-        logger.error("Error confirming handover for booking")
+    except Exception as e:
+        logger.error("Error confirming handover for booking: %s", e)
         raise

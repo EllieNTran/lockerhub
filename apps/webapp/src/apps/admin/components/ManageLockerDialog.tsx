@@ -215,8 +215,16 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
       toast.success('Booking created successfully');
       onOpenChange(false);
       setShowManualBooking(false);
-    } catch {
-      toast.error('Failed to create booking');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create booking';
+
+      if (errorMessage.toLowerCase().includes('conflict')) {
+        toast.error('Booking Conflict', {
+          description: 'This locker has an upcoming booking that conflicts with the selected date range. Please choose a different date range.',
+        });
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -418,7 +426,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             <div className="space-y-2">
               <p className="text-sm text-grey">
                 This locker is currently occupied. To end the booking and confirm key return, go to the{' '}
-                <Link to="/admin/bookings" className="font-medium text-dark-blue hover:text-secondary hover:underline">
+                <Link to={`/admin/bookings?booking=${locker.locker_number}`} className="font-medium text-dark-blue hover:text-secondary hover:underline">
                   Bookings
                 </Link>{' '}
                 page.
@@ -462,7 +470,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             <div className="space-y-2">
               <p className="text-sm text-grey">
                 This locker is reserved for an upcoming booking. To cancel the booking, go to the{' '}
-                <Link to="/admin/bookings" className="font-medium text-dark-blue hover:text-secondary hover:underline">
+                <Link to={`/admin/bookings?booking=${locker.locker_number}`} className="font-medium text-dark-blue hover:text-secondary hover:underline">
                   Bookings
                 </Link>{' '}
                 page.

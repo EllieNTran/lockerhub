@@ -47,9 +47,11 @@ INSERT INTO lockerhub.bookings (
     locker_id,
     start_date,
     end_date,
-    special_request_id
+    special_request_id,
+    created_by,
+    updated_by
 )
-VALUES ($1, $2, $3, $4, $5)
+VALUES ($1, $2, $3, $4, $5, $6, $6)
 RETURNING booking_id
 """
 
@@ -106,6 +108,7 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
                 request["start_date"],
                 request["end_date"],
                 request_id,
+                reviewed_by,
             )
 
             await notification_client.post(

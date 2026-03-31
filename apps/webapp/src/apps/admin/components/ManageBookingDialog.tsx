@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CalendarDays, X, KeyRound, AlertTriangle } from 'lucide-react'
+import { Undo2, X, KeyRound, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns';
 import type { AdminBookingDetail } from '@/types/booking';
 import {
@@ -152,18 +152,20 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
         onClick={handleConfirmReturn}
         disabled={isConfirmingReturn}
       >
-        <CalendarDays className="mr-2 h-4 w-4" />
+        <Undo2 className="mr-2 h-4 w-4" />
         {isConfirmingReturn ? 'Confirming...' : 'Confirm Key Return'}
       </Button>
-      <Button
-        variant="outline"
-        className="w-full flex items-center justify-start h-12 font-normal"
-        onClick={handleSendReminder}
-        disabled={isSendingOverdueKeyReturnReminder}
-      >
-        <AlertTriangle className="mr-2 h-4 w-4" />
-        {isSendingOverdueKeyReturnReminder ? 'Sending...' : 'Send Reminder'}
-      </Button>
+      {booking?.booking_status === 'expired' && (
+        <Button
+          variant="outline"
+          className="w-full flex items-center justify-start h-12 font-normal"
+          onClick={handleSendReminder}
+          disabled={isSendingOverdueKeyReturnReminder}
+        >
+          <AlertTriangle className="mr-2 h-4 w-4" />
+          {isSendingOverdueKeyReturnReminder ? 'Sending...' : 'Send Reminder'}
+        </Button>
+      )}
     </div>
   );
 
@@ -214,15 +216,13 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
         );
       case 'active':
         return (
-          <Button
-            variant="outline"
-            className="w-full flex items-center justify-start h-12 font-normal"
-            onClick={handleCancelClick}
-            disabled={isCancelling}
-          >
-            <X className="mr-2 h-4 w-4" />
-            {isCancelling ? 'Cancelling...' : 'Cancel Booking'}
-          </Button>
+          <>
+            {booking?.key_number ? (
+              renderKeyReturnSection()
+            ) : (
+              <p className="text-sm text-grey">This locker has no key to return.</p>
+            )}
+          </>
         );
       case 'expired':
         return (

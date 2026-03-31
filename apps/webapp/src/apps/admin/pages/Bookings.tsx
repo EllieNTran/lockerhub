@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CalendarDays, KeyRound, Undo2 } from 'lucide-react'
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import AdminLayout from '../layout/AdminLayout';
 import Heading from '@/components/Heading';
 import StatCard from '../components/StatCard';
@@ -39,6 +39,7 @@ const STATUS_OPTIONS = [
 ];
 
 const Bookings = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [selectedBooking, setSelectedBooking] = useState<AdminBookingDetail | null>(null)
   const [manageDialogOpen, setManageDialogOpen] = useState<boolean>(false)
@@ -47,6 +48,14 @@ const Bookings = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const { data: bookingsData = [], isLoading: bookingsLoading } = useAllBookings()
+
+  useEffect(() => {
+    const bookingParam = searchParams.get('booking');
+    if (bookingParam) {
+      setSearchQuery(bookingParam);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const activeBookings = bookingsData?.filter((b) => b.booking_status === 'active').length || 0
   const pendingHandovers = bookingsData?.filter((b) => b.key_status === 'awaiting_handover').length || 0

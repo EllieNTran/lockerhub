@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.floors (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by UUID NOT NULL,
+    updated_by UUID,
     CONSTRAINT fk_floors_created_by FOREIGN KEY (created_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_floors_updated_by FOREIGN KEY (updated_by) REFERENCES lockerhub.users(user_id) ON DELETE CASCADE
 );
