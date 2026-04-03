@@ -378,6 +378,7 @@ describe('Notification Routes Integration Tests', () => {
         validBookingConfirmation.endDate,
         validBookingConfirmation.userBookingsPath,
         validBookingConfirmation.adminBookingsPath,
+        validBookingConfirmation.createdBy,
       )
     })
 
@@ -780,6 +781,7 @@ describe('Notification Routes Integration Tests', () => {
         validSpecialRequestApproved.endDate,
         validSpecialRequestApproved.requestId,
         validSpecialRequestApproved.userSpecialRequestsPath,
+        validSpecialRequestApproved.createdBy,
       )
     })
 
@@ -827,6 +829,7 @@ describe('Notification Routes Integration Tests', () => {
         validSpecialRequestRejected.requestId,
         validSpecialRequestRejected.reason,
         validSpecialRequestRejected.userSpecialRequestsPath,
+        validSpecialRequestRejected.createdBy,
       )
     })
 
@@ -866,6 +869,7 @@ describe('Notification Routes Integration Tests', () => {
         expect.anything(),
         validSpecialRequestRejected.reason,
         expect.anything(),
+        expect.anything(), // createdBy
       )
     })
 

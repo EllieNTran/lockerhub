@@ -87,8 +87,8 @@ export const notifyBookingCancellation = async (
   keyNumber: string,
   adminBookingsPath: string,
 ): Promise<void> => {
-  const dateRange = endDate 
-    ? `from ${startDate} to ${endDate}` 
+  const dateRange = endDate
+    ? `from ${startDate} to ${endDate}`
     : `starting ${startDate} (permanent)`
 
   await createNotification({

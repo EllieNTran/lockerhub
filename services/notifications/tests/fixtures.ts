@@ -156,6 +156,7 @@ export const validBookingConfirmation = {
   endDate: '2026-03-28',
   userBookingsPath: '/user/bookings',
   adminBookingsPath: '/admin/bookings',
+  createdBy: sampleUserId,
 }
 
 export const validBookingCancellation = {
@@ -251,6 +252,7 @@ export const validSpecialRequestApproved = {
   endDate: '2026-04-24',
   requestId: 123,
   userSpecialRequestsPath: '/user/special-request',
+  createdBy: sampleUserId,
 }
 
 export const validSpecialRequestRejected = {
@@ -262,4 +264,5 @@ export const validSpecialRequestRejected = {
   requestId: 123,
   reason: 'Request does not meet the criteria for extended allocation',
   userSpecialRequestsPath: '/user/special-request',
+  createdBy: sampleUserId,
 }
