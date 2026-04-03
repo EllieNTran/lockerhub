@@ -43,24 +43,29 @@ export const notifyBookingConfirmation = async (
   lockerNumber: string,
   floorNumber: string,
   startDate: string,
-  endDate: string,
+  endDate: string | null,
   userBookingsPath: string,
   adminBookingsPath: string,
+  createdBy?: string,
 ): Promise<void> => {
+  const dateRangeText = endDate
+    ? `from ${startDate} to ${endDate}`
+    : `starting ${startDate} (permanent)`
+
   await createNotification({
     entityType: 'booking',
     title: 'Booking Confirmed',
     adminTitle: `Booking created for Locker ${lockerNumber}`,
-    caption: `Your booking for Locker ${lockerNumber} on Floor ${floorNumber} from ${startDate} to ${endDate} has been confirmed.`,
+    caption: `Your booking for Locker ${lockerNumber} on Floor ${floorNumber} ${dateRangeText} has been confirmed.`,
     type: 'info',
     scope: 'user',
     userIds: [userId],
-    createdBy: userId,
+    createdBy: createdBy || userId,
   })
 
   await sendBookingEmails(
     email,
-    { name, lockerNumber, floorNumber, startDate, endDate },
+    { name, lockerNumber, floorNumber, startDate, endDate: endDate || 'N/A' },
     'locker-booking-confirmation-user',
     'locker-booking-confirmation-admin',
     'User Booking Confirmation',
@@ -77,16 +82,20 @@ export const notifyBookingCancellation = async (
   lockerNumber: string,
   floorNumber: string,
   startDate: string,
-  endDate: string,
+  endDate: string | null,
   keyStatus: string,
   keyNumber: string,
   adminBookingsPath: string,
 ): Promise<void> => {
+  const dateRange = endDate 
+    ? `from ${startDate} to ${endDate}` 
+    : `starting ${startDate} (permanent)`
+
   await createNotification({
     entityType: 'booking',
     title: 'Booking Cancelled',
     adminTitle: `Booking cancelled for Locker ${lockerNumber}`,
-    caption: `Your booking for Locker ${lockerNumber} on Floor ${floorNumber} from ${startDate} to ${endDate} has been cancelled.`,
+    caption: `Your booking for Locker ${lockerNumber} on Floor ${floorNumber} ${dateRange} has been cancelled.`,
     type: 'info',
     scope: 'user',
     userIds: [userId],
@@ -104,7 +113,7 @@ export const notifyBookingCancellation = async (
 
   await sendBookingEmails(
     email,
-    { name, lockerNumber, floorNumber, startDate, endDate },
+    { name, lockerNumber, floorNumber, startDate, endDate: endDate || 'N/A' },
     'locker-booking-cancellation-user',
     'locker-booking-cancellation-admin',
     'User Booking Cancellation',

@@ -80,6 +80,7 @@ async def create_booking(
                 "endDate": end_date.isoformat(),
                 "userBookingsPath": "/user/my-bookings",
                 "adminBookingsPath": "/admin/bookings",
+                "createdBy": admin_id,
             },
         )
 

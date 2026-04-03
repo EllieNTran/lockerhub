@@ -54,6 +54,7 @@ export const notifySpecialRequestApproved = async (
   endDate: string | null,
   requestId: number,
   userSpecialRequestsPath: string,
+  createdBy?: string,
 ): Promise<void> => {
   const isPermanent = !endDate
   const allocationType = isPermanent ? 'permanent' : 'extended'
@@ -66,7 +67,7 @@ export const notifySpecialRequestApproved = async (
     type: 'success',
     scope: 'user',
     userIds: [userId],
-    createdBy: null,
+    createdBy: createdBy || null,
   })
 
   const templateData = {
@@ -87,6 +88,7 @@ export const notifySpecialRequestRejected = async (
   requestId: number,
   reason: string,
   userSpecialRequestsPath: string,
+  createdBy?: string,
 ): Promise<void> => {
   const isPermanent = !endDate
   const allocationType = isPermanent ? 'permanent' : 'extended'
@@ -99,7 +101,7 @@ export const notifySpecialRequestRejected = async (
     type: 'error',
     scope: 'user',
     userIds: [userId],
-    createdBy: null,
+    createdBy: createdBy || null,
   })
 
   const templateData = {

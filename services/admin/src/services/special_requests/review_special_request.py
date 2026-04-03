@@ -27,6 +27,7 @@ AND l.status = 'available'
 AND NOT EXISTS (
     SELECT 1 FROM lockerhub.bookings b
     WHERE b.locker_id = l.locker_id
+    AND b.status NOT IN ('cancelled', 'completed')
     AND daterange(b.start_date, COALESCE(b.end_date, 'infinity'::date), '[]') 
         && daterange($2, COALESCE($3, 'infinity'::date), '[]')
 )
@@ -86,8 +87,6 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
             "email": request["email"],
             "name": request["first_name"],
             "floorNumber": request["floor_number"],
-            "endDate": request["end_date"].isoformat() if request["end_date"] else None,
-            "requestId": request_id,
         }
 
         if status == "approved":
@@ -116,7 +115,12 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
                 {
                     **base_data,
                     "lockerNumber": locker["locker_number"],
+                    "endDate": (
+                        request["end_date"].isoformat() if request["end_date"] else None
+                    ),
+                    "requestId": request_id,
                     "userSpecialRequestsPath": "/user/special-requests",
+                    "createdBy": reviewed_by,
                 },
             )
 
@@ -126,8 +130,12 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
                     **base_data,
                     "lockerNumber": locker["locker_number"],
                     "startDate": request["start_date"].isoformat(),
+                    "endDate": (
+                        request["end_date"].isoformat() if request["end_date"] else None
+                    ),
                     "userBookingsPath": "/user/my-bookings",
                     "adminBookingsPath": "/admin/bookings",
+                    "createdBy": reviewed_by,
                 },
             )
 
@@ -137,8 +145,13 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
                 "/special-request/rejected",
                 {
                     **base_data,
+                    "endDate": (
+                        request["end_date"].isoformat() if request["end_date"] else None
+                    ),
+                    "requestId": request_id,
                     "reason": reason,
                     "userSpecialRequestsPath": "/user/special-requests",
+                    "createdBy": reviewed_by,
                 },
             )
 
@@ -151,6 +164,6 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
         return result
     except ValueError:
         raise
-    except Exception:
-        logger.error("Error reviewing special request")
+    except Exception as e:
+        logger.error(f"Error reviewing special request: {str(e)}")
         raise

@@ -36,9 +36,10 @@ export const bookingConfirmationSchema = z.object({
   lockerNumber: z.string(),
   floorNumber: z.string(),
   startDate: z.iso.date(),
-  endDate: z.iso.date(),
+  endDate: z.iso.date().nullable(),
   userBookingsPath: z.string(),
   adminBookingsPath: z.string(),
+  createdBy: z.uuid().optional(),
 })
 
 export const bookingCancellationSchema = z.object({
@@ -48,7 +49,7 @@ export const bookingCancellationSchema = z.object({
   lockerNumber: z.string(),
   floorNumber: z.string(),
   startDate: z.iso.date(),
-  endDate: z.iso.date(),
+  endDate: z.iso.date().nullable(),
   keyStatus: z.enum([
     'available',
     'awaiting_handover',

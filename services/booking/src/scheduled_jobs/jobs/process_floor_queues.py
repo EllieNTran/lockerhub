@@ -40,6 +40,7 @@ AND l.status = 'available'
 AND NOT EXISTS (
     SELECT 1 FROM lockerhub.bookings b
     WHERE b.locker_id = l.locker_id
+    AND b.status NOT IN ('cancelled', 'completed')
     AND daterange($2, $3, '[]') && daterange(b.start_date, b.end_date, '[]')
 )
 LIMIT 1

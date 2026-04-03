@@ -114,7 +114,11 @@ async def cancel_booking(booking_id: str, admin_id: str) -> CancelBookingRespons
                     "lockerNumber": booking_details["locker_number"],
                     "floorNumber": booking_details["floor_number"],
                     "startDate": booking_details["start_date"].isoformat(),
-                    "endDate": booking_details["end_date"].isoformat(),
+                    "endDate": (
+                        booking_details["end_date"].isoformat()
+                        if booking_details["end_date"]
+                        else None
+                    ),
                     "keyStatus": booking_details["key_status"] or "N/A",
                     "keyNumber": booking_details["key_number"] or "N/A",
                     "adminBookingsPath": "/admin/bookings",

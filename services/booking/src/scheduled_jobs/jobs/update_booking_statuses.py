@@ -5,31 +5,33 @@ from datetime import date
 from src.logger import logger
 from src.connectors.db import db
 
-UPDATE_BOOKING_STATUSES_QUERY = """
-WITH updated_bookings AS (
-    SELECT 
-        b.booking_id,
-        b.locker_id,
-        k.key_id
-    FROM lockerhub.bookings b
-    INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
-    LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
-    WHERE b.start_date = $1
-        AND b.status = 'upcoming'
-        AND l.status = 'available'
-        AND (k.key_id IS NULL OR k.status = 'available')
-)
+UPDATE_LOCKERS_TO_RESERVED_QUERY = """
 UPDATE lockerhub.lockers
 SET status = 'reserved', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
-FROM updated_bookings
-WHERE lockerhub.lockers.locker_id = updated_bookings.locker_id
-RETURNING updated_bookings.booking_id, updated_bookings.locker_id, updated_bookings.key_id;
+WHERE locker_id IN (
+    SELECT l.locker_id
+    FROM lockerhub.bookings b
+    INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
+    WHERE b.start_date <= $1
+        AND b.status = 'upcoming'
+        AND l.status = 'available'
+)
+RETURNING locker_id;
 """
 
-UPDATE_KEY_STATUS_QUERY = """
+UPDATE_KEYS_TO_AWAITING_HANDOVER_QUERY = """
 UPDATE lockerhub.keys
 SET status = 'awaiting_handover', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
-WHERE key_id = ANY($1::uuid[]);
+WHERE locker_id IN (
+    SELECT l.locker_id
+    FROM lockerhub.bookings b
+    INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
+    WHERE b.start_date <= $1
+        AND b.status = 'upcoming'
+        AND l.status IN ('available', 'reserved')
+)
+AND status = 'available'
+RETURNING key_id;
 """
 
 UPDATE_ENDING_BOOKINGS_QUERY = """
@@ -52,27 +54,24 @@ WHERE key_id = ANY($1::uuid[]);
 
 
 async def handle_bookings_starting_today(today: date):
-    """Handle bookings starting today: update locker to 'reserved' and key to 'awaiting_handover'.
+    """Handle bookings starting today or earlier: update locker to 'reserved' and key to 'awaiting_handover'.
+
+    This catches any bookings where start_date <= today that haven't been processed yet.
 
     Note: Booking remains 'upcoming' until admin confirms key handover via confirm_key_handover endpoint.
     """
-    results = await db.fetch(UPDATE_BOOKING_STATUSES_QUERY, today)
-
-    if results:
-        booking_ids = [row["booking_id"] for row in results]
-        key_ids = [row["key_id"] for row in results if row["key_id"] is not None]
-
-        logger.info(f"Found {len(booking_ids)} bookings starting today")
-
-        if key_ids:
-            await db.execute(UPDATE_KEY_STATUS_QUERY, key_ids)
-            logger.info(f"Updated {len(key_ids)} keys to 'awaiting_handover'")
-
+    locker_results = await db.fetch(UPDATE_LOCKERS_TO_RESERVED_QUERY, today)
+    if locker_results:
         logger.info(
-            f"Updated {len(booking_ids)} lockers to 'reserved' (bookings remain 'upcoming' until key handover)"
+            f"Updated {len(locker_results)} lockers to 'reserved' (bookings remain 'upcoming' until key handover)"
         )
-    else:
-        logger.info("No bookings found starting today")
+
+    key_results = await db.fetch(UPDATE_KEYS_TO_AWAITING_HANDOVER_QUERY, today)
+    if key_results:
+        logger.info(f"Updated {len(key_results)} keys to 'awaiting_handover'")
+
+    if not locker_results and not key_results:
+        logger.info("No bookings found starting today or earlier")
 
 
 async def handle_bookings_ending_today(today: date):
@@ -97,11 +96,13 @@ async def update_booking_statuses():
     """
     Update booking statuses for bookings starting or ending today.
 
-    For bookings starting today:
-    1. Finds all bookings where start_date = today AND status = 'upcoming'
+    For bookings starting today or earlier:
+    1. Finds all bookings where start_date <= today AND status = 'upcoming'
     2. Updates locker status from 'available' to 'reserved'
     3. Updates key status to 'awaiting_handover' (if key exists)
     4. Booking remains 'upcoming' until admin confirms key handover
+
+    This catches any bookings that should have started but weren't processed yet.
 
     For bookings ending today:
     1. Finds all bookings where end_date = today AND status = 'active'

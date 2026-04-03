@@ -289,7 +289,12 @@ class TestDeleteSpecialRequest:
         from src.services.delete_special_request import delete_special_request
 
         # Mock the transaction connection
-        mock_db_connection.fetchrow.return_value = {"user_id": sample_user_id}
+        # First fetchrow: get special request (returns user_id)
+        # Second fetchrow: get associated booking (returns None - no booking)
+        mock_db_connection.fetchrow.side_effect = [
+            {"user_id": sample_user_id},  # GET_SPECIAL_REQUEST_QUERY
+            None,  # GET_ASSOCIATED_BOOKING_QUERY - no booking
+        ]
         mock_db_connection.fetchval.return_value = sample_request_id
 
         with patch("src.services.delete_special_request.db", mock_db):
@@ -298,7 +303,7 @@ class TestDeleteSpecialRequest:
             )
 
         assert result.request_id == sample_request_id
-        assert mock_db_connection.fetchrow.call_count == 1
+        assert mock_db_connection.fetchrow.call_count == 2
         assert mock_db_connection.fetchval.call_count == 1
 
     @pytest.mark.asyncio
@@ -344,7 +349,12 @@ class TestDeleteSpecialRequest:
         """
         from src.services.delete_special_request import delete_special_request
 
-        mock_db_connection.fetchrow.return_value = {"user_id": sample_user_id}
+        # First fetchrow: get special request (returns user_id)
+        # Second fetchrow: get associated booking (returns None - no booking)
+        mock_db_connection.fetchrow.side_effect = [
+            {"user_id": sample_user_id},  # GET_SPECIAL_REQUEST_QUERY
+            None,  # GET_ASSOCIATED_BOOKING_QUERY - no booking
+        ]
         mock_db_connection.fetchval.return_value = None  # Deletion failed
 
         with patch("src.services.delete_special_request.db", mock_db):

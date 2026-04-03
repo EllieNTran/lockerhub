@@ -100,8 +100,7 @@ Automated tasks run via APScheduler:
   - Runs frequently to handle bookings created during the day
 
 - **Expire Overdue Bookings** - Daily at 00:00
-  - Expires bookings past their end date
-  - Resets locker/key status to `available`
+  - Mark bookings past their end date as `expired`
 
 - **Send Key Return Reminders** - Daily at 09:00
   - Emails users whose bookings end today

@@ -21,6 +21,7 @@ SELECT
         WHEN EXISTS (
             SELECT 1 FROM lockerhub.bookings b
             WHERE b.locker_id = l.locker_id
+            AND b.status NOT IN ('cancelled', 'completed')
             AND b.start_date < $3 
             AND (b.end_date IS NULL OR b.end_date > $2)
         ) THEN false
@@ -29,6 +30,7 @@ SELECT
     EXISTS (
         SELECT 1 FROM lockerhub.bookings b
         WHERE b.locker_id = l.locker_id
+        AND b.status NOT IN ('cancelled', 'completed')
         AND b.end_date IS NULL
     ) as is_permanently_allocated
 FROM lockerhub.lockers l

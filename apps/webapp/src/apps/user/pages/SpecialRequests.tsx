@@ -95,7 +95,7 @@ const SpecialRequests = () => {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center text-grey/40">
                       <FileText className="h-15 w-15 mb-4" />
-                      <p className="text-md">No {tab.label.toLowerCase()} requests found</p>
+                      <p className="text-md">No {tab.label !== 'All' ? tab.label.toLowerCase() : 'special'} requests found</p>
                     </div>
                   )}
                 </div>

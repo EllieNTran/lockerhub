@@ -172,6 +172,7 @@ router.post(
       endDate,
       userBookingsPath,
       adminBookingsPath,
+      createdBy,
     } = req.body
 
     await notifyBookingConfirmation(
@@ -184,6 +185,7 @@ router.post(
       endDate,
       userBookingsPath,
       adminBookingsPath,
+      createdBy,
     )
 
     res.status(200).json({
@@ -319,7 +321,6 @@ router.post(
 router.post(
   '/booking/overdue-key-return',
   asyncHandler(async (req: Request, res: Response) => {
-    console.log('Received overdue-key-return request body:', JSON.stringify(req.body, null, 2))
 
     // Validate after logging
     const validationResult = overdueKeyReturnSchema.safeParse(req.body)
@@ -483,6 +484,7 @@ router.post(
       endDate,
       requestId,
       userSpecialRequestsPath,
+      createdBy,
     } = req.body
 
     await notifySpecialRequestApproved(
@@ -493,6 +495,7 @@ router.post(
       endDate,
       requestId,
       userSpecialRequestsPath,
+      createdBy,
     )
 
     res.status(200).json({
@@ -518,6 +521,7 @@ router.post(
       requestId,
       reason,
       userSpecialRequestsPath,
+      createdBy,
     } = req.body
 
     await notifySpecialRequestRejected(
@@ -529,6 +533,7 @@ router.post(
       requestId,
       reason,
       userSpecialRequestsPath,
+      createdBy,
     )
 
     res.status(200).json({
