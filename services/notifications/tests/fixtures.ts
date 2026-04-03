@@ -170,6 +170,7 @@ export const validBookingCancellation = {
   keyStatus: 'available',
   keyNumber: 'K10-001',
   adminBookingsPath: '/admin/bookings',
+  createdBy: sampleUserId,
 }
 
 export const validBookingExtension = {

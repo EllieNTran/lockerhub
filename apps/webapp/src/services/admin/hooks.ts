@@ -41,12 +41,14 @@ export const useDashboardStats = () =>
   useQuery({
     queryKey: ['dashboardStats'],
     queryFn: getDashboardStats,
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
   });
 
 export const useFloorsUtilization = () =>
   useQuery({
     queryKey: ['floorsUtilization'],
     queryFn: getFloorsUtilization,
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
   });
 
 export const useRecentActivity = () =>
@@ -54,6 +56,7 @@ export const useRecentActivity = () =>
     queryKey: ['recentActivity'],
     queryFn: getRecentActivity,
     staleTime: 30 * 1000,
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
   });
 
 // Bookings Hooks
@@ -125,6 +128,7 @@ export const useLockerStats = () =>
   useQuery({
     queryKey: ['lockerStats'],
     queryFn: getLockerStats,
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
   });
 
 export const useMarkLockerMaintenance = () => {

@@ -173,6 +173,7 @@ router.post(
       userBookingsPath,
       adminBookingsPath,
       createdBy,
+      fromWaitlist,
     } = req.body
 
     await notifyBookingConfirmation(
@@ -186,6 +187,7 @@ router.post(
       userBookingsPath,
       adminBookingsPath,
       createdBy,
+      fromWaitlist,
     )
 
     res.status(200).json({
@@ -214,6 +216,7 @@ router.post(
       keyStatus,
       keyNumber,
       adminBookingsPath,
+      createdBy,
     } = req.body
 
     await notifyBookingCancellation(
@@ -227,6 +230,7 @@ router.post(
       keyStatus,
       keyNumber,
       adminBookingsPath,
+      createdBy,
     )
 
     res.status(200).json({

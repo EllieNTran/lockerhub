@@ -47,17 +47,25 @@ export const notifyBookingConfirmation = async (
   userBookingsPath: string,
   adminBookingsPath: string,
   createdBy?: string,
+  fromWaitlist?: boolean,
 ): Promise<void> => {
   const dateRangeText = endDate
     ? `from ${startDate} to ${endDate}`
     : `starting ${startDate} (permanent)`
 
+  const title = fromWaitlist ? 'Locker Allocated from Waitlist' : 'Booking Confirmed'
+  const caption = fromWaitlist
+    ? `A locker has become available on Floor ${floorNumber}. Locker ${lockerNumber} ${dateRangeText} has been allocated to you from the waitlist.`
+    : `Your booking for Locker ${lockerNumber} on Floor ${floorNumber} ${dateRangeText} has been confirmed.`
+
   await createNotification({
     entityType: 'booking',
-    title: 'Booking Confirmed',
-    adminTitle: `Booking created for Locker ${lockerNumber}`,
-    caption: `Your booking for Locker ${lockerNumber} on Floor ${floorNumber} ${dateRangeText} has been confirmed.`,
-    type: 'info',
+    title,
+    adminTitle: fromWaitlist
+      ? `Locker ${lockerNumber} auto-allocated from waitlist`
+      : `Booking created for Locker ${lockerNumber}`,
+    caption,
+    type: fromWaitlist ? 'success' : 'info',
     scope: 'user',
     userIds: [userId],
     createdBy: createdBy || userId,
@@ -86,6 +94,7 @@ export const notifyBookingCancellation = async (
   keyStatus: string,
   keyNumber: string,
   adminBookingsPath: string,
+  createdBy?: string,
 ): Promise<void> => {
   const dateRange = endDate
     ? `from ${startDate} to ${endDate}`
@@ -99,7 +108,7 @@ export const notifyBookingCancellation = async (
     type: 'info',
     scope: 'user',
     userIds: [userId],
-    createdBy: userId,
+    createdBy: createdBy || userId,
   })
 
   const hasKey = keyStatus === 'with_employee'

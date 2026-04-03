@@ -5,7 +5,12 @@ from src.connectors.db import db
 from src.middleware.auth import fetch_jwks
 from src.routes.bookings import router as bookings_router
 from src.routes.scheduled_jobs import router as scheduled_jobs_router
-from src.scheduled_jobs.scheduler import start_scheduler, shutdown_scheduler
+from src.scheduled_jobs.scheduler import (
+    start_scheduler,
+    shutdown_scheduler,
+    run_all_jobs_once,
+)
+from src.events.listener import start_event_listener, stop_event_listener
 from src.logger import logger
 
 
@@ -17,9 +22,16 @@ async def lifespan(app: FastAPI):
     await db.connect()
     await fetch_jwks()  # Fetch JWKS at startup
     start_scheduler()  # Start scheduled jobs
+    await start_event_listener()  # Start event listener for floor queue processing
+
+    # Run all scheduled jobs once on startup to ensure consistent state
+    logger.info("Running all scheduled jobs on startup...")
+    await run_all_jobs_once()
+    logger.info("Startup jobs completed")
+
     yield
-    # Shutdown
     logger.info("Shutting down booking service...")
+    await stop_event_listener()
     shutdown_scheduler()
     await db.disconnect()
 

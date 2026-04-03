@@ -1,15 +1,19 @@
-"""Delete a special request by ID."""
+"""Cancel a special request by ID."""
 
 from src.logger import logger
 from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
-from src.models.responses import DeleteSpecialRequestResponse
+from src.models.responses import CancelSpecialRequestResponse
 
 GET_SPECIAL_REQUEST_QUERY = """
-SELECT user_id
-FROM lockerhub.requests
-WHERE request_id = $1
-AND request_type = 'special'
+SELECT 
+    r.user_id,
+    r.end_date,
+    f.floor_number
+FROM lockerhub.requests r
+JOIN lockerhub.floors f ON r.floor_id = f.floor_id
+WHERE r.request_id = $1
+AND r.request_type = 'special'
 """
 
 GET_ASSOCIATED_BOOKING_QUERY = """
@@ -46,40 +50,41 @@ WHERE locker_id = $1
 AND status = 'awaiting_handover'
 """
 
-DELETE_SPECIAL_REQUEST_QUERY = """
-DELETE FROM lockerhub.requests
+CANCEL_SPECIAL_REQUEST_QUERY = """
+UPDATE lockerhub.requests
+SET status = 'cancelled', reviewed_at = CURRENT_TIMESTAMP, reviewed_by = $2
 WHERE request_id = $1
 RETURNING request_id;
 """
 
 
-async def delete_special_request(
+async def cancel_special_request(
     user_id: str, request_id: int
-) -> DeleteSpecialRequestResponse:
+) -> CancelSpecialRequestResponse:
     """
-    Delete a special request by ID.
+    Cancel a special request by ID.
     If the request has an associated active booking, cancel it first.
 
     Args:
-        user_id: ID of the user deleting the request
-        request_id: ID of the special request to delete
+        user_id: ID of the user cancelling the request
+        request_id: ID of the special request to cancel
 
     Returns:
-        ID of the deleted request
+        ID of the cancelled request
 
     Raises:
-        ValueError: If the request cannot be deleted
+        ValueError: If the request cannot be cancelled
     """
     try:
         async with db.transaction() as connection:
             request = await connection.fetchrow(GET_SPECIAL_REQUEST_QUERY, request_id)
 
             if not request:
-                logger.warning("Special request not found for deletion")
+                logger.warning("Special request not found for cancellation")
                 raise ValueError("Special request not found")
             if str(request["user_id"]) != user_id:
-                logger.warning("User not authorized to delete this special request")
-                raise ValueError("User not authorized to delete this special request")
+                logger.warning("User not authorized to cancel this special request")
+                raise ValueError("User not authorized to cancel this special request")
 
             booking = await connection.fetchrow(
                 GET_ASSOCIATED_BOOKING_QUERY, request_id
@@ -119,14 +124,28 @@ async def delete_special_request(
                         },
                     )
 
-            deleted_request_id = await connection.fetchval(
-                DELETE_SPECIAL_REQUEST_QUERY, request_id
+            cancelled_request_id = await connection.fetchval(
+                CANCEL_SPECIAL_REQUEST_QUERY, request_id, user_id
             )
-            if not deleted_request_id:
-                raise ValueError("Special request not found or could not be deleted")
+            if not cancelled_request_id:
+                raise ValueError("Special request not found or could not be cancelled")
 
-            logger.info("Deleted special request")
-            return DeleteSpecialRequestResponse(request_id=deleted_request_id)
-    except Exception as e:
-        logger.error(f"Error deleting special request: {e}")
+            await NotificationsServiceClient().post(
+                "/",
+                {
+                    "entityType": "request",
+                    "title": "Special Request Cancelled",
+                    "adminTitle": f"Special request #{request_id} cancelled",
+                    "caption": f"Your special request for {"permanent" if (request["end_date"] is None) else "long-term"} locker allocation on Floor {request['floor_number']} has been cancelled.",
+                    "type": "info",
+                    "scope": "user",
+                    "userIds": [str(request["user_id"])],
+                    "createdBy": user_id,
+                },
+            )
+
+            logger.info("Cancelled special request")
+            return CancelSpecialRequestResponse(request_id=cancelled_request_id)
+    except Exception:
+        logger.error("Error cancelling special request")
         raise

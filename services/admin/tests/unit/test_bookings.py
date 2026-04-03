@@ -81,7 +81,7 @@ class TestCancelBooking:
 
             await cancel_booking(booking_data["booking_id"], "admin-id")
 
-            assert mock_db_connection.execute.call_count == 2
+            assert mock_db_connection.execute.call_count == 3
 
     @pytest.mark.asyncio
     async def test_cancel_booking_with_special_request(
@@ -114,9 +114,8 @@ class TestCancelBooking:
 
             await cancel_booking(booking_data["booking_id"], "admin-id")
 
-            # Verify special request cancellation + key reset + locker reset
-            assert mock_db_connection.execute.call_count == 3
-            # First execute call should be for cancelling the special request
+            # Verify special request cancellation + key reset + locker reset + pg_notify
+            assert mock_db_connection.execute.call_count == 4
             first_execute_call = mock_db_connection.execute.call_args_list[0]
             assert "UPDATE lockerhub.requests" in first_execute_call[0][0]
             assert "SET status = 'cancelled'" in first_execute_call[0][0]
@@ -152,8 +151,8 @@ class TestCancelBooking:
 
             await cancel_booking(booking_data["booking_id"], "admin-id")
 
-            # Should only have 2 execute calls (key reset + locker reset)
-            assert mock_db_connection.execute.call_count == 2
+            # Should have 3 execute calls (key reset + locker reset + pg_notify)
+            assert mock_db_connection.execute.call_count == 3
 
 
 @pytest.mark.unit
@@ -281,6 +280,7 @@ class TestConfirmKeyReturn:
                 "booking_id": sample_booking_id,
                 "status": "active",
                 "locker_id": uuid4(),
+                "floor_id": uuid4(),
                 "special_request_id": None,
                 "user_id": sample_user_id,
                 "locker_number": "DL10-01-01",

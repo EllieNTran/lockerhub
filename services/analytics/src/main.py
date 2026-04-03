@@ -15,7 +15,6 @@ async def lifespan(app: FastAPI):
     await db.connect()
     await fetch_jwks()  # Fetch JWKS at startup
     yield
-    # Shutdown
     logger.info("Shutting down analytics service...")
     await db.disconnect()
 

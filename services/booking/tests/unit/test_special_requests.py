@@ -275,88 +275,119 @@ class TestGetUserSpecialRequests:
                 await get_user_special_requests(str(sample_user_id))
 
 
-class TestDeleteSpecialRequest:
-    """Tests for the delete_special_request service."""
+class TestCancelSpecialRequest:
+    """Tests for the cancel_special_request service."""
 
     @pytest.mark.asyncio
-    async def test_delete_special_request_success(
-        self, mock_db, mock_db_connection, sample_user_id, sample_request_id
+    async def test_cancel_special_request_success(
+        self,
+        mock_db,
+        mock_db_connection,
+        sample_user_id,
+        sample_request_id,
+        mock_notifications_client,
     ):
         """
-        Verify successful deletion of special request by owner.
-        Mock database verifies ownership and deletes request.
+        Verify successful cancellation of special request by owner.
+        Mock database verifies ownership and cancels request.
         """
-        from src.services.delete_special_request import delete_special_request
+        from src.services.cancel_special_request import cancel_special_request
 
         # Mock the transaction connection
-        # First fetchrow: get special request (returns user_id)
+        # First fetchrow: get special request (returns user data)
         # Second fetchrow: get associated booking (returns None - no booking)
         mock_db_connection.fetchrow.side_effect = [
-            {"user_id": sample_user_id},  # GET_SPECIAL_REQUEST_QUERY
+            {
+                "user_id": sample_user_id,
+                "end_date": None,
+                "floor_number": "10",
+            },  # GET_SPECIAL_REQUEST_QUERY
             None,  # GET_ASSOCIATED_BOOKING_QUERY - no booking
         ]
         mock_db_connection.fetchval.return_value = sample_request_id
 
-        with patch("src.services.delete_special_request.db", mock_db):
-            result = await delete_special_request(
+        with patch("src.services.cancel_special_request.db", mock_db), patch(
+            "src.services.cancel_special_request.NotificationsServiceClient",
+            return_value=mock_notifications_client,
+        ):
+            result = await cancel_special_request(
                 str(sample_user_id), sample_request_id
             )
 
         assert result.request_id == sample_request_id
         assert mock_db_connection.fetchrow.call_count == 2
+        # fetchval should be called with request_id and user_id for UPDATE query
         assert mock_db_connection.fetchval.call_count == 1
+        # Verify notification was sent
+        mock_notifications_client.post.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_delete_special_request_not_found(
+    async def test_cancel_special_request_not_found(
         self, mock_db, mock_db_connection, sample_user_id
     ):
         """
-        Verify error when attempting to delete non-existent request.
+        Verify error when attempting to cancel non-existent request.
         Mock database returns None for request lookup.
         """
-        from src.services.delete_special_request import delete_special_request
+        from src.services.cancel_special_request import cancel_special_request
 
         mock_db_connection.fetchrow.return_value = None
 
-        with patch("src.services.delete_special_request.db", mock_db):
+        with patch("src.services.cancel_special_request.db", mock_db):
             with pytest.raises(ValueError, match="Special request not found"):
-                await delete_special_request(str(sample_user_id), 999)
+                await cancel_special_request(str(sample_user_id), 999)
 
     @pytest.mark.asyncio
-    async def test_delete_special_request_unauthorized(
+    async def test_cancel_special_request_unauthorized(
         self, mock_db, mock_db_connection, sample_user_id
     ):
         """
-        Verify error when user attempts to delete another user's request.
+        Verify error when user attempts to cancel another user's request.
         Mock database returns different user_id.
         """
-        from src.services.delete_special_request import delete_special_request
+        from src.services.cancel_special_request import cancel_special_request
 
         different_user_id = uuid4()
-        mock_db_connection.fetchrow.return_value = {"user_id": different_user_id}
+        mock_db_connection.fetchrow.return_value = {
+            "user_id": different_user_id,
+            "end_date": None,
+            "floor_number": "10",
+        }
 
-        with patch("src.services.delete_special_request.db", mock_db):
+        with patch("src.services.cancel_special_request.db", mock_db):
             with pytest.raises(ValueError, match="not authorized"):
-                await delete_special_request(str(sample_user_id), 1)
+                await cancel_special_request(str(sample_user_id), 1)
 
     @pytest.mark.asyncio
-    async def test_delete_special_request_deletion_fails(
-        self, mock_db, mock_db_connection, sample_user_id, sample_request_id
+    async def test_cancel_special_request_cancellation_fails(
+        self,
+        mock_db,
+        mock_db_connection,
+        sample_user_id,
+        sample_request_id,
+        mock_notifications_client,
     ):
         """
-        Verify error when deletion operation fails.
-        Mock database confirms ownership but deletion returns None.
+        Verify error when cancellation operation fails.
+        Mock database confirms ownership but cancellation returns None.
         """
-        from src.services.delete_special_request import delete_special_request
+        from src.services.cancel_special_request import cancel_special_request
 
-        # First fetchrow: get special request (returns user_id)
+        # First fetchrow: get special request (returns user data)
         # Second fetchrow: get associated booking (returns None - no booking)
         mock_db_connection.fetchrow.side_effect = [
-            {"user_id": sample_user_id},  # GET_SPECIAL_REQUEST_QUERY
+            {
+                "user_id": sample_user_id,
+                "end_date": None,
+                "floor_number": "10",
+            },  # GET_SPECIAL_REQUEST_QUERY
             None,  # GET_ASSOCIATED_BOOKING_QUERY - no booking
         ]
-        mock_db_connection.fetchval.return_value = None  # Deletion failed
+        mock_db_connection.fetchval.return_value = None  # Cancellation failed
 
-        with patch("src.services.delete_special_request.db", mock_db):
-            with pytest.raises(ValueError, match="could not be deleted"):
-                await delete_special_request(str(sample_user_id), sample_request_id)
+        with patch("src.services.cancel_special_request.db", mock_db), patch(
+            "src.services.cancel_special_request.NotificationsServiceClient",
+            return_value=mock_notifications_client,
+        ):
+            with pytest.raises(ValueError, match="could not be cancelled"):
+                await cancel_special_request(str(sample_user_id), sample_request_id)

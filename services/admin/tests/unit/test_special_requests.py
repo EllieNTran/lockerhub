@@ -1,9 +1,11 @@
 """Unit tests for special requests services."""
 
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 from datetime import date, datetime
 from uuid import uuid4
+
+from src.models.responses import CreateBookingResponse
 
 
 @pytest.mark.unit
@@ -218,16 +220,24 @@ class TestReviewSpecialRequest:
             }
         ]
 
-        # Setup mock responses in correct order
+        # Setup mock responses
         mock_db.fetchrow.side_effect = [request_details, available_locker]
-        mock_db.fetchval.return_value = booking_id
         mock_db.fetch.return_value = review_result
+
+        # Mock create_booking to avoid internal db/notification calls
+        mock_create_booking = AsyncMock(
+            return_value=CreateBookingResponse(booking_id=booking_id)
+        )
 
         with (
             patch("src.services.special_requests.review_special_request.db", mock_db),
             patch(
                 "src.services.special_requests.review_special_request.NotificationsServiceClient",
                 return_value=mock_notifications_client,
+            ),
+            patch(
+                "src.services.special_requests.review_special_request.create_booking",
+                mock_create_booking,
             ),
         ):
             result = await review_special_request(
@@ -239,13 +249,18 @@ class TestReviewSpecialRequest:
             assert result[0]["request_id"] == 1
             assert result[0]["user_id"] == user_id
 
-            # Verify booking was created
-            assert mock_db.fetchval.call_count == 1
+            # Verify create_booking was called with correct parameters
+            mock_create_booking.assert_called_once_with(
+                user_id=str(user_id),
+                locker_id=str(sample_locker_id),
+                start_date=date(2026, 3, 25),
+                end_date=date(2026, 4, 25),
+                admin_id=sample_user_id,
+                special_request_id=1,
+            )
 
-            # Verify notifications were sent (approval + confirmation)
-            assert mock_notifications_client.post.call_count == 2
-
-            # Verify approval notification
+            # Verify approval notification was sent
+            assert mock_notifications_client.post.call_count == 1
             approval_call = mock_notifications_client.post.call_args_list[0]
             assert approval_call[0][0] == "/special-request/approved"
             approval_data = approval_call[0][1]
@@ -255,14 +270,6 @@ class TestReviewSpecialRequest:
             assert approval_data["lockerNumber"] == "101"
             assert approval_data["floorNumber"] == "10"
             assert approval_data["requestId"] == 1
-
-            # Verify confirmation notification
-            confirmation_call = mock_notifications_client.post.call_args_list[1]
-            assert confirmation_call[0][0] == "/booking/confirmation"
-            confirmation_data = confirmation_call[0][1]
-            assert confirmation_data["lockerNumber"] == "101"
-            assert confirmation_data["startDate"] == "2026-03-25"
-            assert confirmation_data["endDate"] == "2026-04-25"
 
     @pytest.mark.asyncio
     async def test_review_special_request_approve_permanent(
@@ -299,8 +306,12 @@ class TestReviewSpecialRequest:
         review_result = [{"request_id": 1, "user_id": user_id}]
 
         mock_db.fetchrow.side_effect = [request_details, available_locker]
-        mock_db.fetchval.return_value = booking_id
         mock_db.fetch.return_value = review_result
+
+        # Mock create_booking
+        mock_create_booking = AsyncMock(
+            return_value=CreateBookingResponse(booking_id=booking_id)
+        )
 
         with (
             patch("src.services.special_requests.review_special_request.db", mock_db),
@@ -308,12 +319,26 @@ class TestReviewSpecialRequest:
                 "src.services.special_requests.review_special_request.NotificationsServiceClient",
                 return_value=mock_notifications_client,
             ),
+            patch(
+                "src.services.special_requests.review_special_request.create_booking",
+                mock_create_booking,
+            ),
         ):
             result = await review_special_request(
                 status="approved", reviewed_by=sample_user_id, request_id=1
             )
 
-            # Verify endDate is None in notifications
+            # Verify create_booking was called with None for end_date
+            mock_create_booking.assert_called_once_with(
+                user_id=str(user_id),
+                locker_id=str(sample_locker_id),
+                start_date=date(2026, 3, 25),
+                end_date=None,
+                admin_id=sample_user_id,
+                special_request_id=1,
+            )
+
+            # Verify endDate is None in approval notification
             approval_call = mock_notifications_client.post.call_args_list[0]
             approval_data = approval_call[0][1]
             assert approval_data["endDate"] is None
@@ -354,13 +379,19 @@ class TestReviewSpecialRequest:
                 return_value=mock_notifications_client,
             ),
         ):
+            mock_create_booking = AsyncMock()
+
             with pytest.raises(ValueError, match="No available lockers found"):
-                await review_special_request(
-                    status="approved", reviewed_by=sample_user_id, request_id=1
-                )
+                with patch(
+                    "src.services.special_requests.review_special_request.create_booking",
+                    mock_create_booking,
+                ):
+                    await review_special_request(
+                        status="approved", reviewed_by=sample_user_id, request_id=1
+                    )
 
             # Verify no booking was created
-            assert mock_db.fetchval.call_count == 0
+            mock_create_booking.assert_not_called()
 
             # Verify no notifications were sent
             assert mock_notifications_client.post.call_count == 0

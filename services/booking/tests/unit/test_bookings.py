@@ -217,6 +217,8 @@ class TestCancelBooking:
         assert result.booking_id == sample_booking_id
         assert mock_db_connection.fetchrow.call_count == 1
         assert mock_db_connection.fetchval.call_count == 1
+        # 3 execute calls: reset key + reset locker + pg_notify
+        assert mock_db_connection.execute.call_count == 3
 
     @pytest.mark.asyncio
     async def test_cancel_booking_not_found(
@@ -303,9 +305,8 @@ class TestCancelBooking:
         assert result.booking_id == sample_booking_id
         # Verify special request cancellation was called
         assert (
-            mock_db_connection.execute.call_count == 3
-        )  # Cancel request + reset key + reset locker
-        # First execute call should be for cancelling the special request
+            mock_db_connection.execute.call_count == 4
+        )  # Cancel request + reset key + reset locker + pg_notify
         first_execute_call = mock_db_connection.execute.call_args_list[0]
         assert "UPDATE lockerhub.requests" in first_execute_call[0][0]
         assert "SET status = 'cancelled'" in first_execute_call[0][0]
@@ -345,8 +346,8 @@ class TestCancelBooking:
             result = await cancel_booking(str(sample_user_id), str(sample_booking_id))
 
         assert result.booking_id == sample_booking_id
-        # Should only have 2 execute calls (reset key + reset locker), no special request cancellation
-        assert mock_db_connection.execute.call_count == 2
+        # Should have 3 execute calls: reset key + reset locker + pg_notify
+        assert mock_db_connection.execute.call_count == 3
 
 
 class TestExtendBooking:

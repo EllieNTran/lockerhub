@@ -24,7 +24,7 @@ from src.models.responses import (
     AvailabilityResponse,
     FloorsResponse,
     JoinFloorQueueResponse,
-    DeleteSpecialRequestResponse,
+    CancelSpecialRequestResponse,
 )
 from src.services.create_booking import create_booking
 from src.services.cancel_booking import cancel_booking
@@ -36,10 +36,10 @@ from src.services.get_available_lockers import get_available_lockers
 from src.services.check_locker_availability import check_locker_availability
 from src.services.get_floors import get_floors
 from src.services.join_floor_queue import join_floor_queue
-from src.scheduled_jobs.jobs.process_floor_queues import process_floor_queues
+from src.services.process_floor_queue import process_floor_queue
 from src.services.create_special_request import create_special_request
 from src.services.get_user_special_requests import get_user_special_requests
-from src.services.delete_special_request import delete_special_request
+from src.services.cancel_special_request import cancel_special_request
 from src.services.get_booking_rule import get_booking_rule
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
@@ -83,15 +83,15 @@ async def get_floors_endpoint(_: dict = Depends(get_current_user)):
 
 
 @router.delete(
-    "/special-requests/{request_id}", response_model=DeleteSpecialRequestResponse
+    "/special-requests/{request_id}", response_model=CancelSpecialRequestResponse
 )
-async def delete_special_request_endpoint(
+async def cancel_special_request_endpoint(
     request_id: int,
     current_user: dict = Depends(get_current_user),
 ):
-    """Delete a special request."""
+    """Cancel a special request."""
     try:
-        result = await delete_special_request(current_user["user_id"], request_id)
+        result = await cancel_special_request(current_user["user_id"], request_id)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -254,3 +254,28 @@ async def join_floor_queue_endpoint(
         return result
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
+
+
+@router.post("/waitlist/process-floor-queue")
+async def process_floor_queue_endpoint(
+    floor_id: str = Query(None, description="Optional floor ID to process"),
+    _: dict = Depends(get_current_user),
+):
+    """
+    Trigger floor queue processing for a specific floor or all floors.
+
+    This is event-driven (called after booking cancellation/completion)
+    but can be triggered manually for testing or as a fallback.
+
+    Args:
+        floor_id: Optional floor ID to process. If None, processes all floors.
+    """
+    try:
+        result = await process_floor_queue(floor_id)
+        return {
+            "message": result.message,
+            "allocations_made": result.allocations_made,
+            "success": result.success,
+        }
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to process floor queue")
