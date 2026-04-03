@@ -1,5 +1,6 @@
 """Create a new booking for a user (admin)."""
 
+import json
 from datetime import date
 from asyncpg.exceptions import ExclusionViolationError
 
@@ -14,10 +15,11 @@ INSERT INTO lockerhub.bookings (
     locker_id,
     start_date,
     end_date,
+    special_request_id,
     created_by,
     updated_by
 )
-VALUES ($1, $2, $3, $4, $5, $5)
+VALUES ($1, $2, $3, $4, $5, $6, $6)
 RETURNING booking_id
 """
 
@@ -35,7 +37,12 @@ WHERE u.user_id = $2
 
 
 async def create_booking(
-    user_id: str, locker_id: str, start_date: date, end_date: date, admin_id: str
+    user_id: str,
+    locker_id: str,
+    start_date: date,
+    end_date: date,
+    admin_id: str,
+    special_request_id: str = None,
 ) -> CreateBookingResponse:
     """
     Create a new booking for a user (admin override).
@@ -44,8 +51,9 @@ async def create_booking(
     restriction of one active booking at a time, allowing admins to create multiple
     overlapping bookings for a user if needed.
 
-    Note: Locker status remains 'available' until start_date arrives.
-    A scheduled job will update locker to 'reserved' and key to 'awaiting_handover' on start_date.
+    Note: Locker and key status updates:
+    - If booking starts today: Immediately triggers update_booking_statuses via PostgreSQL NOTIFY
+    - If booking starts future date: Will be updated on that date by scheduled job
 
     Args:
         user_id: ID of the user to create booking for
@@ -53,6 +61,7 @@ async def create_booking(
         start_date: Start date of the booking
         end_date: End date of the booking
         admin_id: ID of the admin creating the booking
+        special_request_id: Optional ID of the special request if booking is from approval
 
     Returns:
         CreateBookingResponse with the booking ID
@@ -61,9 +70,31 @@ async def create_booking(
         ValueError: If there's a locker booking conflict (locker already booked for this period)
     """
     try:
-        booking_id = await db.fetchval(
-            CREATE_BOOKING_QUERY, user_id, locker_id, start_date, end_date, admin_id
-        )
+        async with db.transaction() as connection:
+            booking_id = await connection.fetchval(
+                CREATE_BOOKING_QUERY,
+                user_id,
+                locker_id,
+                start_date,
+                end_date,
+                special_request_id,
+                admin_id,
+            )
+
+            if start_date == date.today():
+                await connection.execute(
+                    "SELECT pg_notify('booking_event', $1)",
+                    json.dumps(
+                        {
+                            "event_type": "booking_created_today",
+                            "booking_id": str(booking_id),
+                        }
+                    ),
+                )
+                logger.info(
+                    "Notified booking service to update statuses (booking starts today)"
+                )
+
         booking_details = await db.fetchrow(
             GET_BOOKING_DETAILS_QUERY, locker_id, user_id
         )

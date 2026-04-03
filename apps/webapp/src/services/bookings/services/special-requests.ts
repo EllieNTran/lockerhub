@@ -9,7 +9,7 @@ export interface CreateSpecialRequestData {
   justification: string
 }
 
-export interface DeleteSpecialRequestData {
+export interface CancelSpecialRequestData {
   request_id: number
 }
 
@@ -22,6 +22,6 @@ export const createSpecialRequest = async (data: CreateSpecialRequestData): Prom
   return apiClient.post<{ request_id: number }>('/bookings/special-requests', data)
 }
 
-export const deleteSpecialRequest = async (request_id: number): Promise<{ request_id: number }> => {
+export const cancelSpecialRequest = async (request_id: number): Promise<{ request_id: number }> => {
   return apiClient.delete<{ request_id: number }>(`/bookings/special-requests/${request_id}`)
 }

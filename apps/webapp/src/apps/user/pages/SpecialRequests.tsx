@@ -5,7 +5,7 @@ import SpecialRequestCard from '../../../shared/components/SpecialRequestCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useUserSpecialRequests, useDeleteSpecialRequest } from '@/services/bookings';
+import { useUserSpecialRequests, useCancelSpecialRequest } from '@/services/bookings';
 import { toast } from '@/components/ui/sonner';
 import { SPECIAL_REQUEST_STEPS } from '@/components/tutorial/steps';
 import PageTour from '@/components/tutorial/PageTour';
@@ -14,7 +14,7 @@ const SpecialRequests = () => {
   const navigate = useNavigate();
 
   const { data: requestsData, isLoading } = useUserSpecialRequests();
-  const mutation = useDeleteSpecialRequest();
+  const mutation = useCancelSpecialRequest();
 
   const tabs = [
     { value: 'pending', label: 'Pending' },

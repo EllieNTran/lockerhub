@@ -91,8 +91,8 @@ class SpecialRequestsListResponse(BaseModel):
     requests: List[SpecialRequestResponse]
 
 
-class DeleteSpecialRequestResponse(BaseModel):
-    """Response model for deleting a special request."""
+class CancelSpecialRequestResponse(BaseModel):
+    """Response model for cancelling a special request."""
 
     request_id: int
 

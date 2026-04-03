@@ -3,7 +3,10 @@
 import pytest
 from datetime import date, timedelta
 from unittest.mock import patch, AsyncMock
+from fastapi.testclient import TestClient
 
+from src.main import app
+from src.middleware.auth import get_current_user
 from ..conftest import create_user_details_dict
 
 
@@ -113,16 +116,16 @@ class TestJoinFloorQueue:
 
 
 class TestProcessFloorQueues:
-    """Tests for the process_floor_queues service."""
+    """Tests for the process_floor_queue endpoint."""
 
-    @pytest.mark.asyncio
-    async def test_process_floor_queues_success(self, mock_db, mock_db_connection):
+    def test_process_floor_queues_success(
+        self, mock_db, mock_db_connection, sample_user_id
+    ):
         """
         Verify successful processing of floor queues with allocations.
         Mock database returns queued requests and available lockers.
         Verify bookings created and queue entries removed.
         """
-        from src.scheduled_jobs.jobs.process_floor_queues import process_floor_queues
         from uuid import uuid4
 
         floor_data = [
@@ -151,45 +154,63 @@ class TestProcessFloorQueues:
         mock_db_connection.fetchval.return_value = uuid4()
         mock_db_connection.execute.return_value = None
 
-        with patch("src.scheduled_jobs.jobs.process_floor_queues.db", mock_db), patch(
-            "src.scheduled_jobs.jobs.process_floor_queues.NotificationsServiceClient"
+        # Override auth dependency
+        app.dependency_overrides[get_current_user] = lambda: {
+            "user_id": str(sample_user_id)
+        }
+
+        with patch("src.services.process_floor_queue.db", mock_db), patch(
+            "src.services.process_floor_queue.NotificationsServiceClient"
         ) as mock_notif_class:
             mock_notif_instance = AsyncMock()
             mock_notif_instance.post = AsyncMock(return_value={"success": True})
             mock_notif_class.return_value = mock_notif_instance
-            result = await process_floor_queues()
 
-        assert result.success is True
-        assert result.allocations_made >= 0
-        assert "allocated" in result.message.lower()
+            client = TestClient(app)
+            response = client.post("/bookings/waitlist/process-floor-queue")
 
-    @pytest.mark.asyncio
-    async def test_process_floor_queues_no_requests(self, mock_db):
+        # Clean up
+        app.dependency_overrides.clear()
+
+        assert response.status_code == 200
+        result = response.json()
+        assert result["success"] is True
+        assert result["allocations_made"] >= 0
+        assert "allocated" in result["message"].lower()
+
+    def test_process_floor_queues_no_requests(self, mock_db, sample_user_id):
         """
         Verify handling when no queued requests exist.
         Mock database returns empty list for queued requests.
         Expect success response with zero allocations.
         """
-        from src.scheduled_jobs.jobs.process_floor_queues import process_floor_queues
-
         mock_db.fetch.return_value = []
 
-        with patch("src.scheduled_jobs.jobs.process_floor_queues.db", mock_db):
-            result = await process_floor_queues()
+        # Override auth dependency
+        app.dependency_overrides[get_current_user] = lambda: {
+            "user_id": str(sample_user_id)
+        }
 
-        assert result.success is True
-        assert result.allocations_made == 0
+        with patch("src.services.process_floor_queue.db", mock_db):
+            client = TestClient(app)
+            response = client.post("/bookings/waitlist/process-floor-queue")
 
-    @pytest.mark.asyncio
-    async def test_process_floor_queues_no_available_lockers(
-        self, mock_db, mock_db_connection
+        # Clean up
+        app.dependency_overrides.clear()
+
+        assert response.status_code == 200
+        result = response.json()
+        assert result["success"] is True
+        assert result["allocations_made"] == 0
+
+    def test_process_floor_queues_no_available_lockers(
+        self, mock_db, mock_db_connection, sample_user_id
     ):
         """
         Verify handling when requests exist but no lockers available.
         Mock database returns requests but empty locker list.
         Expect success with zero allocations.
         """
-        from src.scheduled_jobs.jobs.process_floor_queues import process_floor_queues
         from uuid import uuid4
 
         floor_data = [
@@ -217,13 +238,25 @@ class TestProcessFloorQueues:
         mock_db.fetch.side_effect = [floor_data, queued_requests]
         mock_db_connection.fetchrow.return_value = None
 
-        with patch("src.scheduled_jobs.jobs.process_floor_queues.db", mock_db), patch(
-            "src.scheduled_jobs.jobs.process_floor_queues.NotificationsServiceClient"
+        # Override auth dependency
+        app.dependency_overrides[get_current_user] = lambda: {
+            "user_id": str(sample_user_id)
+        }
+
+        with patch("src.services.process_floor_queue.db", mock_db), patch(
+            "src.services.process_floor_queue.NotificationsServiceClient"
         ) as mock_notif_class:
             mock_notif_instance = AsyncMock()
             mock_notif_instance.post = AsyncMock(return_value={"success": True})
             mock_notif_class.return_value = mock_notif_instance
-            result = await process_floor_queues()
 
-        assert result.success is True
-        assert result.allocations_made == 0
+            client = TestClient(app)
+            response = client.post("/bookings/waitlist/process-floor-queue")
+
+        # Clean up
+        app.dependency_overrides.clear()
+
+        assert response.status_code == 200
+        result = response.json()
+        assert result["success"] is True
+        assert result["allocations_made"] == 0

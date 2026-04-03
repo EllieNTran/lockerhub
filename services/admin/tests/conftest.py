@@ -221,6 +221,7 @@ def sample_booking_data(
         "capability_name": "General",
         "locker_number": "DL10-01-01",
         "locker_status": "occupied",
+        "floor_id": uuid4(),
         "floor_number": "10",
         "key_id": (
             UUID(sample_key_id) if isinstance(sample_key_id, str) else sample_key_id

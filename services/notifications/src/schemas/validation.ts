@@ -40,6 +40,7 @@ export const bookingConfirmationSchema = z.object({
   userBookingsPath: z.string(),
   adminBookingsPath: z.string(),
   createdBy: z.uuid().optional(),
+  fromWaitlist: z.boolean().optional(),
 })
 
 export const bookingCancellationSchema = z.object({

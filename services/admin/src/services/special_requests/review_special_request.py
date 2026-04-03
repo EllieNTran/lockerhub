@@ -3,6 +3,7 @@
 from src.logger import logger
 from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
+from src.services.bookings.create_booking import create_booking
 
 GET_REQUEST_DETAILS_QUERY = """
 SELECT 
@@ -33,27 +34,6 @@ AND NOT EXISTS (
 )
 ORDER BY l.locker_number
 LIMIT 1
-"""
-
-GET_BOOKING_DETAILS_QUERY = """
-SELECT 
-    l.locker_number
-FROM lockerhub.lockers l
-WHERE l.locker_id = $1
-"""
-
-CREATE_BOOKING_QUERY = """
-INSERT INTO lockerhub.bookings (
-    user_id,
-    locker_id,
-    start_date,
-    end_date,
-    special_request_id,
-    created_by,
-    updated_by
-)
-VALUES ($1, $2, $3, $4, $5, $6, $6)
-RETURNING booking_id
 """
 
 REVIEW_SPECIAL_REQUEST_QUERY = """
@@ -100,16 +80,6 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
             if not locker:
                 raise ValueError("No available lockers found on the requested floor")
 
-            await db.fetchval(
-                CREATE_BOOKING_QUERY,
-                request["user_id"],
-                locker["locker_id"],
-                request["start_date"],
-                request["end_date"],
-                request_id,
-                reviewed_by,
-            )
-
             await notification_client.post(
                 "/special-request/approved",
                 {
@@ -124,19 +94,13 @@ async def review_special_request(status, reviewed_by, request_id, reason=None):
                 },
             )
 
-            await notification_client.post(
-                "/booking/confirmation",
-                {
-                    **base_data,
-                    "lockerNumber": locker["locker_number"],
-                    "startDate": request["start_date"].isoformat(),
-                    "endDate": (
-                        request["end_date"].isoformat() if request["end_date"] else None
-                    ),
-                    "userBookingsPath": "/user/my-bookings",
-                    "adminBookingsPath": "/admin/bookings",
-                    "createdBy": reviewed_by,
-                },
+            await create_booking(
+                user_id=str(request["user_id"]),
+                locker_id=str(locker["locker_id"]),
+                start_date=request["start_date"],
+                end_date=request["end_date"],
+                admin_id=reviewed_by,
+                special_request_id=request_id,
             )
 
             logger.info("Created booking for approved special request")

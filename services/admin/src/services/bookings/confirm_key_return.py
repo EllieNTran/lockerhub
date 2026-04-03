@@ -1,5 +1,6 @@
 """Confirm key return."""
 
+import json
 from src.logger import logger
 from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
@@ -12,10 +13,12 @@ SELECT
     b.status,
     b.special_request_id,
     u.user_id,
-    l.locker_number
+    l.locker_number,
+    f.floor_id
 FROM lockerhub.bookings b
 INNER JOIN lockerhub.users u ON b.user_id = u.user_id
 INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
+INNER JOIN lockerhub.floors f ON l.floor_id = f.floor_id
 WHERE b.booking_id = $1
 """
 
@@ -105,12 +108,23 @@ async def confirm_key_return(admin_id: str, booking_id: str) -> KeyReturnRespons
                 },
             )
 
+            await connection.execute(
+                "SELECT pg_notify('booking_event', $1)",
+                json.dumps(
+                    {
+                        "event_type": "booking_completed",
+                        "floor_id": str(booking["floor_id"]),
+                        "booking_id": str(booking_id),
+                    }
+                ),
+            )
+
             logger.info("Confirmed key return for booking")
 
-            return KeyReturnResponse(
-                booking_id=updated_booking["booking_id"],
-                key_number=key["key_number"],
-            )
+        return KeyReturnResponse(
+            booking_id=updated_booking["booking_id"],
+            key_number=key["key_number"],
+        )
 
     except Exception:
         logger.error("Error confirming return for booking")

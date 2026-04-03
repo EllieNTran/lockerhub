@@ -14,7 +14,7 @@ import { getFloors } from './services/floors'
 import type { UpdateBookingData, ExtendBookingData } from './services/user-bookings'
 import { getAvailableLockers } from './services/available-lockers'
 import type { GetAvailableLockersParams } from './services/available-lockers'
-import { getSpecialRequests, createSpecialRequest, deleteSpecialRequest } from './services/special-requests'
+import { getSpecialRequests, createSpecialRequest, cancelSpecialRequest } from './services/special-requests'
 
 /**
  * Fetch user's bookings
@@ -93,6 +93,7 @@ export const useCancelBooking = () => {
     onSuccess: (_data, bookingId) => {
       queryClient.invalidateQueries({ queryKey: ['userBookings'] })
       queryClient.invalidateQueries({ queryKey: ['booking', bookingId] })
+      queryClient.invalidateQueries({ queryKey: ['specialRequests'] })
     },
   })
 }
@@ -108,6 +109,7 @@ export const useDeleteBooking = () => {
     onSuccess: (_data, bookingId) => {
       queryClient.invalidateQueries({ queryKey: ['userBookings'] })
       queryClient.invalidateQueries({ queryKey: ['booking', bookingId] })
+      queryClient.invalidateQueries({ queryKey: ['specialRequests'] })
     },
   })
 }
@@ -170,13 +172,13 @@ export const useCreateSpecialRequest = () => {
 }
 
 /**
- * Delete a special request
+ * Cancel a special request
  */
-export const useDeleteSpecialRequest = () => {
+export const useCancelSpecialRequest = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (request_id: number) => deleteSpecialRequest(request_id),
+    mutationFn: (request_id: number) => cancelSpecialRequest(request_id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['specialRequests'] })
       queryClient.invalidateQueries({ queryKey: ['userNotifications'] })

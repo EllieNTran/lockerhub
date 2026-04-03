@@ -14,7 +14,7 @@ SELECT
     b.start_date,
     b.end_date,
     u.email,
-    u.name,
+    u.first_name,
     l.locker_number,
     f.floor_number,
     k.key_number
@@ -61,7 +61,7 @@ async def send_key_return_reminders():
                 payload = {
                     "userId": str(booking["user_id"]),
                     "email": booking["email"],
-                    "name": booking["name"],
+                    "name": booking["first_name"],
                     "lockerNumber": booking["locker_number"],
                     "floorNumber": booking["floor_number"],
                     "startDate": booking["start_date"].isoformat(),
@@ -73,7 +73,7 @@ async def send_key_return_reminders():
                 await notifications_client.post("/booking/key-return-reminder", payload)
 
                 logger.info(
-                    f"Sent key return reminder for user {booking['name']} "
+                    f"Sent key return reminder for user {booking['first_name']} "
                     f"(locker {booking['locker_number']}, floor {booking['floor_number']})"
                 )
                 success_count += 1

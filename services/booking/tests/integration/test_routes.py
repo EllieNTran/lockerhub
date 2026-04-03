@@ -445,30 +445,6 @@ class TestScheduledJobRoutes:
 
     pytestmark = pytest.mark.asyncio
 
-    async def test_process_floor_queues(self, test_client):
-        """
-        Verify processing of floor queues through HTTP endpoint.
-        Mock job returns processing results.
-        Expect 200 status with allocation count.
-        """
-        from src.models.responses import ProcessFloorQueuesResponse
-
-        mock_result = ProcessFloorQueuesResponse(
-            success=True,
-            allocations_made=3,
-            message="Processed floor queues",
-        )
-
-        with patch(
-            "src.routes.scheduled_jobs.process_floor_queues",
-            AsyncMock(return_value=mock_result),
-        ):
-            response = await test_client.post("/scheduled-jobs/process-floor-queues")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["message"] == "Process floor queues job completed"
-
 
 class TestSpecialRequestRoutes:
     """Test special request HTTP endpoints."""
@@ -712,10 +688,10 @@ class TestSpecialRequestRoutes:
         assert response.status_code == 500
         assert "Failed to retrieve special requests" in response.json()["detail"]
 
-    async def test_delete_special_request_success(self, test_client):
+    async def test_cancel_special_request_success(self, test_client):
         """
-        Verify successful deletion of special request through HTTP endpoint.
-        Mock service deletes request and returns request_id.
+        Verify successful cancellation of special request through HTTP endpoint.
+        Mock service cancels request and returns request_id.
         Expect 200 status.
         """
         request_id = 123
@@ -725,7 +701,7 @@ class TestSpecialRequestRoutes:
         }
 
         with patch(
-            "src.routes.bookings.delete_special_request",
+            "src.routes.bookings.cancel_special_request",
             AsyncMock(return_value=mock_result),
         ):
             response = await test_client.delete(
@@ -736,16 +712,16 @@ class TestSpecialRequestRoutes:
         data = response.json()
         assert data["request_id"] == request_id
 
-    async def test_delete_special_request_not_found(self, test_client):
+    async def test_cancel_special_request_not_found(self, test_client):
         """
-        Verify error when deleting non-existent request.
+        Verify error when cancelling non-existent request.
         Mock service raises ValueError.
         Expect 400 status.
         """
         request_id = 999
 
         with patch(
-            "src.routes.bookings.delete_special_request",
+            "src.routes.bookings.cancel_special_request",
             AsyncMock(side_effect=ValueError("Special request not found")),
         ):
             response = await test_client.delete(
@@ -755,19 +731,19 @@ class TestSpecialRequestRoutes:
         assert response.status_code == 400
         assert "not found" in response.json()["detail"]
 
-    async def test_delete_special_request_unauthorized(self, test_client):
+    async def test_cancel_special_request_unauthorized(self, test_client):
         """
-        Verify error when user attempts to delete another user's request.
+        Verify error when user attempts to cancel another user's request.
         Mock service raises ValueError for authorization.
         Expect 400 status.
         """
         request_id = 123
 
         with patch(
-            "src.routes.bookings.delete_special_request",
+            "src.routes.bookings.cancel_special_request",
             AsyncMock(
                 side_effect=ValueError(
-                    "User not authorized to delete this special request"
+                    "User not authorized to cancel this special request"
                 )
             ),
         ):

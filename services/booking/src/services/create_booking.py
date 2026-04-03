@@ -7,6 +7,7 @@ from src.logger import logger
 from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
 from src.models.responses import CreateBookingResponse
+from src.scheduled_jobs.jobs.update_booking_statuses import update_booking_statuses
 
 CREATE_BOOKING_QUERY = """
 INSERT INTO lockerhub.bookings (
@@ -102,6 +103,15 @@ async def create_booking(
             )
 
         logger.info("Created booking")
+
+        # If booking starts today, immediately update locker and key status
+        if start_date == date.today():
+            logger.info("Booking starts today, triggering update_booking_statuses")
+            try:
+                await update_booking_statuses()
+            except Exception as e:
+                logger.warning(f"Failed to update booking statuses after creation: {e}")
+                # Don't fail booking creation if status update fails
 
         return CreateBookingResponse(booking_id=booking_id)
     except ValueError:

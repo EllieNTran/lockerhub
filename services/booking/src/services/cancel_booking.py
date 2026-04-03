@@ -1,5 +1,6 @@
 """Cancel an existing booking by updating its status."""
 
+import json
 from src.logger import logger
 from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
@@ -14,7 +15,8 @@ SELECT
     u.email, 
     u.first_name, 
     l.locker_number, 
-    f.floor_number, 
+    f.floor_number,
+    f.floor_id,
     b.start_date, 
     b.end_date,
     k.status as key_status,
@@ -116,11 +118,24 @@ async def cancel_booking(user_id: str, booking_id: str) -> UpdateBookingResponse
                     "keyStatus": booking["key_status"] or "N/A",
                     "keyNumber": booking["key_number"] or "N/A",
                     "adminBookingsPath": "/admin/bookings",
+                    "createdBy": user_id,
                 },
             )
+
+            await connection.execute(
+                "SELECT pg_notify('booking_event', $1)",
+                json.dumps(
+                    {
+                        "event_type": "booking_cancelled",
+                        "floor_id": str(booking["floor_id"]),
+                        "booking_id": str(booking_id),
+                    }
+                ),
+            )
+
             logger.info("Cancelled booking")
 
-            return UpdateBookingResponse(booking_id=cancelled_id)
+        return UpdateBookingResponse(booking_id=cancelled_id)
     except ValueError:
         raise
     except Exception:
