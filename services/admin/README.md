@@ -105,6 +105,9 @@ All endpoints require JWT authentication with admin role: `Authorization: Bearer
 - `GET /admin/audit-logs` - Get paginated audit logs with filters
   - Query params: `page`, `limit`, `action`, `entity_type`, `user_role`, `search`
 
+**Scheduled Jobs**
+- `POST /admin/scheduled-jobs/update-floor-statuses` - Manually trigger floor status updates
+
 **Health**
 - `GET /health` - Health check
 

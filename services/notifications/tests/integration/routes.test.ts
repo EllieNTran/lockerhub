@@ -379,6 +379,7 @@ describe('Notification Routes Integration Tests', () => {
         validBookingConfirmation.userBookingsPath,
         validBookingConfirmation.adminBookingsPath,
         validBookingConfirmation.createdBy,
+        undefined, // fromWaitlist
       )
     })
 
@@ -438,6 +439,7 @@ describe('Notification Routes Integration Tests', () => {
         validBookingCancellation.keyStatus,
         validBookingCancellation.keyNumber,
         validBookingCancellation.adminBookingsPath,
+        validBookingCancellation.createdBy,
       )
     })
 

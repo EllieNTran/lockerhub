@@ -70,12 +70,12 @@ All endpoints require JWT authentication: `Authorization: Bearer <token>`
 - `GET /bookings/{booking_id}` - Get specific booking
 - `PUT /bookings/{booking_id}` - Update booking (shorten only)
 - `PUT /bookings/{booking_id}/cancel` - Cancel booking
-- `DELETE /bookings/{booking_id}/special-requests` - Delete special request
 - `POST /bookings/{booking_id}/extend` - Request extension
 
 **Special Requests**
 - `POST /bookings/special-requests` - Create special request
 - `GET /bookings/special-requests` - Get user's special requests
+- `DELETE /bookings/special-requests/{request_id}` - Cancel special request
 
 **Availability**
 - `GET /bookings/lockers/available` - Get available lockers for floor/dates
@@ -83,6 +83,7 @@ All endpoints require JWT authentication: `Authorization: Bearer <token>`
 
 **Waitlist**
 - `POST /bookings/waitlist/join` - Join floor queue
+- `POST /bookings/waitlist/process-floor-queue` - Manually trigger floor queue processing
 
 **Booking Rules**
 - `GET /bookings/booking-rule/{rule_type}` - Get specific booking rule
@@ -106,13 +107,13 @@ Automated tasks run via APScheduler:
   - Emails users whose bookings end today
   - Reminds them to return keys
 
-- **Process Floor Queues** - Every 15 minutes
+- **Process Floor Queues** - Event-driven (after booking cancellations/completions)
   - Auto-allocates available lockers to waitlisted users (FCFS)
   - Removes users from queue who already have active bookings
   - Sends booking confirmation emails
+  - Can be triggered manually via `/bookings/waitlist/process-floor-queue`
 
 **Manual Triggers** (for testing):
 - `POST /scheduled-jobs/update-booking-statuses`
 - `POST /scheduled-jobs/expire-overdue-bookings`
 - `POST /scheduled-jobs/send-key-return-reminders`
-- `POST /scheduled-jobs/process-floor-queues`

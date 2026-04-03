@@ -258,7 +258,7 @@ async def _get_floors_to_process(
     if floor_id:
         floor = await db.fetchrow(GET_FLOOR_INFO_QUERY, floor_id)
         if not floor:
-            logger.warning(f"Floor {floor_id} not found")
+            logger.warning(f"Floor not found")
             return []
         return [floor]
     else:
