@@ -1,9 +1,8 @@
 import { useEffect, useState, type SetStateAction } from 'react'
-import { format } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { Clock, CalendarDays, MapPin, Hourglass, Loader, Ban, X, CircleCheckBig, CircleX, CircleCheck } from 'lucide-react'
 import formatDuration from '@/utils/duration-format'
 import ColorBadge from '@/components/ColorBadge'
-import { formatTimeAgo } from '@/utils/date-format'
 import type { Request } from '@/types/request'
 import { Button } from '@/components/ui/button'
 import {
@@ -124,7 +123,7 @@ const SpecialRequestCard = ({ specialRequest, onCancel, onReview, isAdmin = fals
                   {specialRequest.created_at && (
                     <span className='flex items-center gap-1'>
                       <Clock className='h-3 w-3' />
-                      Submitted {formatTimeAgo(specialRequest.created_at)}
+                      Submitted {formatDistanceToNow(new Date(specialRequest.created_at), { addSuffix: true })}
                     </span>
                   )}
                 </div>

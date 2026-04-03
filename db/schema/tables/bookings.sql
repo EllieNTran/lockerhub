@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS lockerhub.bookings (
     CONSTRAINT no_overlapping_bookings EXCLUDE USING gist (
         locker_id WITH =,
         daterange(start_date, COALESCE(end_date, 'infinity'::date) + 1, '[)') WITH &&
-    )
+    ) WHERE (status NOT IN ('cancelled', 'completed'))
 );
 
 CREATE INDEX idx_bookings_floor_locker_dates ON lockerhub.bookings(locker_id, start_date, end_date);

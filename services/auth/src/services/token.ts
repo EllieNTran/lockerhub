@@ -53,9 +53,8 @@ const jwkKeystore = await initializeKeystore()
  * Generate a JWT access token
  */
 export const generateAccessToken = (payload: TokenPayload): string => {
-  const expiresIn = fromEnv('ACCESS_TOKEN_EXPIRY') || '15m'
+  const expiresIn = payload.role === 'admin' ? '30m' : '15m'
 
-  // Generate unique token ID for tracking and revocation
   const tokenId = `${payload.userId}-${Date.now()}-${Math.random().toString(36).substring(7)}`
 
   return jwt.sign(
@@ -64,16 +63,16 @@ export const generateAccessToken = (payload: TokenPayload): string => {
       email: payload.email,
       role: payload.role,
       departmentId: payload.departmentId || null,
-      scope: `user:${payload.role}`, // Scope for fine-grained access control
+      scope: `user:${payload.role}`,
     },
     privateKey,
     {
       algorithm: 'RS256',
       expiresIn,
       issuer: 'lockerhub-auth',
-      audience: ['lockerhub-api', 'lockerhub-services'], // Multiple audiences for gateway and services
-      jwtid: tokenId, // Unique token identifier
-      subject: payload.userId.toString(), // Subject claim
+      audience: ['lockerhub-api', 'lockerhub-services'],
+      jwtid: tokenId,
+      subject: payload.userId.toString(),
       keyid: KEY_ID, // Key ID for JWKS key rotation support
     } as jwt.SignOptions,
   )

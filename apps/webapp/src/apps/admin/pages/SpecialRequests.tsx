@@ -8,6 +8,8 @@ import { useAllSpecialRequests, useReviewSpecialRequest } from '@/services/admin
 import Filters from '../components/Filters';
 import PageTour from '@/components/tutorial/PageTour';
 import { ADMIN_SPECIAL_REQUESTS_STEPS } from '@/components/tutorial/steps';
+import { toast } from '@/components/ui/sonner';
+import type { AxiosError } from 'axios';
 
 const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
@@ -31,6 +33,14 @@ const SpecialRequests = () => {
       data: {
         status: approved ? 'approved' : 'rejected',
         ...(reason && { reason }),
+      },
+    }, {
+      onSuccess: () => {
+        toast.success(`Request ${approved ? 'approved' : 'rejected'} successfully`);
+      },
+      onError: (error: Error) => {
+        const axiosError = error as AxiosError<{ detail: string }>;
+        toast.error(axiosError?.response?.data?.detail || `Failed to ${approved ? 'approve' : 'reject'} request`);
       },
     })
   }
