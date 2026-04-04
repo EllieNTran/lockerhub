@@ -43,25 +43,25 @@ const Header = ({ showNav = true }: HeaderProps) => {
     if (refreshToken) {
       logoutMutation.mutate(refreshToken, {
         onSuccess: () => {
-          localStorage.removeItem('authToken');
+          localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('userRole');
-          navigate('/login');
+          navigate('/');
           toast.success('Logged out successfully');
         },
         onError: (error) => {
-          localStorage.removeItem('authToken');
+          localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('userRole');
-          navigate('/login');
+          navigate('/');
           console.error('Logout error:', error);
         },
       });
     } else {
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userRole');
-      navigate('/login');
+      navigate('/');
     }
   };
 

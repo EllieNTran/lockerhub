@@ -24,6 +24,8 @@ interface ApiResponse<T = unknown> {
 
 class ApiClient {
   private baseUrl: string
+  private isRefreshing = false
+  private refreshPromise: Promise<string> | null = null
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
@@ -89,9 +91,60 @@ class ApiClient {
   }
 
   /**
+   * Refresh the access token using the refresh token
+   */
+  private async refreshAccessToken(): Promise<string> {
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise
+    }
+
+    this.isRefreshing = true
+
+    this.refreshPromise = (async () => {
+      try {
+        const refreshToken = this.getRefreshToken()
+
+        if (!refreshToken) {
+          throw new Error('No refresh token available')
+        }
+
+        const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to refresh token')
+        }
+
+        const data = await response.json()
+        const newAccessToken = data.accessToken
+
+        this.setToken(newAccessToken)
+
+        return newAccessToken
+      } catch (error) {
+        this.removeToken()
+        if (typeof window !== 'undefined') {
+          window.location.href = '/'
+        }
+        throw error
+      } finally {
+        this.isRefreshing = false
+        this.refreshPromise = null
+      }
+    })()
+
+    return this.refreshPromise
+  }
+
+  /**
    * Handle API response
    */
-  private async handleResponse<T>(response: Response): Promise<T> {
+  private async handleResponse<T>(response: Response, isRetry = false): Promise<T> {
     const contentType = response.headers.get('content-type')
     const isJson = contentType?.includes('application/json')
 
@@ -103,11 +156,9 @@ class ApiClient {
         errorMessage = errorData.detail || errorData.message || errorMessage
       }
 
-      if (response.status === 401) {
-        this.removeToken()
-        if (typeof window !== 'undefined') {
-          window.location.href = '/'
-        }
+      // Handle 401 with automatic token refresh
+      if (response.status === 401 && !isRetry) {
+        throw new Error('UNAUTHORIZED')
       }
 
       if (response.status === 403) {
@@ -125,20 +176,34 @@ class ApiClient {
   }
 
   /**
-   * Generic request method
+   * Generic request method with automatic token refresh
    */
   private async request<T>(
     endpoint: string,
     options?: RequestInit,
+    isRetry = false,
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
 
-    const response = await fetch(url, {
-      ...options,
-      headers: this.getHeaders(options?.headers),
-    })
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: this.getHeaders(options?.headers),
+      })
 
-    return this.handleResponse<T>(response)
+      return await this.handleResponse<T>(response, isRetry)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'UNAUTHORIZED' && !isRetry) {
+        try {
+          await this.refreshAccessToken()
+          return this.request<T>(endpoint, options, true)
+        } catch {
+          throw error
+        }
+      }
+
+      throw error
+    }
   }
 
   /**
