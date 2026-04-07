@@ -6,40 +6,57 @@ from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
 from src.models.responses import KeyHandoverResponse
 
-GET_BOOKING_QUERY = """
+CONFIRM_KEY_HANDOVER_QUERY = """
+WITH booking_info AS (
+    SELECT 
+        b.booking_id,
+        b.locker_id,
+        b.status,
+        b.start_date,
+        u.user_id,
+        l.locker_number
+    FROM lockerhub.bookings b
+    INNER JOIN lockerhub.users u ON b.user_id = u.user_id
+    INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
+    WHERE booking_id = $1
+    AND b.status = 'upcoming'::lockerhub.booking_status
+    AND b.start_date <= $3
+),
+updated_key AS (
+    UPDATE lockerhub.keys
+    SET status = 'with_employee'::lockerhub.key_status, updated_at = CURRENT_TIMESTAMP, updated_by = $2
+    WHERE locker_id = (SELECT locker_id FROM booking_info) 
+    AND status = 'awaiting_handover'::lockerhub.key_status
+    RETURNING key_id, key_number, status
+),
+updated_locker AS (
+    UPDATE lockerhub.lockers
+    SET status = 'occupied'::lockerhub.locker_status, updated_at = CURRENT_TIMESTAMP, updated_by = NULL
+    WHERE locker_id = (SELECT locker_id FROM booking_info)
+    RETURNING locker_id
+),
+updated_booking AS (
+    UPDATE lockerhub.bookings
+    SET status = 'active'::lockerhub.booking_status,
+        updated_at = CURRENT_TIMESTAMP,
+        updated_by = NULL
+    WHERE booking_id = $1
+    AND EXISTS (SELECT 1 FROM booking_info)
+    RETURNING booking_id, status
+)
 SELECT 
-    b.booking_id,
-    b.locker_id,
-    b.status,
-    b.start_date,
-    u.user_id,
-    l.locker_number
-FROM lockerhub.bookings b
-INNER JOIN lockerhub.users u ON b.user_id = u.user_id
-INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
-WHERE booking_id = $1
-"""
-
-UPDATE_KEY_STATUS_QUERY = """
-UPDATE lockerhub.keys
-SET status = 'with_employee', updated_at = CURRENT_TIMESTAMP, updated_by = $2
-WHERE locker_id = $1 AND status = 'awaiting_handover'
-RETURNING key_id, key_number, status
-"""
-
-UPDATE_BOOKING_STATUS_QUERY = """
-UPDATE lockerhub.bookings
-SET status = 'active',
-    updated_at = CURRENT_TIMESTAMP,
-    updated_by = NULL
-WHERE booking_id = $1
-RETURNING booking_id, status
-"""
-
-UPDATE_LOCKER_STATUS_QUERY = """
-UPDATE lockerhub.lockers
-SET status = 'occupied', updated_at = CURRENT_TIMESTAMP, updated_by = NULL
-WHERE locker_id = $1
+    bi.booking_id,
+    bi.user_id,
+    bi.locker_number,
+    uk.key_id,
+    uk.key_number,
+    uk.status AS key_status,
+    ub.booking_id AS booking_updated,
+    ub.status AS booking_status
+FROM booking_info bi
+CROSS JOIN updated_key uk
+LEFT JOIN updated_locker ul ON true
+CROSS JOIN updated_booking ub
 """
 
 
@@ -54,55 +71,50 @@ async def confirm_key_handover(admin_id: str, booking_id: str) -> KeyHandoverRes
         The key handover confirmation response
     """
     try:
-        async with db.transaction() as connection:
-            booking = await connection.fetchrow(GET_BOOKING_QUERY, booking_id)
-            if not booking:
-                logger.warning("Booking not found")
-                raise ValueError("Booking not found")
+        result = await db.fetchrow(
+            CONFIRM_KEY_HANDOVER_QUERY,
+            booking_id,
+            admin_id,
+            datetime.now().date(),
+        )
 
-            if booking["status"] != "upcoming":
-                logger.warning("Booking is not in 'upcoming' status")
-                raise ValueError("Booking must be 'upcoming' to confirm handover")
-
-            today = datetime.now().date()
-            if booking["start_date"] > today:
-                logger.warning("Cannot hand over key before booking start date")
-                raise ValueError("Cannot hand over key before booking start date")
-
-            key = await connection.fetchrow(
-                UPDATE_KEY_STATUS_QUERY, booking["locker_id"], admin_id
-            )
-            if not key:
-                logger.warning("Key not found for locker")
-                raise ValueError("Key not found for this locker")
-
-            await connection.execute(UPDATE_LOCKER_STATUS_QUERY, booking["locker_id"])
-
-            updated_booking = await connection.fetchrow(
-                UPDATE_BOOKING_STATUS_QUERY, booking_id
+        if not result:
+            logger.warning("Booking not found or invalid state for handover")
+            raise ValueError(
+                "Booking not found, not 'upcoming', or start date is in the future"
             )
 
-            await NotificationsServiceClient().post(
-                "/",
-                {
-                    "title": "Key Handed Over",
-                    "adminTitle": f"Key {key['key_number']} handed over for Locker {booking['locker_number']}",
-                    "caption": f"You are now in possession of the key {key['key_number']}. Please return it by the end of your booking.",
-                    "type": "info",
-                    "entityType": "key",
-                    "scope": "user",
-                    "userIds": [str(booking["user_id"])],
-                    "createdBy": str(admin_id),
-                },
-            )
+        if not result["key_id"]:
+            logger.warning("Key not found for locker")
+            raise ValueError("Key not found for this locker")
 
-            logger.info("Confirmed key handover for booking")
+        if not result["booking_updated"]:
+            logger.warning("Failed to update booking status")
+            raise ValueError("Failed to update booking status")
 
-            return KeyHandoverResponse(
-                booking_id=updated_booking["booking_id"],
-                key_number=key["key_number"],
-            )
+        await NotificationsServiceClient().post(
+            "/",
+            {
+                "title": "Key Handed Over",
+                "adminTitle": f"Key {result['key_number']} handed over for Locker {result['locker_number']}",
+                "caption": f"You are now in possession of the key {result['key_number']}. Please return it by the end of your booking.",
+                "type": "info",
+                "entityType": "key",
+                "scope": "user",
+                "userIds": [str(result["user_id"])],
+                "createdBy": str(admin_id),
+            },
+        )
 
-    except Exception as e:
-        logger.error("Error confirming handover for booking: %s", e)
+        logger.info("Confirmed key handover for booking")
+
+        return KeyHandoverResponse(
+            booking_id=result["booking_id"],
+            key_number=result["key_number"],
+        )
+
+    except ValueError:
+        raise
+    except Exception:
+        logger.error("Error confirming handover for booking")
         raise

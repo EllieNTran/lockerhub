@@ -8,26 +8,28 @@ from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
 from src.models.responses import CreateSpecialRequestResponse
 
-CREATE_SPECIAL_REQUEST_QUERY = """
-INSERT INTO lockerhub.requests (
-    user_id,
-    floor_id,
-    locker_id,
-    start_date,
-    end_date,
-    request_type,
-    justification
+CREATE_SPECIAL_REQUEST_WITH_DETAILS_QUERY = """
+WITH new_request AS (
+    INSERT INTO lockerhub.requests (
+        user_id,
+        floor_id,
+        locker_id,
+        start_date,
+        end_date,
+        request_type,
+        justification
+    )
+    VALUES ($1, $2, $3, $4, $5, 'special'::lockerhub.request_type, $6)
+    RETURNING request_id, user_id, floor_id
 )
-VALUES ($1, $2, $3, $4, $5, 'special', $6)
-RETURNING request_id
-"""
-
-GET_USER_DETAILS_QUERY = """
-SELECT u.email, u.first_name, f.floor_number
-FROM lockerhub.users u
-CROSS JOIN lockerhub.floors f
-WHERE u.user_id = $1
-AND f.floor_id = $2
+SELECT 
+    nr.request_id,
+    u.email,
+    u.first_name,
+    f.floor_number
+FROM new_request nr
+JOIN lockerhub.users u ON nr.user_id = u.user_id
+JOIN lockerhub.floors f ON nr.floor_id = f.floor_id
 """
 
 
@@ -57,8 +59,8 @@ async def create_special_request(
         ValueError: If the request cannot be created
     """
     try:
-        request_id = await db.fetchval(
-            CREATE_SPECIAL_REQUEST_QUERY,
+        result = await db.fetchrow(
+            CREATE_SPECIAL_REQUEST_WITH_DETAILS_QUERY,
             user_id,
             floor_id,
             locker_id,
@@ -67,17 +69,20 @@ async def create_special_request(
             justification,
         )
 
-        allocation_type = "permanent" if end_date is None else "long-term"
+        if not result:
+            logger.error("Failed to create special request")
+            raise ValueError("Failed to create special request")
 
-        user_details = await db.fetchrow(GET_USER_DETAILS_QUERY, user_id, floor_id)
+        request_id = result["request_id"]
+        allocation_type = "permanent" if end_date is None else "long-term"
 
         await NotificationsServiceClient().post(
             "/special-request/submitted",
             {
                 "userId": user_id,
-                "email": user_details["email"],
-                "name": user_details["first_name"],
-                "floorNumber": user_details["floor_number"],
+                "email": result["email"],
+                "name": result["first_name"],
+                "floorNumber": result["floor_number"],
                 "endDate": str(end_date) if end_date else None,
                 "requestId": request_id,
                 "userSpecialRequestsPath": "/user/special-request",
@@ -88,6 +93,8 @@ async def create_special_request(
         logger.info(f"Created special request ({allocation_type}) with ID {request_id}")
 
         return CreateSpecialRequestResponse(request_id=request_id)
+    except ValueError:
+        raise
     except Exception:
         logger.error("Error creating special request")
         raise

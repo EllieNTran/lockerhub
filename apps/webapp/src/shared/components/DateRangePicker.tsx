@@ -56,10 +56,43 @@ export const DateRangePicker = ({
     return day === 0 || day === 6;
   };
 
+  const addBusinessDays = (date: Date, days: number) => {
+    let currentDate = new Date(date);
+    let addedDays = 0;
+
+    while (addedDays < days) {
+      currentDate = addDays(currentDate, 1);
+      if (!isWeekend(currentDate)) {
+        addedDays++;
+      }
+    }
+
+    return currentDate;
+  };
+
   const handleStartDateChange = (date: Date | undefined) => {
     onStartDateChange(date);
-    if (date && endDate && date > endDate) {
-      onEndDateChange(undefined);
+
+    if (date && endDate) {
+      if (date > endDate) {
+        onEndDateChange(undefined);
+        return;
+      }
+
+      if (!disableRules) {
+        if (sameDayBookingsRule?.value === 0 && isSameDay(endDate, date)) {
+          onEndDateChange(undefined);
+          return;
+        }
+
+        if (maxDurationRule?.value) {
+          const maxEndDate = addBusinessDays(date, maxDurationRule.value - 1);
+          if (endDate > maxEndDate) {
+            onEndDateChange(undefined);
+            return;
+          }
+        }
+      }
     }
   };
 
@@ -96,7 +129,7 @@ export const DateRangePicker = ({
       if (sameDayBookingsRule?.value === 0 && isSameDay(date, startDate)) return true;
 
       if (maxDurationRule?.value) {
-        const maxEndDate = addDays(startDate, maxDurationRule.value - 1);
+        const maxEndDate = addBusinessDays(startDate, maxDurationRule.value - 1);
         if (date > maxEndDate) return true;
       }
     }

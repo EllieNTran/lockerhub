@@ -15,10 +15,11 @@ import {
 } from '@/components/ui/dialog';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import SearchResults from '@/apps/user/components/SearchResults';
+import WaitlistCard from '../components/WaitlistCard';
 import type { Locker, AvailableLocker } from '@/types/locker';
 import { toast } from '@/components/ui/sonner';
 import Heading from '@/components/Heading';
-import { useAvailableLockers, useFloors, useCreateBooking, useJoinFloorQueue } from '@/services/bookings';
+import { useAvailableLockers, useFloors, useCreateBooking, useJoinFloorQueue, useUserQueues } from '@/services/bookings';
 import FloorDropdown from '@/components/FloorDropdown';
 import PageTour from '@/components/tutorial/PageTour';
 import { BOOK_LOCKER_STEPS } from '@/components/tutorial/steps';
@@ -37,6 +38,7 @@ const BookLocker = () => {
   const { data: floors = [] } = useFloors();
   const { mutate: createBookingMutation, isPending: isCreatingBooking } = useCreateBooking();
   const { mutate: joinFloorQueueMutation, isPending: isJoiningQueue } = useJoinFloorQueue();
+  const { data: userQueues = [], isLoading: isLoadingQueues } = useUserQueues();
 
   useEffect(() => {
     if (floors.length > 0 && !selectedFloorId) {
@@ -101,12 +103,10 @@ const BookLocker = () => {
           if (error.message.includes('Existing overlapping booking exists')) {
             toast.error('You already have a booking for these dates', {
               description: 'Please cancel or modify your existing booking first, or choose different dates.',
-              duration: 5000,
             });
           } else if (error.message.includes('Booking conflict')) {
             toast.error('This locker is already booked', {
               description: 'Please select a different locker or choose different dates.',
-              duration: 4000,
             });
           } else {
             toast.error(error.message || 'Failed to book locker', {
@@ -206,11 +206,11 @@ const BookLocker = () => {
         </div>
 
         {!startDate || !endDate ? (
-          <div className="rounded-xl border border-grey-outline bg-card p-12 shadow-card text-center">
+          <div className="rounded-xl border border-grey-outline bg-white p-12 shadow-sm text-center flex items-center justify-center min-h-[270px]">
             <p className="text-grey">Select start and end dates to view available lockers</p>
           </div>
         ) : isLoading ? (
-          <div className="rounded-xl border border-grey-outline bg-card p-12 shadow-card text-center">
+          <div className="rounded-xl border border-grey-outline bg-white p-12 shadow-sm text-center flex items-center justify-center min-h-[270px]">
             <p className="text-grey">Loading available lockers...</p>
           </div>
         ) : availableCount === 0 ? (
@@ -260,6 +260,10 @@ const BookLocker = () => {
             </TooltipProvider>
           </div>
         )}
+
+        <div data-tour="waitlist">
+          <WaitlistCard queueEntries={userQueues} isLoading={isLoadingQueues} />
+        </div>
       </main>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>

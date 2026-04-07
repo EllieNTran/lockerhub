@@ -134,10 +134,10 @@ const MyBookings = () => {
   };
 
   const tabs = [
+    { value: 'all', label: 'All' },
     { value: 'active', label: 'Active' },
     { value: 'upcoming', label: 'Upcoming' },
     { value: 'expired', label: 'Past' },
-    { value: 'all', label: 'All' },
   ];
 
   return (
@@ -239,7 +239,7 @@ const MyBookings = () => {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">Select New End Date</label>
-              <div className="grid gap-3">
+              <div className="grid gap-3 max-h-[240px] overflow-y-auto pr-2">
                 {selectedBooking?.end_date && getExtensionOptions(selectedBooking.end_date).map((date, index) => (
                   <button
                     key={date.toISOString()}

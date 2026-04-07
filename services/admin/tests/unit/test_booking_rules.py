@@ -189,7 +189,7 @@ class TestUpdateFloorStatus:
 
     @pytest.mark.asyncio
     async def test_update_floor_status_to_closed(
-        self, mock_db, mock_db_connection, sample_floor_id, sample_user_id
+        self, mock_db, sample_floor_id, sample_user_id
     ):
         """Test updating floor status to closed.
 
@@ -198,20 +198,13 @@ class TestUpdateFloorStatus:
         """
         from src.services.booking_rules.update_floor_status import update_floor_status
 
-        mock_db_connection.fetchrow.side_effect = [
-            {
-                "floor_id": sample_floor_id,
-                "floor_number": "10",
-                "status": "open",
-            },
-            {
-                "floor_id": sample_floor_id,
-                "floor_number": "10",
-                "status": "closed",
-            },
-        ]
-        mock_db_connection.fetch.return_value = []  # No affected bookings
-        mock_db_connection.execute.return_value = None
+        mock_db.fetch.return_value = []
+        mock_db.fetchrow.return_value = {
+            "floor_id": sample_floor_id,
+            "floor_number": "10",
+            "status": "closed",
+            "closure_id": 1,
+        }
 
         with patch("src.services.booking_rules.update_floor_status.db", mock_db):
             from unittest.mock import AsyncMock
@@ -234,7 +227,7 @@ class TestUpdateFloorStatus:
 
     @pytest.mark.asyncio
     async def test_update_floor_status_to_open(
-        self, mock_db, mock_db_connection, sample_floor_id, sample_user_id
+        self, mock_db, sample_floor_id, sample_user_id
     ):
         """Test updating floor status to open.
 
@@ -243,21 +236,11 @@ class TestUpdateFloorStatus:
         """
         from src.services.booking_rules.update_floor_status import update_floor_status
 
-        mock_db_connection.fetchrow.side_effect = [
-            {
-                "floor_id": sample_floor_id,
-                "floor_number": "10",
-                "status": "closed",
-            },
-            {
-                "floor_id": sample_floor_id,
-                "floor_number": "10",
-                "status": "open",
-            },
-        ]
-        mock_db_connection.execute.return_value = (
-            None  # For DELETE_ACTIVE_CLOSURES_QUERY
-        )
+        mock_db.fetchrow.return_value = {
+            "floor_id": sample_floor_id,
+            "floor_number": "10",
+            "status": "open",
+        }
 
         with patch("src.services.booking_rules.update_floor_status.db", mock_db):
             from unittest.mock import AsyncMock

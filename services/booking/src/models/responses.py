@@ -105,6 +105,31 @@ class JoinFloorQueueResponse(BaseModel):
     floor_number: str
 
 
+class UserQueueResponse(BaseModel):
+    """Response model for a user queue entry."""
+
+    floor_queue_id: int
+    request_id: int
+    start_date: date
+    end_date: date
+    created_at: datetime
+    floor_id: UUID
+    floor_number: str
+
+
+class UserQueuesListResponse(BaseModel):
+    """Response model for a list of user queue entries."""
+
+    queues: List[UserQueueResponse]
+
+
+class DeleteUserQueueResponse(BaseModel):
+    """Response model for deleting a user queue entry."""
+
+    message: str
+    floor_queue_id: int
+
+
 class ProcessFloorQueuesResponse(BaseModel):
     """Response model for processing floor queues."""
 

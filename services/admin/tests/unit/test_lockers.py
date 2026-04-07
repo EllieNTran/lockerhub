@@ -11,23 +11,24 @@ class TestCreateLocker:
 
     @pytest.mark.asyncio
     async def test_create_locker_success(
-        self, mock_db, mock_db_connection, sample_floor_id, sample_user_id
+        self, mock_db, sample_floor_id, sample_user_id
     ):
         """Test successful locker creation.
 
         Verifies that creating a locker with valid floor ID returns both locker and key details.
-        Mocks database responses for floor validation, locker creation, and key creation.
+        CTE handles both locker and key creation in one query.
         """
         from src.services.lockers.create_locker import create_locker
 
         locker_id = uuid4()
         key_id = uuid4()
 
-        mock_db_connection.fetchrow.side_effect = [
-            {"floor_id": sample_floor_id},
-            {"locker_id": locker_id, "locker_number": "DL10-01-01"},
-            {"key_id": key_id, "key_number": "AA123"},
-        ]
+        mock_db.fetchrow.return_value = {
+            "locker_id": locker_id,
+            "locker_number": "DL10-01-01",
+            "key_id": key_id,
+            "key_number": "AA123",
+        }
 
         with patch("src.services.lockers.create_locker.db", mock_db):
             result = await create_locker(
@@ -44,19 +45,18 @@ class TestCreateLocker:
             assert result.locker_number == "DL10-01-01"
             assert result.key_id == key_id
             assert result.key_number == "AA123"
+            assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_create_locker_floor_not_found(
-        self, mock_db, mock_db_connection, sample_user_id
-    ):
+    async def test_create_locker_floor_not_found(self, mock_db, sample_user_id):
         """Test locker creation with non-existent floor.
 
         Verifies that attempting to create a locker with an invalid floor ID
-        raises a ValueError with the message 'Floor not found'.
+        raises a ValueError with the message 'Floor not found'. CTE returns None.
         """
         from src.services.lockers.create_locker import create_locker
 
-        mock_db_connection.fetchrow.return_value = None
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.lockers.create_locker.db", mock_db):
             with pytest.raises(ValueError, match="Floor not found"):
@@ -74,22 +74,23 @@ class TestCreateLockerKey:
 
     @pytest.mark.asyncio
     async def test_create_locker_key_success(
-        self, mock_db, mock_db_connection, sample_locker_id, sample_user_id
+        self, mock_db, sample_locker_id, sample_user_id
     ):
         """Test successful key creation for locker.
 
         Verifies that creating a key for a locker without an existing key succeeds
-        and returns the new key ID and key number.
+        and returns the new key ID and key number. CTE validates and creates in one query.
         """
         from src.services.lockers.create_locker_key import create_locker_key
 
         key_id = uuid4()
 
-        mock_db_connection.fetchrow.side_effect = [
-            {"locker_id": sample_locker_id},
-            None,
-            {"key_id": key_id, "key_number": "BB456"},
-        ]
+        mock_db.fetchrow.return_value = {
+            "key_id": key_id,
+            "key_number": "BB456",
+            "locker_exists": 1,
+            "has_key": 0,
+        }
 
         with patch("src.services.lockers.create_locker_key.db", mock_db):
             result = await create_locker_key(
@@ -100,22 +101,20 @@ class TestCreateLockerKey:
 
             assert result.key_id == key_id
             assert result.key_number == "BB456"
+            assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
     async def test_create_locker_key_already_exists(
-        self, mock_db, mock_db_connection, sample_locker_id, sample_user_id
+        self, mock_db, sample_locker_id, sample_user_id
     ):
         """Test creating key when locker already has one.
 
         Verifies that attempting to create a key for a locker that already has a key
-        raises a ValueError with the message 'Locker already has a key'.
+        raises a ValueError. CTE returns None when key already exists.
         """
         from src.services.lockers.create_locker_key import create_locker_key
 
-        mock_db_connection.fetchrow.return_value = {
-            "locker_id": sample_locker_id,
-            "key_id": "existing-key-id",
-        }
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.lockers.create_locker_key.db", mock_db):
             with pytest.raises(ValueError, match="Locker already has a key"):
@@ -131,46 +130,41 @@ class TestMarkLockerMaintenance:
     """Tests for mark_locker_maintenance service."""
 
     @pytest.mark.asyncio
-    async def test_mark_locker_maintenance_success(
-        self, mock_db, mock_db_connection, sample_locker_id
-    ):
+    async def test_mark_locker_maintenance_success(self, mock_db, sample_locker_id):
         """Test marking locker as under maintenance.
 
         Verifies that an available locker can be marked as maintenance status
-        and returns the updated locker details with the new status.
+        and returns the updated locker details with the new status. CTE handles validation and update.
         """
         from src.services.lockers.mark_locker_maintenance import mark_locker_maintenance
 
-        mock_db_connection.fetchrow.side_effect = [
-            {"locker_id": sample_locker_id, "status": "available"},
-            {
-                "locker_id": sample_locker_id,
-                "locker_number": "DL10-01-01",
-                "status": "maintenance",
-            },
-        ]
+        mock_db.fetchrow.return_value = {
+            "locker_id": sample_locker_id,
+            "locker_number": "DL10-01-01",
+            "status": "maintenance",
+            "was_available": 1,
+        }
 
         with patch("src.services.lockers.mark_locker_maintenance.db", mock_db):
             result = await mark_locker_maintenance(str(sample_locker_id))
 
             assert result.locker_id == sample_locker_id
+            assert result.locker_number == "DL10-01-01"
             assert result.status == "maintenance"
+            assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
     async def test_mark_locker_maintenance_not_available(
-        self, mock_db, mock_db_connection, sample_locker_id
+        self, mock_db, sample_locker_id
     ):
         """Test marking occupied locker as maintenance.
 
         Verifies that attempting to mark a non-available locker (occupied) as maintenance
-        raises a ValueError indicating only available lockers can be marked for maintenance.
+        raises a ValueError. CTE returns None when not available.
         """
         from src.services.lockers.mark_locker_maintenance import mark_locker_maintenance
 
-        mock_db_connection.fetchrow.return_value = {
-            "locker_id": sample_locker_id,
-            "status": "occupied",
-        }
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.lockers.mark_locker_maintenance.db", mock_db):
             with pytest.raises(
@@ -184,49 +178,44 @@ class TestMarkLockerAvailable:
     """Tests for mark_locker_available service."""
 
     @pytest.mark.asyncio
-    async def test_mark_locker_available_success(
-        self, mock_db, mock_db_connection, sample_locker_id
-    ):
+    async def test_mark_locker_available_success(self, mock_db, sample_locker_id):
         """Test marking locker as available.
 
         Verifies that a locker in maintenance status can be marked as available
-        and returns the updated locker with the new status.
+        and returns the updated locker with the new status. CTE handles key update if needed.
         """
         from src.services.lockers.mark_locker_available import mark_locker_available
 
-        mock_db_connection.fetchrow.side_effect = [
-            {
-                "locker_id": sample_locker_id,
-                "status": "maintenance",
-                "key_number": "AA123",
-                "key_status": "available",
-            },
-            {
-                "locker_id": sample_locker_id,
-                "locker_number": "DL10-01-01",
-                "status": "available",
-            },
-        ]
+        mock_db.fetchrow.return_value = {
+            "locker_id": sample_locker_id,
+            "locker_number": "DL10-01-01",
+            "status": "available",
+            "updated_key_number": "AA123",
+            "updated_key_status": "available",
+        }
 
         with patch("src.services.lockers.mark_locker_available.db", mock_db):
             result = await mark_locker_available(str(sample_locker_id))
 
             assert result.locker_id == sample_locker_id
             assert result.status == "available"
+            assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_mark_locker_available_not_found(self, mock_db, mock_db_connection):
+    async def test_mark_locker_available_not_found(self, mock_db):
         """Test marking non-existent locker as available.
 
         Verifies that attempting to mark a non-existent locker as available
-        raises a ValueError with the message 'Locker not found'.
+        raises a ValueError. CTE returns None when not found or not in maintenance.
         """
         from src.services.lockers.mark_locker_available import mark_locker_available
 
-        mock_db_connection.fetchrow.return_value = None
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.lockers.mark_locker_available.db", mock_db):
-            with pytest.raises(ValueError, match="Locker not found"):
+            with pytest.raises(
+                ValueError, match="Locker must be 'maintenance' to mark as available"
+            ):
                 await mark_locker_available("non-existent-id")
 
 
@@ -235,58 +224,44 @@ class TestReportLostKey:
     """Tests for report_lost_key service."""
 
     @pytest.mark.asyncio
-    async def test_report_lost_key_success(
-        self, mock_db, mock_db_connection, sample_locker_id
-    ):
+    async def test_report_lost_key_success(self, mock_db, sample_locker_id):
         """Test reporting a lost key.
 
         Verifies that reporting a lost key marks the key as lost and sets the locker
-        to maintenance status. Returns the updated locker details.
+        to maintenance status. CTE handles both updates in one query.
         """
         from src.services.lockers.report_lost_key import report_lost_key
 
-        mock_db_connection.fetchrow.side_effect = [
-            {
-                "locker_id": sample_locker_id,
-                "status": "available",
-                "key_number": "AA123",
-                "key_status": "available",
-            },
-            {"key_number": "AA123", "status": "lost"},
-            {
-                "locker_id": sample_locker_id,
-                "locker_number": "DL10-01-01",
-                "status": "maintenance",
-            },
-        ]
+        mock_db.fetchrow.return_value = {
+            "locker_id": sample_locker_id,
+            "locker_number": "DL10-01-01",
+            "status": "maintenance",
+            "updated_key_number": "AA123",
+        }
 
         with patch("src.services.lockers.report_lost_key.db", mock_db):
             result = await report_lost_key(str(sample_locker_id))
 
             assert result.locker_id == sample_locker_id
+            assert result.locker_number == "DL10-01-01"
             assert result.status == "maintenance"
+            assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_report_lost_key_no_key(
-        self, mock_db, mock_db_connection, sample_locker_id
-    ):
+    async def test_report_lost_key_no_key(self, mock_db, sample_locker_id):
         """Test reporting lost key for locker that's not available.
 
         Verifies that attempting to report a lost key for a locker that is not available
-        raises a ValueError.
+        raises a ValueError. CTE returns None when status not available.
         """
         from src.services.lockers.report_lost_key import report_lost_key
 
-        mock_db_connection.fetchrow.return_value = {
-            "locker_id": sample_locker_id,
-            "status": "occupied",
-            "key_number": "AA123",
-            "key_status": "with_employee",
-        }
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.lockers.report_lost_key.db", mock_db):
             with pytest.raises(
-                ValueError, match="Locker must be 'available' to report lost key"
+                ValueError,
+                match="Locker not found or must be 'available' to report lost key",
             ):
                 await report_lost_key(str(sample_locker_id))
 
@@ -296,54 +271,45 @@ class TestOrderReplacementKey:
     """Tests for order_replacement_key service."""
 
     @pytest.mark.asyncio
-    async def test_order_replacement_key_success(
-        self, mock_db, mock_db_connection, sample_locker_id
-    ):
+    async def test_order_replacement_key_success(self, mock_db, sample_locker_id):
         """Test ordering a replacement key.
 
         Verifies that ordering a replacement for a lost key updates the key status
-        to 'awaiting_replacement' and returns the updated locker details.
+        to 'awaiting_replacement'. CTE validates and updates in one query.
         """
         from src.services.lockers.order_replacement_key import order_replacement_key
 
-        mock_db_connection.fetchrow.side_effect = [
-            {
-                "locker_id": sample_locker_id,
-                "status": "maintenance",
-                "key_number": "AA123",
-                "key_status": "lost",
-            },
-            {"key_number": "AA123", "status": "awaiting_replacement"},
-            {
-                "locker_id": sample_locker_id,
-                "status": "maintenance",
-                "key_number": "AA123",
-                "key_status": "awaiting_replacement",
-            },
-        ]
+        mock_db.fetchrow.return_value = {
+            "locker_id": sample_locker_id,
+            "locker_number": "DL10-01-01",
+            "status": "maintenance",
+            "key_number": "AA123",
+            "key_status": "awaiting_replacement",
+        }
 
         with patch("src.services.lockers.order_replacement_key.db", mock_db):
             result = await order_replacement_key(str(sample_locker_id))
 
             assert result.locker_id == sample_locker_id
+            assert result.locker_number == "DL10-01-01"
             assert result.status == "maintenance"
+            assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_order_replacement_key_not_lost(
-        self, mock_db, mock_db_connection, sample_locker_id
-    ):
+    async def test_order_replacement_key_not_lost(self, mock_db, sample_locker_id):
         """Test ordering replacement for non-lost key.
 
         Verifies that attempting to order a replacement key when the key is not lost
-        raises a ValueError indicating only lost keys can have replacements ordered.
+        raises a ValueError. CTE returns None or result without key_status.
         """
         from src.services.lockers.order_replacement_key import order_replacement_key
 
-        mock_db_connection.fetchrow.return_value = {
+        mock_db.fetchrow.return_value = {
             "locker_id": sample_locker_id,
+            "locker_number": "DL10-01-01",
             "status": "maintenance",
             "key_number": "AA123",
-            "key_status": "available",
+            "key_status": None,
         }
 
         with patch("src.services.lockers.order_replacement_key.db", mock_db):

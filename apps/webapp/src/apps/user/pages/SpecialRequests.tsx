@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import UserLayout from '../layout/UserLayout';
 import Heading from '@/components/Heading';
@@ -9,25 +10,54 @@ import { useUserSpecialRequests, useCancelSpecialRequest } from '@/services/book
 import { toast } from '@/components/ui/sonner';
 import { SPECIAL_REQUEST_STEPS } from '@/components/tutorial/steps';
 import PageTour from '@/components/tutorial/PageTour';
+import PaginationControls from '@/components/PaginationControls';
+
+const REQUESTS_PER_PAGE = 8;
 
 const SpecialRequests = () => {
   const navigate = useNavigate();
 
   const { data: requestsData, isLoading } = useUserSpecialRequests();
   const mutation = useCancelSpecialRequest();
+  const [currentPage, setCurrentPage] = useState<Record<string, number>>({
+    all: 1,
+    active: 1,
+    approved: 1,
+    pending: 1,
+    rejected: 1,
+    cancelled: 1,
+  });
 
   const tabs = [
-    { value: 'pending', label: 'Pending' },
-    { value: 'approved', label: 'Approved' },
-    { value: 'active', label: 'Active' },
-    { value: 'rejected', label: 'Rejected' },
     { value: 'all', label: 'All' },
+    { value: 'active', label: 'Active' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'cancelled', label: 'Cancelled' },
   ];
 
   const filterRequests = (status: string) => {
     if (!requestsData) return [];
     if (status === 'all') return requestsData;
     return requestsData.filter(r => r.status === status);
+  };
+
+  const getPaginatedRequests = (status: string) => {
+    const filteredRequests = filterRequests(status);
+    const page = currentPage[status] || 1;
+    const startIndex = (page - 1) * REQUESTS_PER_PAGE;
+    const endIndex = startIndex + REQUESTS_PER_PAGE;
+    return filteredRequests.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = (status: string) => {
+    const filteredRequests = filterRequests(status);
+    return Math.ceil(filteredRequests.length / REQUESTS_PER_PAGE);
+  };
+
+  const handlePageChange = (status: string, page: number) => {
+    setCurrentPage(prev => ({ ...prev, [status]: page }));
   };
 
   const handleCancel = (request_id: number) => {
@@ -81,24 +111,32 @@ const SpecialRequests = () => {
                   <p className="text-sm text-grey">Loading special requests...</p>
                 </div>
               ) : (
-                <div className="space-y-4 min-h-[400px]">
-                  {filterRequests(tab.value).length > 0 ? (
-                    filterRequests(tab.value).map((request, index) => (
-                      <div key={request.request_id} data-tour={index === 0 ? 'special-request-card' : undefined}>
-                        <SpecialRequestCard
-                          key={request.request_id}
-                          specialRequest={request}
-                          onCancel={() => handleCancel(request.request_id)}
-                        />
+                <>
+                  <div className="space-y-4 min-h-[400px]">
+                    {getPaginatedRequests(tab.value).length > 0 ? (
+                      getPaginatedRequests(tab.value).map((request, index) => (
+                        <div key={request.request_id} data-tour={index === 0 ? 'special-request-card' : undefined}>
+                          <SpecialRequestCard
+                            key={request.request_id}
+                            specialRequest={request}
+                            onCancel={() => handleCancel(request.request_id)}
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-12 text-center text-grey/40">
+                        <FileText className="h-15 w-15 mb-4" />
+                        <p className="text-md">No {tab.label !== 'All' ? tab.label.toLowerCase() : 'special'} requests found</p>
                       </div>
-                    ))
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-12 text-center text-grey/40">
-                      <FileText className="h-15 w-15 mb-4" />
-                      <p className="text-md">No {tab.label !== 'All' ? tab.label.toLowerCase() : 'special'} requests found</p>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+
+                  <PaginationControls
+                    currentPage={currentPage[tab.value] || 1}
+                    totalPages={getTotalPages(tab.value)}
+                    onPageChange={(page) => handlePageChange(tab.value, page)}
+                  />
+                </>
               )}
             </TabsContent>
           ))}

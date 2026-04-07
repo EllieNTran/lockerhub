@@ -6,59 +6,84 @@ from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
 from src.models.responses import UpdateBookingResponse
 
-GET_BOOKING_QUERY = """
-SELECT
-    b.user_id, 
-    b.status,
-    b.locker_id,
-    b.special_request_id,
-    u.email, 
-    u.first_name, 
-    l.locker_number, 
-    f.floor_number,
-    f.floor_id,
-    b.start_date, 
-    b.end_date,
-    k.status as key_status,
-    k.key_number
-FROM lockerhub.bookings b
-JOIN lockerhub.users u ON b.user_id = u.user_id
-JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
-JOIN lockerhub.floors f ON l.floor_id = f.floor_id
-LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
-WHERE b.booking_id = $1
-"""
-
-CANCEL_BOOKING_QUERY = """
-UPDATE lockerhub.bookings
-SET status = 'cancelled',
+CANCEL_BOOKING_WITH_UPDATES_QUERY = """
+WITH booking_info AS (
+    SELECT
+        b.booking_id,
+        b.user_id, 
+        b.status,
+        b.locker_id,
+        b.special_request_id,
+        u.email, 
+        u.first_name, 
+        l.locker_number, 
+        f.floor_number,
+        f.floor_id,
+        b.start_date, 
+        b.end_date,
+        k.status as key_status,
+        k.key_number
+    FROM lockerhub.bookings b
+    JOIN lockerhub.users u ON b.user_id = u.user_id
+    JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
+    JOIN lockerhub.floors f ON l.floor_id = f.floor_id
+    LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
+    WHERE b.booking_id = $1
+    AND b.user_id = $2
+),
+cancelled_booking AS (
+    UPDATE lockerhub.bookings
+    SET status = 'cancelled'::lockerhub.booking_status,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE booking_id = $1
+    AND user_id = $2
+    AND status != 'cancelled'::lockerhub.booking_status
+    RETURNING booking_id
+),
+cancelled_special_request AS (
+    UPDATE lockerhub.requests
+    SET status = 'cancelled'::lockerhub.request_status
+    WHERE request_id = (SELECT special_request_id FROM booking_info WHERE special_request_id IS NOT NULL)
+    RETURNING request_id
+),
+updated_key AS (
+    UPDATE lockerhub.keys
+    SET status = CASE 
+        WHEN status = 'awaiting_handover' THEN 'available'
+        WHEN status = 'with_employee' THEN 'awaiting_return'
+        ELSE status
+    END,
     updated_at = CURRENT_TIMESTAMP
-WHERE booking_id = $1
-RETURNING booking_id
-"""
-
-CANCEL_SPECIAL_REQUEST_QUERY = """
-UPDATE lockerhub.requests
-SET status = 'cancelled'
-WHERE request_id = $1
-"""
-
-RESET_KEY_QUERY = """
-UPDATE lockerhub.keys
-SET status = 'available', updated_at = CURRENT_TIMESTAMP
-WHERE locker_id = $1 AND status = 'awaiting_handover'
-"""
-
-RESET_LOCKER_QUERY = """
-UPDATE lockerhub.lockers
-SET status = 'available', updated_at = CURRENT_TIMESTAMP
-WHERE locker_id = $1 AND status = 'reserved'
+    WHERE locker_id = (SELECT locker_id FROM booking_info)
+    AND status IN ('awaiting_handover', 'with_employee')
+    RETURNING status AS new_key_status
+),
+updated_locker AS (
+    UPDATE lockerhub.lockers
+    SET status = 'available', 
+        updated_at = CURRENT_TIMESTAMP
+    WHERE locker_id = (SELECT locker_id FROM booking_info)
+    AND status = 'reserved'
+    RETURNING locker_id
+)
+SELECT 
+    bi.*,
+    cb.booking_id AS cancelled_booking_id,
+    uk.new_key_status
+FROM booking_info bi
+LEFT JOIN cancelled_booking cb ON true
+LEFT JOIN updated_key uk ON true
+LEFT JOIN updated_locker ul ON true
 """
 
 
 async def cancel_booking(user_id: str, booking_id: str) -> UpdateBookingResponse:
     """
     Cancel an existing booking by updating its status to 'cancelled'.
+
+    Automatically handles key and locker status updates:
+    - Key: 'awaiting_handover' → 'available' | 'with_employee' → 'awaiting_return'
+    - Locker: 'reserved' → 'available'
 
     Args:
         user_id: ID of the user requesting the cancellation (for authorization)
@@ -68,74 +93,62 @@ async def cancel_booking(user_id: str, booking_id: str) -> UpdateBookingResponse
         UpdateBookingResponse with the cancelled booking ID
     """
     try:
-        async with db.transaction() as connection:
-            booking = await connection.fetchrow(GET_BOOKING_QUERY, booking_id)
+        result = await db.fetchrow(
+            CANCEL_BOOKING_WITH_UPDATES_QUERY,
+            booking_id,
+            user_id,
+        )
 
-            if not booking:
-                logger.warning("Booking not found for cancellation")
-                raise ValueError("Booking not found")
+        if not result:
+            logger.warning("Booking not found or unauthorized")
+            raise ValueError("Booking not found or unauthorized")
 
-            if str(booking["user_id"]) != user_id:
-                logger.warning("User attempted to cancel booking not owned by them")
-                raise ValueError("Unauthorized")
+        if result["status"] == "cancelled" and not result["cancelled_booking_id"]:
+            logger.warning("Booking is already cancelled")
+            raise ValueError("Booking is already cancelled")
 
-            if booking["status"] == "cancelled":
-                logger.warning("Booking is already cancelled")
-                raise ValueError("Booking is already cancelled")
+        if not result["cancelled_booking_id"]:
+            logger.error("Failed to cancel booking")
+            raise ValueError("Failed to cancel booking")
 
-            cancelled_id = await connection.fetchval(CANCEL_BOOKING_QUERY, booking_id)
-
-            if booking["special_request_id"]:
-                await connection.execute(
-                    CANCEL_SPECIAL_REQUEST_QUERY, booking["special_request_id"]
-                )
-                logger.info(
-                    f"Cancelled special request {booking['special_request_id']} associated with booking"
-                )
-
-            if booking["key_status"] == "awaiting_handover":
-                await connection.execute(RESET_KEY_QUERY, booking["locker_id"])
-                logger.info("Reset key to available after user cancellation")
-
-            locker_result = await connection.execute(
-                RESET_LOCKER_QUERY, booking["locker_id"]
-            )
-            if locker_result:
-                logger.info("Reset locker to available after user cancellation")
-
-            await NotificationsServiceClient().post(
-                "/booking/cancellation",
-                {
-                    "userId": user_id,
-                    "email": booking["email"],
-                    "name": booking["first_name"],
-                    "lockerNumber": booking["locker_number"],
-                    "floorNumber": booking["floor_number"],
-                    "startDate": booking["start_date"].isoformat(),
-                    "endDate": (
-                        booking["end_date"].isoformat() if booking["end_date"] else None
-                    ),
-                    "keyStatus": booking["key_status"] or "N/A",
-                    "keyNumber": booking["key_number"] or "N/A",
-                    "adminBookingsPath": "/admin/bookings",
-                    "createdBy": user_id,
-                },
+        if result["new_key_status"]:
+            logger.info(
+                f"Updated key status to '{result['new_key_status']}' after cancellation"
             )
 
-            await connection.execute(
-                "SELECT pg_notify('booking_event', $1)",
-                json.dumps(
-                    {
-                        "event_type": "booking_cancelled",
-                        "floor_id": str(booking["floor_id"]),
-                        "booking_id": str(booking_id),
-                    }
+        await NotificationsServiceClient().post(
+            "/booking/cancellation",
+            {
+                "userId": user_id,
+                "email": result["email"],
+                "name": result["first_name"],
+                "lockerNumber": result["locker_number"],
+                "floorNumber": result["floor_number"],
+                "startDate": result["start_date"].isoformat(),
+                "endDate": (
+                    result["end_date"].isoformat() if result["end_date"] else None
                 ),
-            )
+                "keyStatus": result["key_status"] or "N/A",
+                "keyNumber": result["key_number"] or "N/A",
+                "adminBookingsPath": "/admin/bookings",
+                "createdBy": user_id,
+            },
+        )
 
-            logger.info("Cancelled booking")
+        await db.execute(
+            "SELECT pg_notify('booking_event', $1)",
+            json.dumps(
+                {
+                    "event_type": "booking_cancelled",
+                    "floor_id": str(result["floor_id"]),
+                    "booking_id": str(booking_id),
+                }
+            ),
+        )
 
-        return UpdateBookingResponse(booking_id=cancelled_id)
+        logger.info("Cancelled booking and updated related entities")
+
+        return UpdateBookingResponse(booking_id=result["cancelled_booking_id"])
     except ValueError:
         raise
     except Exception:

@@ -16,6 +16,7 @@ const STATUS_OPTIONS = [
   { value: 'approved', label: 'Approved' },
   { value: 'active', label: 'Active' },
   { value: 'rejected', label: 'Rejected' },
+  { value: 'cancelled', label: 'Cancelled' },
 ]
 
 const SpecialRequests = () => {

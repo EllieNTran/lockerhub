@@ -137,11 +137,6 @@ async function importLockersFromCSV(csvFilePath: string, floorNumber: string) {
       let lockerNumber = (record['Locker number '] || record['Locker number'] || record['Locker Number'] || '').trim();
       let keyNumber = (record['Key Number'] || '').trim();
       let location = (record['Location'] || '').trim();
-      
-      // For floor 11 which has no Key Number column, use default
-      if (!keyNumber && lockerNumber) {
-        keyNumber = 'AA000';
-      }
 
       if (!lockerNumber || !keyNumber) {
         if (lockerNumber && !keyNumber) {

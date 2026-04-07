@@ -195,7 +195,6 @@ class TestReviewSpecialRequest:
         floor_id = uuid4()
         booking_id = uuid4()
 
-        # Mock request details
         request_details = {
             "user_id": user_id,
             "floor_id": floor_id,
@@ -204,15 +203,10 @@ class TestReviewSpecialRequest:
             "email": "john.doe@example.com",
             "first_name": "John",
             "floor_number": "10",
-        }
-
-        # Mock available locker
-        available_locker = {
             "locker_id": sample_locker_id,
             "locker_number": "101",
         }
 
-        # Mock review result
         review_result = [
             {
                 "request_id": 1,
@@ -220,11 +214,9 @@ class TestReviewSpecialRequest:
             }
         ]
 
-        # Setup mock responses
-        mock_db.fetchrow.side_effect = [request_details, available_locker]
+        mock_db.fetchrow.return_value = request_details
         mock_db.fetch.return_value = review_result
 
-        # Mock create_booking to avoid internal db/notification calls
         mock_create_booking = AsyncMock(
             return_value=CreateBookingResponse(booking_id=booking_id)
         )
@@ -244,12 +236,10 @@ class TestReviewSpecialRequest:
                 status="approved", reviewed_by=sample_user_id, request_id=1
             )
 
-            # Verify result
             assert len(result) == 1
             assert result[0]["request_id"] == 1
             assert result[0]["user_id"] == user_id
 
-            # Verify create_booking was called with correct parameters
             mock_create_booking.assert_called_once_with(
                 user_id=str(user_id),
                 locker_id=str(sample_locker_id),
@@ -259,7 +249,6 @@ class TestReviewSpecialRequest:
                 special_request_id=1,
             )
 
-            # Verify approval notification was sent
             assert mock_notifications_client.post.call_count == 1
             approval_call = mock_notifications_client.post.call_args_list[0]
             assert approval_call[0][0] == "/special-request/approved"
@@ -287,28 +276,23 @@ class TestReviewSpecialRequest:
         floor_id = uuid4()
         booking_id = uuid4()
 
-        # Mock request details with no end date
         request_details = {
             "user_id": user_id,
             "floor_id": floor_id,
             "start_date": date(2026, 3, 25),
-            "end_date": None,  # Permanent allocation
-            "email": "john.doe@example.com",
-            "first_name": "John",
-            "floor_number": "10",
-        }
-
-        available_locker = {
+            "end_date": None,
+            "email": "jane.smith@example.com",
+            "first_name": "Jane",
+            "floor_number": "11",
             "locker_id": sample_locker_id,
-            "locker_number": "101",
+            "locker_number": "205",
         }
 
         review_result = [{"request_id": 1, "user_id": user_id}]
 
-        mock_db.fetchrow.side_effect = [request_details, available_locker]
+        mock_db.fetchrow.return_value = request_details
         mock_db.fetch.return_value = review_result
 
-        # Mock create_booking
         mock_create_booking = AsyncMock(
             return_value=CreateBookingResponse(booking_id=booking_id)
         )
@@ -324,11 +308,10 @@ class TestReviewSpecialRequest:
                 mock_create_booking,
             ),
         ):
-            result = await review_special_request(
+            await review_special_request(
                 status="approved", reviewed_by=sample_user_id, request_id=1
             )
 
-            # Verify create_booking was called with None for end_date
             mock_create_booking.assert_called_once_with(
                 user_id=str(user_id),
                 locker_id=str(sample_locker_id),
@@ -338,7 +321,6 @@ class TestReviewSpecialRequest:
                 special_request_id=1,
             )
 
-            # Verify endDate is None in approval notification
             approval_call = mock_notifications_client.post.call_args_list[0]
             approval_data = approval_call[0][1]
             assert approval_data["endDate"] is None
@@ -363,14 +345,15 @@ class TestReviewSpecialRequest:
             "user_id": user_id,
             "floor_id": floor_id,
             "start_date": date(2026, 3, 25),
-            "end_date": date(2026, 4, 25),
-            "email": "john.doe@example.com",
-            "first_name": "John",
-            "floor_number": "10",
+            "end_date": date(2026, 6, 25),
+            "email": "bob.jones@example.com",
+            "first_name": "Bob",
+            "floor_number": "7",
+            "locker_id": None,
+            "locker_number": None,
         }
 
-        # No available locker
-        mock_db.fetchrow.side_effect = [request_details, None]
+        mock_db.fetchrow.return_value = request_details
 
         with (
             patch("src.services.special_requests.review_special_request.db", mock_db),
@@ -390,10 +373,8 @@ class TestReviewSpecialRequest:
                         status="approved", reviewed_by=sample_user_id, request_id=1
                     )
 
-            # Verify no booking was created
             mock_create_booking.assert_not_called()
 
-            # Verify no notifications were sent
             assert mock_notifications_client.post.call_count == 0
 
     @pytest.mark.asyncio
@@ -442,15 +423,12 @@ class TestReviewSpecialRequest:
                 reason="Insufficient justification provided",
             )
 
-            # Verify result
             assert len(result) == 1
             assert result[0]["request_id"] == 5
             assert result[0]["user_id"] == user_id
 
-            # Verify no booking was created
             assert mock_db.fetchval.call_count == 0
 
-            # Verify rejection notification was sent
             assert mock_notifications_client.post.call_count == 1
 
             rejection_call = mock_notifications_client.post.call_args_list[0]
@@ -474,7 +452,6 @@ class TestReviewSpecialRequest:
             review_special_request,
         )
 
-        # Request not found
         mock_db.fetchrow.return_value = None
 
         with (

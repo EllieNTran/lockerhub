@@ -8,16 +8,6 @@ from src.connectors.db import db
 from src.connectors.notifications_service import NotificationsServiceClient
 from src.models.responses import JoinFloorQueueResponse
 
-GET_USER_DETAILS_QUERY = """
-SELECT 
-    u.email,
-    u.first_name,
-    f.floor_number
-FROM lockerhub.users u
-CROSS JOIN lockerhub.floors f
-WHERE u.user_id = $1 AND f.floor_id = $2
-"""
-
 CHECK_EXISTING_QUEUE_ENTRY_QUERY = """
 SELECT fq.floor_queue_id
 FROM lockerhub.floor_queues fq
@@ -26,32 +16,43 @@ WHERE r.user_id = $1
 AND fq.floor_id = $2
 AND r.status = 'queued'
 AND (
-    -- Check if date ranges overlap
     daterange($3, $4, '[]') && daterange(r.start_date, r.end_date, '[]')
 )
 LIMIT 1
 """
 
-CREATE_QUEUE_REQUEST_QUERY = """
-INSERT INTO lockerhub.requests (
-    user_id,
-    floor_id,
-    start_date,
-    end_date,
-    request_type,
-    status
+CREATE_QUEUE_AND_GET_DETAILS_QUERY = """
+WITH inserted_request AS (
+    INSERT INTO lockerhub.requests (
+        user_id,
+        floor_id,
+        start_date,
+        end_date,
+        request_type,
+        status
+    )
+    VALUES ($1, $2, $3, $4, 'normal'::lockerhub.request_type, 'queued'::lockerhub.request_status)
+    RETURNING request_id, user_id, floor_id
+),
+inserted_queue AS (
+    INSERT INTO lockerhub.floor_queues (
+        floor_id,
+        request_id
+    )
+    SELECT floor_id, request_id
+    FROM inserted_request
+    RETURNING floor_queue_id, request_id
 )
-VALUES ($1, $2, $3, $4, 'normal', 'queued')
-RETURNING request_id
-"""
-
-ADD_TO_FLOOR_QUEUE_QUERY = """
-INSERT INTO lockerhub.floor_queues (
-    floor_id,
-    request_id
-)
-VALUES ($1, $2)
-RETURNING floor_queue_id
+SELECT 
+    iq.floor_queue_id,
+    iq.request_id,
+    u.email,
+    u.first_name,
+    f.floor_number
+FROM inserted_queue iq
+JOIN inserted_request ir ON iq.request_id = ir.request_id
+JOIN lockerhub.users u ON ir.user_id = u.user_id
+JOIN lockerhub.floors f ON ir.floor_id = f.floor_id
 """
 
 
@@ -94,43 +95,34 @@ async def join_floor_queue(
                 "User is already on the waiting list for this floor and dates"
             )
 
-        async with db.transaction() as connection:
-            request_id = await connection.fetchval(
-                CREATE_QUEUE_REQUEST_QUERY,
-                user_id,
-                floor_uuid,
-                start_date,
-                end_date,
+        result = await db.fetchrow(
+            CREATE_QUEUE_AND_GET_DETAILS_QUERY,
+            user_id,
+            floor_uuid,
+            start_date,
+            end_date,
+        )
+
+        if result:
+            await NotificationsServiceClient().post(
+                "/waitlist/joined",
+                {
+                    "userId": user_id,
+                    "email": result["email"],
+                    "name": result["first_name"],
+                    "floorNumber": result["floor_number"],
+                    "startDate": start_date.isoformat(),
+                    "endDate": end_date.isoformat(),
+                },
             )
 
-            floor_queue_id = await connection.fetchval(
-                ADD_TO_FLOOR_QUEUE_QUERY, floor_uuid, request_id
-            )
+        logger.info("User added to floor queue")
 
-            user_details = await connection.fetchrow(
-                GET_USER_DETAILS_QUERY, user_id, floor_uuid
-            )
-
-            if user_details:
-                await NotificationsServiceClient().post(
-                    "/waitlist/joined",
-                    {
-                        "userId": user_id,
-                        "email": user_details["email"],
-                        "name": user_details["first_name"],
-                        "floorNumber": user_details["floor_number"],
-                        "startDate": start_date.isoformat(),
-                        "endDate": end_date.isoformat(),
-                    },
-                )
-
-            logger.info("User added to floor queue")
-
-            return JoinFloorQueueResponse(
-                floor_queue_id=floor_queue_id,
-                request_id=request_id,
-                floor_number=user_details["floor_number"] if user_details else "",
-            )
+        return JoinFloorQueueResponse(
+            floor_queue_id=result["floor_queue_id"],
+            request_id=result["request_id"],
+            floor_number=result["floor_number"],
+        )
     except Exception:
         logger.error("Error adding user to floor queue")
         raise

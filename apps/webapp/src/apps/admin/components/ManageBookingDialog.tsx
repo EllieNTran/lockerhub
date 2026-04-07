@@ -237,7 +237,7 @@ const ManageBookingDialog = ({ booking, isOpen, onOpenChange, statusColor }: Man
       case 'cancelled':
         return (
           <>
-            {booking?.key_number && booking?.key_status == 'with_employee' ? (
+            {booking?.key_number && booking?.key_status == 'awaiting_return' ? (
               renderKeyReturnSection()
             ) : booking?.key_number ? (
               <p className="text-sm text-grey">No actions available</p>

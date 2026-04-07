@@ -17,7 +17,6 @@ class TestJoinFloorQueue:
     async def test_join_floor_queue_success(
         self,
         mock_db,
-        mock_db_connection,
         mock_notifications_client,
         sample_user_id,
         sample_floor_id,
@@ -34,10 +33,17 @@ class TestJoinFloorQueue:
         today = date.today()
         end_date = today + timedelta(days=2)
 
-        mock_db.fetchrow.side_effect = [None, create_user_details_dict()]
-        mock_db_connection.fetchval.side_effect = [
-            sample_request_id,
-            sample_floor_queue_id,
+        # First query: check existing entry (None = not in queue)
+        # Second query: CTE creates request and queue entry
+        mock_db.fetchrow.side_effect = [
+            None,
+            {
+                "floor_queue_id": sample_floor_queue_id,
+                "request_id": sample_request_id,
+                "email": "test@example.com",
+                "first_name": "Test",
+                "floor_number": "10",
+            },
         ]
 
         with patch("src.services.join_floor_queue.db", mock_db), patch(
@@ -51,6 +57,7 @@ class TestJoinFloorQueue:
         assert result.floor_queue_id == sample_floor_queue_id
         assert result.request_id == sample_request_id
         assert result.floor_number == "10"
+        assert mock_db.fetchrow.call_count == 2
         assert mock_notifications_client.post.call_count == 1
 
     @pytest.mark.asyncio
@@ -79,7 +86,6 @@ class TestJoinFloorQueue:
     async def test_join_floor_queue_different_dates(
         self,
         mock_db,
-        mock_db_connection,
         mock_notifications_client,
         sample_user_id,
         sample_floor_id,
@@ -97,10 +103,17 @@ class TestJoinFloorQueue:
         start_date = today + timedelta(days=10)
         end_date = today + timedelta(days=12)
 
-        mock_db.fetchrow.side_effect = [None, create_user_details_dict()]
-        mock_db_connection.fetchval.side_effect = [
-            sample_request_id,
-            sample_floor_queue_id,
+        # First query: check existing entry (None = not in queue)
+        # Second query: CTE creates request and queue entry
+        mock_db.fetchrow.side_effect = [
+            None,
+            {
+                "floor_queue_id": sample_floor_queue_id,
+                "request_id": sample_request_id,
+                "email": "test@example.com",
+                "first_name": "Test",
+                "floor_number": "10",
+            },
         ]
 
         with patch("src.services.join_floor_queue.db", mock_db), patch(
@@ -113,6 +126,7 @@ class TestJoinFloorQueue:
 
         assert result.floor_queue_id == sample_floor_queue_id
         assert result.request_id == sample_request_id
+        assert mock_db.fetchrow.call_count == 2
 
 
 class TestProcessFloorQueues:

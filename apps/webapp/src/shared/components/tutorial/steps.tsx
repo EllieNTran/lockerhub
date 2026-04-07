@@ -126,6 +126,11 @@ export const BOOK_LOCKER_STEPS: Step[] = [
     placement: 'top',
   },
   {
+    target: '[data-tour="waitlist"]',
+    content: 'This shows your current waitlist entries, indicating the floors and dates you\'re waiting for a locker to become available.',
+    placement: 'bottom',
+  },
+  {
     target: '[data-tour="book-btn"]',
     content: (
       <div>
@@ -142,7 +147,7 @@ export const BOOK_LOCKER_STEPS: Step[] = [
 export const MY_BOOKINGS_STEPS: Step[] = [
   {
     target: '[data-tour="bookings-tabs"]',
-    content: 'Filter your bookings by status - view active, upcoming, past, or all bookings.',
+    content: 'Filter your bookings by status - view all, active, upcoming, or past bookings.',
     placement: 'bottom',
   },
   {
@@ -165,7 +170,7 @@ export const MY_BOOKINGS_STEPS: Step[] = [
 export const SPECIAL_REQUEST_STEPS: Step[] = [
   {
     target: '[data-tour="special-requests-tabs"]',
-    content: 'Filter your special requests by status - view pending, approved, active, rejected, or all requests.',
+    content: 'Filter your special requests by status - view all, active, approved, pending, rejected, or cancelled requests.',
     placement: 'bottom',
   },
   {

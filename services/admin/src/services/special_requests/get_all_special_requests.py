@@ -1,7 +1,5 @@
 """Get all special requests."""
 
-from typing import List
-
 from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import (

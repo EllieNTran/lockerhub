@@ -4,22 +4,35 @@ from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import LockerStatusResponse
 
-GET_LOCKER_QUERY = """
+ORDER_REPLACEMENT_KEY_QUERY = """
+WITH locker_check AS (
+    SELECT 
+        l.locker_id,
+        l.locker_number,
+        l.status,
+        k.key_number,
+        k.status as key_status
+    FROM lockerhub.lockers l
+    LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
+    WHERE l.locker_id = $1
+    AND l.status = 'maintenance'::lockerhub.locker_status
+    AND k.status = 'lost'::lockerhub.key_status
+),
+updated_key AS (
+    UPDATE lockerhub.keys
+    SET status = 'awaiting_replacement'::lockerhub.key_status, updated_at = CURRENT_TIMESTAMP
+    WHERE locker_id = $1
+    AND EXISTS (SELECT 1 FROM locker_check)
+    RETURNING key_number, status
+)
 SELECT 
-    l.locker_id,
-    l.status,
-    k.key_number,
-    k.status as key_status
-FROM lockerhub.lockers l
-LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
-WHERE l.locker_id = $1
-"""
-
-UPDATE_KEY_STATUS_QUERY = """
-UPDATE lockerhub.keys
-SET status = 'awaiting_replacement', updated_at = CURRENT_TIMESTAMP
-WHERE locker_id = $1
-RETURNING key_number, status
+    lc.locker_id,
+    lc.locker_number,
+    lc.status,
+    uk.key_number,
+    uk.status AS key_status
+FROM locker_check lc
+LEFT JOIN updated_key uk ON true
 """
 
 
@@ -33,36 +46,26 @@ async def order_replacement_key(locker_id: str) -> LockerStatusResponse:
         LockerStatusResponse with updated locker details
     """
     try:
-        async with db.transaction() as connection:
-            locker = await connection.fetchrow(GET_LOCKER_QUERY, locker_id)
-            if not locker:
-                logger.warning("Locker not found")
-                raise ValueError("Locker not found")
+        result = await db.fetchrow(ORDER_REPLACEMENT_KEY_QUERY, locker_id)
 
-            if locker["status"] != "maintenance":
-                logger.warning(
-                    "Cannot order replacement key for locker not under maintenance"
-                )
-                raise ValueError(
-                    "Locker must be 'maintenance' to order replacement key"
-                )
+        if not result:
+            logger.warning("Locker not found, not under maintenance, or key not lost")
+            raise ValueError("Locker must be 'maintenance' to order replacement key")
 
-            if locker["key_status"] != "lost":
-                logger.warning("Cannot order replacement key for key that is not lost")
-                raise ValueError("Key must be 'lost' to order replacement")
+        if not result["key_status"]:
+            logger.warning("Key not updated - key must be 'lost' to order replacement")
+            raise ValueError("Key must be 'lost' to order replacement")
 
-            await connection.fetchrow(UPDATE_KEY_STATUS_QUERY, locker_id)
+        logger.info("Ordered replacement key for locker")
 
-            updated_locker = await connection.fetchrow(GET_LOCKER_QUERY, locker_id)
+        return LockerStatusResponse(
+            locker_id=result["locker_id"],
+            locker_number=result["locker_number"],
+            status=result["status"],
+        )
 
-            logger.info("Ordered replacement key for locker")
-
-            return LockerStatusResponse(
-                locker_id=updated_locker["locker_id"],
-                locker_number=str(updated_locker["locker_id"]),
-                status=updated_locker["status"],
-            )
-
+    except ValueError:
+        raise
     except Exception:
         logger.error("Error ordering replacement key")
         raise

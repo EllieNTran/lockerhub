@@ -15,17 +15,19 @@ class TestCancelBooking:
     async def test_cancel_booking_success(
         self,
         mock_db,
-        mock_db_connection,
         mock_notifications_client,
         sample_booking_data,
     ):
         """Test successful booking cancellation."""
         from src.services.bookings.cancel_booking import cancel_booking
 
-        mock_db_connection.fetchrow.side_effect = [
-            sample_booking_data,
-            {"booking_id": sample_booking_data["booking_id"]},
-        ]
+        mock_db.fetchrow.return_value = {
+            **sample_booking_data,
+            "cancelled_booking_id": sample_booking_data["booking_id"],
+            "cancelled_status": "cancelled",
+            "cancelled_request_id": None,
+            "new_key_status": "available",
+        }
 
         with patch("src.services.bookings.cancel_booking.db", mock_db), patch(
             "src.services.bookings.cancel_booking.NotificationsServiceClient",
@@ -38,14 +40,15 @@ class TestCancelBooking:
 
             assert result.booking_id == sample_booking_data["booking_id"]
             assert result.message == "Booking cancelled"
+            assert mock_db.fetchrow.call_count == 1
             mock_notifications_client.post.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_cancel_booking_not_found(self, mock_db, mock_db_connection):
+    async def test_cancel_booking_not_found(self, mock_db):
         """Test canceling a non-existent booking."""
         from src.services.bookings.cancel_booking import cancel_booking
 
-        mock_db_connection.fetchrow.return_value = None
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.bookings.cancel_booking.db", mock_db):
             with pytest.raises(ValueError, match="Booking not found"):
@@ -53,13 +56,13 @@ class TestCancelBooking:
 
     @pytest.mark.asyncio
     async def test_cancel_booking_resets_key_awaiting_handover(
-        self, mock_db, mock_db_connection, mock_notifications_client, sample_booking_id
+        self, mock_db, mock_notifications_client, sample_booking_id
     ):
         """Test that key in awaiting_handover status is reset to available.
 
         Verifies that canceling a booking with a key in awaiting_handover status
         resets both the key to available and the reserved locker to available.
-        Expects two execute calls for the resets.
+        CTE handles all updates in one query.
         """
         from src.services.bookings.cancel_booking import cancel_booking
 
@@ -69,10 +72,13 @@ class TestCancelBooking:
             locker_status="reserved",
         )
 
-        mock_db_connection.fetchrow.side_effect = [
-            booking_data,
-            {"booking_id": booking_data["booking_id"], "status": "cancelled"},
-        ]
+        mock_db.fetchrow.return_value = {
+            **booking_data,
+            "cancelled_booking_id": booking_data["booking_id"],
+            "cancelled_status": "cancelled",
+            "cancelled_request_id": None,
+            "new_key_status": "available",
+        }
 
         with patch("src.services.bookings.cancel_booking.db", mock_db), patch(
             "src.services.bookings.cancel_booking.NotificationsServiceClient",
@@ -81,16 +87,17 @@ class TestCancelBooking:
 
             await cancel_booking(booking_data["booking_id"], "admin-id")
 
-            assert mock_db_connection.execute.call_count == 3
+            assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
     async def test_cancel_booking_with_special_request(
-        self, mock_db, mock_db_connection, mock_notifications_client, sample_booking_id
+        self, mock_db, mock_notifications_client, sample_booking_id
     ):
         """Test that cancelling a booking also cancels associated special request.
 
         Verifies that when a booking created from a special request is cancelled,
         the associated special request status is also updated to cancelled.
+        CTE handles all updates including special request.
         """
         from src.services.bookings.cancel_booking import cancel_booking
 
@@ -102,10 +109,13 @@ class TestCancelBooking:
             locker_status="reserved",
         )
 
-        mock_db_connection.fetchrow.side_effect = [
-            booking_data,
-            {"booking_id": booking_data["booking_id"], "status": "cancelled"},
-        ]
+        mock_db.fetchrow.return_value = {
+            **booking_data,
+            "cancelled_booking_id": booking_data["booking_id"],
+            "cancelled_status": "cancelled",
+            "cancelled_request_id": special_request_id,
+            "new_key_status": "available",
+        }
 
         with patch("src.services.bookings.cancel_booking.db", mock_db), patch(
             "src.services.bookings.cancel_booking.NotificationsServiceClient",
@@ -114,21 +124,17 @@ class TestCancelBooking:
 
             await cancel_booking(booking_data["booking_id"], "admin-id")
 
-            # Verify special request cancellation + key reset + locker reset + pg_notify
-            assert mock_db_connection.execute.call_count == 4
-            first_execute_call = mock_db_connection.execute.call_args_list[0]
-            assert "UPDATE lockerhub.requests" in first_execute_call[0][0]
-            assert "SET status = 'cancelled'" in first_execute_call[0][0]
-            assert first_execute_call[0][1] == special_request_id
+            assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
     async def test_cancel_booking_without_special_request(
-        self, mock_db, mock_db_connection, mock_notifications_client, sample_booking_id
+        self, mock_db, mock_notifications_client, sample_booking_id
     ):
         """Test that cancelling a normal booking works without special request logic.
 
         Verifies that cancelling a booking without an associated special request
         only performs key and locker resets without special request cancellation.
+        CTE handles all updates in one query.
         """
         from src.services.bookings.cancel_booking import cancel_booking
 
@@ -139,10 +145,13 @@ class TestCancelBooking:
             locker_status="reserved",
         )
 
-        mock_db_connection.fetchrow.side_effect = [
-            booking_data,
-            {"booking_id": booking_data["booking_id"], "status": "cancelled"},
-        ]
+        mock_db.fetchrow.return_value = {
+            **booking_data,
+            "cancelled_booking_id": booking_data["booking_id"],
+            "cancelled_status": "cancelled",
+            "cancelled_request_id": None,
+            "new_key_status": "available",
+        }
 
         with patch("src.services.bookings.cancel_booking.db", mock_db), patch(
             "src.services.bookings.cancel_booking.NotificationsServiceClient",
@@ -151,8 +160,7 @@ class TestCancelBooking:
 
             await cancel_booking(booking_data["booking_id"], "admin-id")
 
-            # Should have 3 execute calls (key reset + locker reset + pg_notify)
-            assert mock_db_connection.execute.call_count == 3
+            assert mock_db.fetchrow.call_count == 1
 
 
 @pytest.mark.unit
@@ -213,7 +221,6 @@ class TestConfirmKeyHandover:
     async def test_confirm_key_handover_success(
         self,
         mock_db,
-        mock_db_connection,
         mock_notifications_client,
         sample_booking_id,
         sample_user_id,
@@ -221,29 +228,22 @@ class TestConfirmKeyHandover:
         """Test successful key handover confirmation.
 
         Verifies that confirming key handover updates the key status to with_employee
-        and the locker status to occupied. Returns the updated key details.
+        and the locker status to occupied. CTE returns all updates in one query.
         """
         from src.services.bookings.confirm_key_handover import confirm_key_handover
 
-        mock_db_connection.fetchrow.side_effect = [
-            {
-                "booking_id": sample_booking_id,
-                "status": "upcoming",
-                "locker_id": uuid4(),
-                "start_date": datetime.now().date(),
-                "user_id": sample_user_id,
-                "locker_number": "DL10-01-01",
-            },
-            {
-                "key_id": uuid4(),
-                "key_number": "AA123",
-                "status": "with_employee",
-            },
-            {
-                "booking_id": sample_booking_id,
-                "status": "active",
-            },
-        ]
+        key_id = uuid4()
+
+        mock_db.fetchrow.return_value = {
+            "booking_id": sample_booking_id,
+            "user_id": sample_user_id,
+            "locker_number": "DL10-01-01",
+            "key_id": key_id,
+            "key_number": "AA123",
+            "key_status": "with_employee",
+            "booking_updated": sample_booking_id,
+            "booking_status": "active",
+        }
 
         with patch("src.services.bookings.confirm_key_handover.db", mock_db), patch(
             "src.services.bookings.confirm_key_handover.NotificationsServiceClient",
@@ -253,6 +253,7 @@ class TestConfirmKeyHandover:
 
             assert result.booking_id == sample_booking_id
             assert result.key_number == "AA123"
+            assert mock_db.fetchrow.call_count == 1
 
 
 @pytest.mark.unit
@@ -263,7 +264,6 @@ class TestConfirmKeyReturn:
     async def test_confirm_key_return_success(
         self,
         mock_db,
-        mock_db_connection,
         mock_notifications_client,
         sample_booking_id,
         sample_user_id,
@@ -271,30 +271,26 @@ class TestConfirmKeyReturn:
         """Test successful key return confirmation.
 
         Verifies that confirming key return updates the booking status to completed,
-        key status to available, and locker status to available.
+        key status to available, and locker status to available. CTE handles all updates.
         """
         from src.services.bookings.confirm_key_return import confirm_key_return
 
-        mock_db_connection.fetchrow.side_effect = [
-            {
-                "booking_id": sample_booking_id,
-                "status": "active",
-                "locker_id": uuid4(),
-                "floor_id": uuid4(),
-                "special_request_id": None,
-                "user_id": sample_user_id,
-                "locker_number": "DL10-01-01",
-            },
-            {
-                "key_id": uuid4(),
-                "key_number": "AA123",
-                "status": "available",
-            },
-            {
-                "booking_id": sample_booking_id,
-                "status": "completed",
-            },
-        ]
+        key_id = uuid4()
+        floor_id = uuid4()
+
+        mock_db.fetchrow.return_value = {
+            "booking_id": sample_booking_id,
+            "user_id": sample_user_id,
+            "locker_number": "DL10-01-01",
+            "floor_id": floor_id,
+            "special_request_id": None,
+            "key_id": key_id,
+            "key_number": "AA123",
+            "key_status": "available",
+            "booking_updated": sample_booking_id,
+            "booking_status": "completed",
+            "special_request_updated": None,
+        }
 
         with patch("src.services.bookings.confirm_key_return.db", mock_db), patch(
             "src.services.bookings.confirm_key_return.NotificationsServiceClient",
@@ -304,29 +300,25 @@ class TestConfirmKeyReturn:
 
             assert result.booking_id == sample_booking_id
             assert result.key_number == "AA123"
+            assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
     async def test_confirm_key_return_invalid_status(
-        self, mock_db, mock_db_connection, sample_booking_id, sample_user_id
+        self, mock_db, sample_booking_id, sample_user_id
     ):
         """Test key return with invalid key status.
 
         Verifies that attempting to return a key when booking is not active
-        raises a ValueError.
+        raises a ValueError. CTE returns None when conditions aren't met.
         """
         from src.services.bookings.confirm_key_return import confirm_key_return
 
-        mock_db_connection.fetchrow.return_value = {
-            "booking_id": sample_booking_id,
-            "status": "upcoming",
-            "locker_id": uuid4(),
-            "special_request_id": None,
-        }
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.bookings.confirm_key_return.db", mock_db):
             with pytest.raises(
                 ValueError,
-                match="Booking can not be 'upcoming' or 'completed' when confirming return",
+                match="Booking not found or in 'upcoming'/'completed' status",
             ):
                 await confirm_key_return(sample_user_id, str(sample_booking_id))
 

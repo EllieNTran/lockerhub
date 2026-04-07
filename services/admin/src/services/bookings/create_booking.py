@@ -2,6 +2,7 @@
 
 import json
 from datetime import date
+from typing import Optional
 from asyncpg.exceptions import ExclusionViolationError
 
 from src.logger import logger
@@ -40,7 +41,7 @@ async def create_booking(
     user_id: str,
     locker_id: str,
     start_date: date,
-    end_date: date,
+    end_date: Optional[date],
     admin_id: str,
     special_request_id: str = None,
 ) -> CreateBookingResponse:
@@ -108,7 +109,7 @@ async def create_booking(
                 "lockerNumber": booking_details["locker_number"],
                 "floorNumber": booking_details["floor_number"],
                 "startDate": start_date.isoformat(),
-                "endDate": end_date.isoformat(),
+                "endDate": end_date.isoformat() if end_date is not None else None,
                 "userBookingsPath": "/user/my-bookings",
                 "adminBookingsPath": "/admin/bookings",
                 "createdBy": admin_id,
