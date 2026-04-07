@@ -15,7 +15,7 @@ class EventListener:
     Listener for PostgreSQL NOTIFY events.
 
     Manages a dedicated database connection to listen for booking events
-    and triggers floor queue processing when events are received.
+    and triggers floor queue processing or booking status updates when events are received.
     """
 
     def __init__(self):
