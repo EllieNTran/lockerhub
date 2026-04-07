@@ -33,8 +33,6 @@ class TestJoinFloorQueue:
         today = date.today()
         end_date = today + timedelta(days=2)
 
-        # First query: check existing entry (None = not in queue)
-        # Second query: CTE creates request and queue entry
         mock_db.fetchrow.side_effect = [
             None,
             {
@@ -103,8 +101,6 @@ class TestJoinFloorQueue:
         start_date = today + timedelta(days=10)
         end_date = today + timedelta(days=12)
 
-        # First query: check existing entry (None = not in queue)
-        # Second query: CTE creates request and queue entry
         mock_db.fetchrow.side_effect = [
             None,
             {
@@ -132,12 +128,10 @@ class TestJoinFloorQueue:
 class TestProcessFloorQueues:
     """Tests for the process_floor_queue endpoint."""
 
-    def test_process_floor_queues_success(
-        self, mock_db, mock_db_connection, sample_user_id
-    ):
+    def test_process_floor_queues_success(self, mock_db, sample_user_id):
         """
         Verify successful processing of floor queues with allocations.
-        Mock database returns queued requests and available lockers.
+        Mock database returns queued requests and CTE creates booking.
         Verify bookings created and queue entries removed.
         """
         from uuid import uuid4
@@ -161,12 +155,22 @@ class TestProcessFloorQueues:
                 "created_at": date.today(),
             }
         ]
-        available_locker = {"locker_id": uuid4(), "locker_number": "DL10-01-01"}
 
         mock_db.fetch.side_effect = [floor_data, queued_requests]
-        mock_db_connection.fetchrow.return_value = available_locker
-        mock_db_connection.fetchval.return_value = uuid4()
-        mock_db_connection.execute.return_value = None
+        mock_db.fetchrow.side_effect = [
+            {
+                "has_booking": None,
+                "removed_queue_id": None,
+                "cancelled_request_id": None,
+            },
+            {
+                "booking_id": uuid4(),
+                "locker_id": uuid4(),
+                "locker_number": "DL10-01-01",
+                "updated_request_id": 1,
+                "removed_queue_id": 1,
+            },
+        ]
 
         # Override auth dependency
         app.dependency_overrides[get_current_user] = lambda: {
@@ -183,7 +187,6 @@ class TestProcessFloorQueues:
             client = TestClient(app)
             response = client.post("/bookings/waitlist/process-floor-queue")
 
-        # Clean up
         app.dependency_overrides.clear()
 
         assert response.status_code == 200
@@ -209,7 +212,6 @@ class TestProcessFloorQueues:
             client = TestClient(app)
             response = client.post("/bookings/waitlist/process-floor-queue")
 
-        # Clean up
         app.dependency_overrides.clear()
 
         assert response.status_code == 200
@@ -217,12 +219,10 @@ class TestProcessFloorQueues:
         assert result["success"] is True
         assert result["allocations_made"] == 0
 
-    def test_process_floor_queues_no_available_lockers(
-        self, mock_db, mock_db_connection, sample_user_id
-    ):
+    def test_process_floor_queues_no_available_lockers(self, mock_db, sample_user_id):
         """
         Verify handling when requests exist but no lockers available.
-        Mock database returns requests but empty locker list.
+        Mock database returns requests but CTE finds no available locker.
         Expect success with zero allocations.
         """
         from uuid import uuid4
@@ -250,7 +250,20 @@ class TestProcessFloorQueues:
         ]
 
         mock_db.fetch.side_effect = [floor_data, queued_requests]
-        mock_db_connection.fetchrow.return_value = None
+        mock_db.fetchrow.side_effect = [
+            {
+                "has_booking": None,
+                "removed_queue_id": None,
+                "cancelled_request_id": None,
+            },
+            {
+                "booking_id": None,
+                "locker_id": None,
+                "locker_number": None,
+                "updated_request_id": None,
+                "removed_queue_id": None,
+            },
+        ]
 
         # Override auth dependency
         app.dependency_overrides[get_current_user] = lambda: {
@@ -267,7 +280,6 @@ class TestProcessFloorQueues:
             client = TestClient(app)
             response = client.post("/bookings/waitlist/process-floor-queue")
 
-        # Clean up
         app.dependency_overrides.clear()
 
         assert response.status_code == 200

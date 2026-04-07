@@ -39,49 +39,85 @@ AND r.status = 'queued'
 ORDER BY r.created_at ASC
 """
 
-GET_AVAILABLE_LOCKERS_ON_FLOOR_QUERY = """
-SELECT l.locker_id, l.locker_number
-FROM lockerhub.lockers l
-WHERE l.floor_id = $1
-AND l.status = 'available'
-AND NOT EXISTS (
-    SELECT 1 FROM lockerhub.bookings b
-    WHERE b.locker_id = l.locker_id
-    AND b.status NOT IN ('cancelled', 'completed', 'expired')
-    AND daterange($2, $3, '[]') && daterange(b.start_date, b.end_date, '[]')
+CHECK_AND_REMOVE_IF_HAS_BOOKING_QUERY = """
+WITH booking_check AS (
+    SELECT 1 AS has_booking
+    FROM lockerhub.bookings
+    WHERE user_id = $1
+    AND status IN ('upcoming'::lockerhub.booking_status, 'active'::lockerhub.booking_status)
+    AND daterange($2, $3, '[]') && daterange(start_date, COALESCE(end_date, 'infinity'::date), '[]')
+    LIMIT 1
+),
+deleted_queue AS (
+    DELETE FROM lockerhub.floor_queues
+    WHERE floor_queue_id = $4
+    AND EXISTS (SELECT 1 FROM booking_check)
+    RETURNING floor_queue_id
+),
+updated_request AS (
+    UPDATE lockerhub.requests
+    SET status = 'cancelled'::lockerhub.request_status
+    WHERE request_id = $5
+    AND EXISTS (SELECT 1 FROM booking_check)
+    RETURNING request_id
 )
-LIMIT 1
+SELECT 
+    bc.has_booking,
+    dq.floor_queue_id AS removed_queue_id,
+    ur.request_id AS cancelled_request_id
+FROM booking_check bc
+LEFT JOIN deleted_queue dq ON true
+LEFT JOIN updated_request ur ON true
 """
 
-CREATE_BOOKING_QUERY = """
-INSERT INTO lockerhub.bookings (
-    user_id,
-    locker_id,
-    start_date,
-    end_date
+CREATE_BOOKING_AND_UPDATE_QUEUE_QUERY = """
+WITH available_locker AS (
+    SELECT l.locker_id, l.locker_number
+    FROM lockerhub.lockers l
+    WHERE l.floor_id = $1
+    AND l.status = 'available'::lockerhub.locker_status
+    AND NOT EXISTS (
+        SELECT 1 FROM lockerhub.bookings b
+        WHERE b.locker_id = l.locker_id
+        AND b.status NOT IN ('cancelled'::lockerhub.booking_status, 'completed'::lockerhub.booking_status, 'expired'::lockerhub.booking_status)
+        AND daterange($2, $3, '[]') && daterange(b.start_date, b.end_date, '[]')
+    )
+    LIMIT 1
+),
+created_booking AS (
+    INSERT INTO lockerhub.bookings (
+        user_id,
+        locker_id,
+        start_date,
+        end_date
+    )
+    SELECT $4, al.locker_id, $2, $3
+    FROM available_locker al
+    RETURNING booking_id, locker_id
+),
+updated_request AS (
+    UPDATE lockerhub.requests
+    SET status = 'approved'::lockerhub.request_status
+    WHERE request_id = $5
+    AND EXISTS (SELECT 1 FROM created_booking)
+    RETURNING request_id
+),
+deleted_queue AS (
+    DELETE FROM lockerhub.floor_queues
+    WHERE floor_queue_id = $6
+    AND EXISTS (SELECT 1 FROM created_booking)
+    RETURNING floor_queue_id
 )
-VALUES ($1, $2, $3, $4)
-RETURNING booking_id
-"""
-
-UPDATE_REQUEST_STATUS_QUERY = """
-UPDATE lockerhub.requests
-SET status = 'approved'
-WHERE request_id = $1
-"""
-
-DELETE_FLOOR_QUEUE_ENTRY_QUERY = """
-DELETE FROM lockerhub.floor_queues
-WHERE floor_queue_id = $1
-"""
-
-CHECK_USER_HAS_ACTIVE_BOOKING_QUERY = """
-SELECT 1
-FROM lockerhub.bookings
-WHERE user_id = $1
-AND status IN ('upcoming', 'active')
-AND daterange($2, $3, '[]') && daterange(start_date, COALESCE(end_date, 'infinity'::date), '[]')
-LIMIT 1
+SELECT 
+    cb.booking_id,
+    al.locker_id,
+    al.locker_number,
+    ur.request_id AS updated_request_id,
+    dq.floor_queue_id AS removed_queue_id
+FROM available_locker al
+LEFT JOIN created_booking cb ON true
+LEFT JOIN updated_request ur ON true
+LEFT JOIN deleted_queue dq ON true
 """
 
 
@@ -129,7 +165,7 @@ async def _send_booking_confirmation_notification(
     )
 
 
-async def handle_active_booking(
+async def handle_existing_booking(
     user_id: str,
     start_date,
     end_date,
@@ -140,34 +176,33 @@ async def handle_active_booking(
     floor_number: str,
 ) -> bool:
     """
-    Handle case where user has an active booking that overlaps with the queue request.
+    Handle case where user has an existing booking that overlaps with the queue request.
+    Uses CTE to atomically check and remove from queue if user has a booking that is not cancelled/completed/expired.
 
     Args:
         user_id: ID of the user to check
         start_date: Proposed booking start date
         end_date: Proposed booking end date
-        floor_queue_id: ID of the floor queue entry to remove if user has active booking
+        floor_queue_id: ID of the floor queue entry to remove if user has booking
         request_id: ID of the request to update status for
         email: User's email for notification
         name: User's name for notification
         floor_number: Floor number for notification
 
     Returns:
-        True if user has active booking, False otherwise
+        True if user has existing booking, False otherwise
     """
-    has_active_booking = await db.fetchval(
-        CHECK_USER_HAS_ACTIVE_BOOKING_QUERY, user_id, start_date, end_date
+    result = await db.fetchrow(
+        CHECK_AND_REMOVE_IF_HAS_BOOKING_QUERY,
+        user_id,
+        start_date,
+        end_date,
+        floor_queue_id,
+        request_id,
     )
 
-    if has_active_booking:
-        logger.info("User already has an active booking, removing from queue")
-        async with db.transaction():
-            await db.execute(DELETE_FLOOR_QUEUE_ENTRY_QUERY, floor_queue_id)
-            await db.execute(
-                "UPDATE lockerhub.requests SET status = 'cancelled'::lockerhub.request_status WHERE request_id = $1",
-                request_id,
-            )
-
+    if result and result["has_booking"]:
+        logger.info("User already has an existing booking, removed from queue")
         await _send_waitlist_removed_notification(
             user_id, email, name, floor_number, start_date, end_date
         )
@@ -178,6 +213,7 @@ async def handle_active_booking(
 async def process_single_floor(floor_id: str, floor_number: str) -> int:
     """
     Process queue for a single floor and allocate available lockers.
+    Uses CTE to atomically find locker, create booking, and update queue.
 
     Args:
         floor_id: ID of the floor to process
@@ -201,7 +237,7 @@ async def process_single_floor(floor_id: str, floor_number: str) -> int:
         email = request["email"]
         name = request["first_name"]
 
-        should_skip = await handle_active_booking(
+        should_skip = await handle_existing_booking(
             user_id,
             start_date,
             end_date,
@@ -215,23 +251,21 @@ async def process_single_floor(floor_id: str, floor_number: str) -> int:
         if should_skip:
             continue
 
-        available_locker = await db.fetchrow(
-            GET_AVAILABLE_LOCKERS_ON_FLOOR_QUERY, floor_id, start_date, end_date
+        result = await db.fetchrow(
+            CREATE_BOOKING_AND_UPDATE_QUEUE_QUERY,
+            floor_id,
+            start_date,
+            end_date,
+            user_id,
+            request_id,
+            floor_queue_id,
         )
 
-        if not available_locker:
+        if not result or not result["booking_id"]:
             logger.info("No available locker for request")
             continue
 
-        locker_id = available_locker["locker_id"]
-        locker_number = available_locker["locker_number"]
-
-        async with db.transaction() as connection:
-            await connection.fetchval(
-                CREATE_BOOKING_QUERY, user_id, locker_id, start_date, end_date
-            )
-            await connection.execute(UPDATE_REQUEST_STATUS_QUERY, request_id)
-            await connection.execute(DELETE_FLOOR_QUEUE_ENTRY_QUERY, floor_queue_id)
+        locker_number = result["locker_number"]
 
         await _send_booking_confirmation_notification(
             user_id, email, name, locker_number, floor_number, start_date, end_date
@@ -284,7 +318,7 @@ async def process_floor_queue(
     1. Gets queued requests in FCFS order (oldest first)
     2. Tries to find an available locker for the request dates
     3. If found, creates booking, updates request status, and sends notification
-    4. Removes users from queue who already have active bookings
+    4. Removes users from queue who already have existing bookings
 
     Args:
         floor_id: Optional floor ID to process. If None, processes all floors.
