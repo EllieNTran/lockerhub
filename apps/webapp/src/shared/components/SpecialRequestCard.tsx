@@ -123,7 +123,11 @@ const SpecialRequestCard = ({ specialRequest, onCancel, onReview, isAdmin = fals
                   {specialRequest.created_at && (
                     <span className='flex items-center gap-1'>
                       <Clock className='h-3 w-3' />
-                      Submitted {formatDistanceToNow(new Date(specialRequest.created_at), { addSuffix: true })}
+                      Submitted {formatDistanceToNow(new Date(
+                        specialRequest.created_at.includes('Z') || specialRequest.created_at.includes('+')
+                          ? specialRequest.created_at
+                          : `${specialRequest.created_at}Z`
+                      ), { addSuffix: true })}
                     </span>
                   )}
                 </div>

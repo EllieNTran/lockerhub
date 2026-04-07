@@ -4,29 +4,38 @@ from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import LockerStatusResponse
 
-GET_LOCKER_QUERY = """
+REPORT_LOST_KEY_QUERY = """
+WITH locker_info AS (
+    SELECT 
+        l.locker_id,
+        l.status,
+        k.key_number,
+        k.status as key_status
+    FROM lockerhub.lockers l
+    LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
+    WHERE l.locker_id = $1
+    AND l.status = 'available'::lockerhub.locker_status
+),
+updated_key AS (
+    UPDATE lockerhub.keys
+    SET status = 'lost'::lockerhub.key_status, updated_at = CURRENT_TIMESTAMP
+    WHERE locker_id = (SELECT locker_id FROM locker_info)
+    AND EXISTS (SELECT 1 FROM locker_info WHERE key_number IS NOT NULL)
+    RETURNING key_number, status
+),
+updated_locker AS (
+    UPDATE lockerhub.lockers
+    SET status = 'maintenance'::lockerhub.locker_status, updated_at = CURRENT_TIMESTAMP
+    WHERE locker_id = (SELECT locker_id FROM locker_info)
+    RETURNING locker_id, locker_number, status
+)
 SELECT 
-    l.locker_id,
-    l.status,
-    k.key_number,
-    k.status as key_status
-FROM lockerhub.lockers l
-LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
-WHERE l.locker_id = $1
-"""
-
-UPDATE_KEY_STATUS_QUERY = """
-UPDATE lockerhub.keys
-SET status = 'lost', updated_at = CURRENT_TIMESTAMP
-WHERE locker_id = $1
-RETURNING key_number, status
-"""
-
-UPDATE_LOCKER_STATUS_QUERY = """
-UPDATE lockerhub.lockers
-SET status = 'maintenance', updated_at = CURRENT_TIMESTAMP
-WHERE locker_id = $1
-RETURNING locker_id, locker_number, status
+    ul.locker_id,
+    ul.locker_number,
+    ul.status,
+    uk.key_number AS updated_key_number
+FROM updated_locker ul
+LEFT JOIN updated_key uk ON true
 """
 
 
@@ -40,27 +49,20 @@ async def report_lost_key(locker_id: str) -> LockerStatusResponse:
         LockerStatusResponse with updated locker details
     """
     try:
-        async with db.transaction() as connection:
-            locker = await connection.fetchrow(GET_LOCKER_QUERY, locker_id)
-            if not locker:
-                logger.warning("Locker not found")
-                raise ValueError("Locker not found")
+        result = await db.fetchrow(REPORT_LOST_KEY_QUERY, locker_id)
 
-            if locker["status"] != "available":
-                logger.warning("Cannot report lost key for locker")
-                raise ValueError("Locker must be 'available' to report lost key")
-
-            if locker["key_number"]:
-                await connection.fetchrow(UPDATE_KEY_STATUS_QUERY, locker_id)
-
-            updated_locker = await connection.fetchrow(
-                UPDATE_LOCKER_STATUS_QUERY, locker_id
+        if not result:
+            logger.warning("Locker not found or not available")
+            raise ValueError(
+                "Locker not found or must be 'available' to report lost key"
             )
 
-            logger.info("Reported lost key and marked locker as under maintenance")
+        logger.info("Reported lost key and marked locker as under maintenance")
 
-            return LockerStatusResponse(**dict(updated_locker))
+        return LockerStatusResponse(**dict(result))
 
+    except ValueError:
+        raise
     except Exception:
         logger.error("Error reporting lost key and marking locker as under maintenance")
         raise

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router';
-import { Lock, KeyRound } from 'lucide-react';
+import { Lock, KeyRound, CircleX } from 'lucide-react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,7 +85,7 @@ const ResetPassword = () => {
           <Card className="w-full max-w-md">
             <CardHeader className="space-y-1">
               <div className="flex items-center justify-center mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
                   <Lock className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -159,6 +159,7 @@ const ResetPassword = () => {
             <CardContent className="space-y-4">
               {error && (
                 <div className="rounded-lg bg-red/15 p-3 text-sm text-red">
+                  <CircleX className="inline h-4 w-4 mr-2 text-red" />
                   {error}
                 </div>
               )}
@@ -171,7 +172,6 @@ const ResetPassword = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter new password"
                   required
-                  minLength={8}
                 />
                 <p className="text-xs text-grey">
                   Password must be at least 8 characters long
@@ -186,7 +186,6 @@ const ResetPassword = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm new password"
                   required
-                  minLength={8}
                 />
               </div>
             </CardContent>

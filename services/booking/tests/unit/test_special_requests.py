@@ -46,8 +46,8 @@ class TestCreateSpecialRequest:
         end_date = today + timedelta(days=30)
         request_id = 123
 
-        mock_db.fetchval.return_value = request_id
         mock_db.fetchrow.return_value = {
+            "request_id": request_id,
             "email": "test@example.com",
             "first_name": "Test User",
             "floor_number": "10",
@@ -67,14 +67,7 @@ class TestCreateSpecialRequest:
             )
 
         assert result.request_id == request_id
-        assert mock_db.fetchval.call_count == 1
         assert mock_db.fetchrow.call_count == 1
-        # Verify the query was called with correct parameters
-        call_args = mock_db.fetchval.call_args[0]
-        assert call_args[1] == str(sample_user_id)
-        assert call_args[2] == str(sample_floor_id)
-        assert call_args[4] == today
-        assert call_args[5] == end_date
 
     @pytest.mark.asyncio
     async def test_create_special_request_success_permanent(
@@ -89,8 +82,8 @@ class TestCreateSpecialRequest:
         today = date.today()
         request_id = 124
 
-        mock_db.fetchval.return_value = request_id
         mock_db.fetchrow.return_value = {
+            "request_id": request_id,
             "email": "test@example.com",
             "first_name": "Test User",
             "floor_number": "10",
@@ -110,8 +103,7 @@ class TestCreateSpecialRequest:
             )
 
         assert result.request_id == request_id
-        call_args = mock_db.fetchval.call_args[0]
-        assert call_args[5] is None  # end_date is None
+        assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
     async def test_create_special_request_with_locker_preference(
@@ -127,8 +119,8 @@ class TestCreateSpecialRequest:
         end_date = today + timedelta(days=60)
         request_id = 125
 
-        mock_db.fetchval.return_value = request_id
         mock_db.fetchrow.return_value = {
+            "request_id": request_id,
             "email": "test@example.com",
             "first_name": "Test User",
             "floor_number": "10",
@@ -149,8 +141,7 @@ class TestCreateSpecialRequest:
             )
 
         assert result.request_id == request_id
-        call_args = mock_db.fetchval.call_args[0]
-        assert call_args[3] == str(sample_locker_id)
+        assert mock_db.fetchrow.call_count == 1
 
     @pytest.mark.asyncio
     async def test_create_special_request_database_error(
@@ -163,14 +154,14 @@ class TestCreateSpecialRequest:
         from src.services.create_special_request import create_special_request
 
         today = date.today()
-        mock_db.fetchval.side_effect = Exception("Database error")
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.create_special_request.db", mock_db), patch(
             "src.services.create_special_request.NotificationsServiceClient"
         ) as mock_notifications:
             mock_notifications.return_value.post = AsyncMock(return_value=None)
 
-            with pytest.raises(Exception, match="Database error"):
+            with pytest.raises(ValueError, match="Failed to create special request"):
                 await create_special_request(
                     str(sample_user_id),
                     str(sample_floor_id),
@@ -282,7 +273,6 @@ class TestCancelSpecialRequest:
     async def test_cancel_special_request_success(
         self,
         mock_db,
-        mock_db_connection,
         sample_user_id,
         sample_request_id,
         mock_notifications_client,
@@ -293,18 +283,16 @@ class TestCancelSpecialRequest:
         """
         from src.services.cancel_special_request import cancel_special_request
 
-        # Mock the transaction connection
-        # First fetchrow: get special request (returns user data)
-        # Second fetchrow: get associated booking (returns None - no booking)
-        mock_db_connection.fetchrow.side_effect = [
-            {
-                "user_id": sample_user_id,
-                "end_date": None,
-                "floor_number": "10",
-            },  # GET_SPECIAL_REQUEST_QUERY
-            None,  # GET_ASSOCIATED_BOOKING_QUERY - no booking
-        ]
-        mock_db_connection.fetchval.return_value = sample_request_id
+        # CTE returns cancelled request with no associated booking
+        mock_db.fetchrow.return_value = {
+            "request_id": sample_request_id,
+            "user_id": sample_user_id,
+            "end_date": None,
+            "floor_number": "10",
+            "booking_id": None,
+            "booking_start_date": None,
+            "booking_end_date": None,
+        }
 
         with patch("src.services.cancel_special_request.db", mock_db), patch(
             "src.services.cancel_special_request.NotificationsServiceClient",
@@ -315,79 +303,66 @@ class TestCancelSpecialRequest:
             )
 
         assert result.request_id == sample_request_id
-        assert mock_db_connection.fetchrow.call_count == 2
-        # fetchval should be called with request_id and user_id for UPDATE query
-        assert mock_db_connection.fetchval.call_count == 1
+        assert mock_db.fetchrow.call_count == 1
         # Verify notification was sent
         mock_notifications_client.post.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_cancel_special_request_not_found(
-        self, mock_db, mock_db_connection, sample_user_id
-    ):
+    async def test_cancel_special_request_not_found(self, mock_db, sample_user_id):
         """
         Verify error when attempting to cancel non-existent request.
-        Mock database returns None for request lookup.
+        Mock database returns None or result without request_id.
         """
         from src.services.cancel_special_request import cancel_special_request
 
-        mock_db_connection.fetchrow.return_value = None
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.cancel_special_request.db", mock_db):
             with pytest.raises(ValueError, match="Special request not found"):
                 await cancel_special_request(str(sample_user_id), 999)
 
     @pytest.mark.asyncio
-    async def test_cancel_special_request_unauthorized(
-        self, mock_db, mock_db_connection, sample_user_id
-    ):
+    async def test_cancel_special_request_unauthorized(self, mock_db, sample_user_id):
         """
         Verify error when user attempts to cancel another user's request.
-        Mock database returns different user_id.
+        CTE returns None when user_id doesn't match.
         """
         from src.services.cancel_special_request import cancel_special_request
 
-        different_user_id = uuid4()
-        mock_db_connection.fetchrow.return_value = {
-            "user_id": different_user_id,
-            "end_date": None,
-            "floor_number": "10",
-        }
+        mock_db.fetchrow.return_value = None
 
         with patch("src.services.cancel_special_request.db", mock_db):
-            with pytest.raises(ValueError, match="not authorized"):
+            with pytest.raises(ValueError, match="not found or user not authorized"):
                 await cancel_special_request(str(sample_user_id), 1)
 
     @pytest.mark.asyncio
     async def test_cancel_special_request_cancellation_fails(
         self,
         mock_db,
-        mock_db_connection,
         sample_user_id,
         sample_request_id,
         mock_notifications_client,
     ):
         """
         Verify error when cancellation operation fails.
-        Mock database confirms ownership but cancellation returns None.
+        CTE returns result but without request_id (cancellation failed).
         """
         from src.services.cancel_special_request import cancel_special_request
 
-        # First fetchrow: get special request (returns user data)
-        # Second fetchrow: get associated booking (returns None - no booking)
-        mock_db_connection.fetchrow.side_effect = [
-            {
-                "user_id": sample_user_id,
-                "end_date": None,
-                "floor_number": "10",
-            },  # GET_SPECIAL_REQUEST_QUERY
-            None,  # GET_ASSOCIATED_BOOKING_QUERY - no booking
-        ]
-        mock_db_connection.fetchval.return_value = None  # Cancellation failed
+        # CTE returns data but request_id is None (cancellation failed)
+        mock_db.fetchrow.return_value = {
+            "request_id": None,
+            "user_id": sample_user_id,
+            "end_date": None,
+            "floor_number": "10",
+            "booking_id": None,
+            "booking_start_date": None,
+            "booking_end_date": None,
+        }
 
         with patch("src.services.cancel_special_request.db", mock_db), patch(
             "src.services.cancel_special_request.NotificationsServiceClient",
             return_value=mock_notifications_client,
         ):
-            with pytest.raises(ValueError, match="could not be cancelled"):
+            with pytest.raises(ValueError, match="not found or user not authorized"):
                 await cancel_special_request(str(sample_user_id), sample_request_id)

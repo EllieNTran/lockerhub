@@ -4,29 +4,41 @@ from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import LockerStatusResponse
 
-GET_LOCKER_QUERY = """
+MARK_LOCKER_AVAILABLE_QUERY = """
+WITH locker_check AS (
+    SELECT 
+        l.locker_id,
+        l.status,
+        k.key_number,
+        k.status as key_status
+    FROM lockerhub.lockers l
+    LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
+    WHERE l.locker_id = $1
+    AND l.status = 'maintenance'::lockerhub.locker_status
+),
+updated_locker AS (
+    UPDATE lockerhub.lockers
+    SET status = 'available'::lockerhub.locker_status, updated_at = CURRENT_TIMESTAMP
+    WHERE locker_id = $1
+    AND EXISTS (SELECT 1 FROM locker_check)
+    RETURNING locker_id, locker_number, status
+),
+updated_key AS (
+    UPDATE lockerhub.keys
+    SET status = 'available'::lockerhub.key_status, updated_at = CURRENT_TIMESTAMP
+    WHERE locker_id = $1
+    AND status = 'awaiting_replacement'::lockerhub.key_status
+    AND EXISTS (SELECT 1 FROM locker_check WHERE key_status = 'awaiting_replacement'::lockerhub.key_status)
+    RETURNING key_number, status
+)
 SELECT 
-    l.locker_id,
-    l.status,
-    k.key_number,
-    k.status as key_status
-FROM lockerhub.lockers l
-LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
-WHERE l.locker_id = $1
-"""
-
-UPDATE_LOCKER_STATUS_QUERY = """
-UPDATE lockerhub.lockers
-SET status = 'available', updated_at = CURRENT_TIMESTAMP
-WHERE locker_id = $1
-RETURNING locker_id, locker_number, status
-"""
-
-UPDATE_KEY_STATUS_QUERY = """
-UPDATE lockerhub.keys
-SET status = 'available', updated_at = CURRENT_TIMESTAMP
-WHERE locker_id = $1
-RETURNING key_number, status
+    ul.locker_id,
+    ul.locker_number,
+    ul.status,
+    uk.key_number AS updated_key_number,
+    uk.status AS updated_key_status
+FROM updated_locker ul
+LEFT JOIN updated_key uk ON true
 """
 
 
@@ -40,28 +52,25 @@ async def mark_locker_available(locker_id: str) -> LockerStatusResponse:
         LockerStatusResponse with updated locker details
     """
     try:
-        async with db.transaction() as connection:
-            locker = await connection.fetchrow(GET_LOCKER_QUERY, locker_id)
-            if not locker:
-                logger.warning("Locker not found")
-                raise ValueError("Locker not found")
+        result = await db.fetchrow(MARK_LOCKER_AVAILABLE_QUERY, locker_id)
 
-            if locker["status"] != "maintenance":
-                logger.warning("Cannot mark locker as available")
-                raise ValueError("Locker must be 'maintenance' to mark as available")
+        if not result:
+            logger.warning("Locker not found or not in maintenance")
+            raise ValueError("Locker must be 'maintenance' to mark as available")
 
-            updated_locker = await connection.fetchrow(
-                UPDATE_LOCKER_STATUS_QUERY, locker_id
-            )
+        if result["updated_key_status"]:
+            logger.info("Updated key status to available")
 
-            if locker["key_number"] and locker["key_status"] == "awaiting_replacement":
-                await connection.fetchrow(UPDATE_KEY_STATUS_QUERY, locker_id)
-                logger.info("Updated key status to available")
+        logger.info("Marked locker as available (repaired)")
 
-            logger.info("Marked locker as available (repaired)")
+        return LockerStatusResponse(
+            locker_id=result["locker_id"],
+            locker_number=result["locker_number"],
+            status=result["status"],
+        )
 
-            return LockerStatusResponse(**dict(updated_locker))
-
+    except ValueError:
+        raise
     except Exception:
         logger.error("Error marking locker as available")
         raise

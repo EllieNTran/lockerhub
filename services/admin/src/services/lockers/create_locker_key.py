@@ -4,24 +4,36 @@ from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import CreateKeyResponse
 
-CREATE_KEY_QUERY = """
-INSERT INTO lockerhub.keys (
-    key_number,
-    locker_id,
-    status,
-    created_by,
-    updated_by
+CREATE_KEY_WITH_VALIDATION_QUERY = """
+WITH locker_check AS (
+    SELECT locker_id 
+    FROM lockerhub.lockers 
+    WHERE locker_id = $2
+),
+existing_key_check AS (
+    SELECT key_id 
+    FROM lockerhub.keys 
+    WHERE locker_id = $2
+),
+inserted_key AS (
+    INSERT INTO lockerhub.keys (
+        key_number,
+        locker_id,
+        status,
+        created_by,
+        updated_by
+    )
+    SELECT $1, $2, 'available'::lockerhub.key_status, $3, $3
+    WHERE EXISTS (SELECT 1 FROM locker_check)
+    AND NOT EXISTS (SELECT 1 FROM existing_key_check)
+    RETURNING key_id, key_number
 )
-VALUES ($1, $2, 'available', $3, $3)
-RETURNING key_id, key_number
-"""
-
-CHECK_LOCKER_EXISTS_QUERY = """
-SELECT locker_id FROM lockerhub.lockers WHERE locker_id = $1
-"""
-
-CHECK_LOCKER_HAS_KEY_QUERY = """
-SELECT key_id FROM lockerhub.keys WHERE locker_id = $1
+SELECT 
+    ik.key_id,
+    ik.key_number,
+    (SELECT COUNT(*) FROM locker_check) AS locker_exists,
+    (SELECT COUNT(*) FROM existing_key_check) AS has_key
+FROM inserted_key ik
 """
 
 
@@ -41,34 +53,34 @@ async def create_locker_key(
         CreateKeyResponse with key details
     """
     try:
-        async with db.transaction() as connection:
-            locker = await connection.fetchrow(CHECK_LOCKER_EXISTS_QUERY, locker_id)
-            if not locker:
+        result = await db.fetchrow(
+            CREATE_KEY_WITH_VALIDATION_QUERY,
+            key_number,
+            locker_id,
+            user_id,
+        )
+
+        if not result:
+            locker_check = await db.fetchval(
+                "SELECT COUNT(*) FROM lockerhub.lockers WHERE locker_id = $1", locker_id
+            )
+            if not locker_check:
                 logger.warning("Locker not found")
                 raise ValueError("Locker not found")
 
-            existing_key = await connection.fetchrow(
-                CHECK_LOCKER_HAS_KEY_QUERY, locker_id
-            )
-            if existing_key:
-                logger.warning("Locker already has a key")
-                raise ValueError("Locker already has a key")
+            logger.warning("Locker already has a key")
+            raise ValueError("Locker already has a key")
 
-            key = await connection.fetchrow(
-                CREATE_KEY_QUERY,
-                key_number,
-                locker_id,
-                user_id,
-            )
+        logger.info("Created key")
 
-            logger.info("Created key")
+        return CreateKeyResponse(
+            key_id=result["key_id"],
+            key_number=result["key_number"],
+            locker_id=locker_id,
+        )
 
-            return CreateKeyResponse(
-                key_id=key["key_id"],
-                key_number=key["key_number"],
-                locker_id=locker_id,
-            )
-
+    except ValueError:
+        raise
     except Exception:
         logger.error("Error creating key")
         raise

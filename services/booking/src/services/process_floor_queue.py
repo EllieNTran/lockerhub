@@ -164,7 +164,7 @@ async def handle_active_booking(
         async with db.transaction():
             await db.execute(DELETE_FLOOR_QUEUE_ENTRY_QUERY, floor_queue_id)
             await db.execute(
-                "UPDATE lockerhub.requests SET status = 'cancelled' WHERE request_id = $1",
+                "UPDATE lockerhub.requests SET status = 'cancelled'::lockerhub.request_status WHERE request_id = $1",
                 request_id,
             )
 

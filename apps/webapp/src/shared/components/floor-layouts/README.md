@@ -21,13 +21,6 @@ Examples:
 3. **Locker coordinates** in the database are relative to the zone's top-left corner
 4. **Absolute position** = Zone position + Locker position
 
-Example:
-```typescript
-Zone 02: { id: '02', x: 100, y: 200, width: 300, height: 150 }
-Locker: { locker_number: 'L02-02-01', x_coordinate: 10, y_coordinate: 15 }
-// Renders at: (110, 215) = (100 + 10, 200 + 15)
-```
-
 ### Benefits
 
 - ✅ Easy to reposition entire zones
@@ -35,24 +28,6 @@ Locker: { locker_number: 'L02-02-01', x_coordinate: 10, y_coordinate: 15 }
 - ✅ Matches locker naming structure
 - ✅ Cleaner data management
 - ✅ Zone-specific layout updates don't affect other zones
-
-## Structure
-
-```
-floor-layouts/
-├── types.ts                 # TypeScript interfaces for floor layouts
-├── configs/
-│   ├── floor-2.ts          # Floor 2 layout configuration
-│   ├── floor-3.ts          # Floor 3 layout configuration
-│   ├── floor-4.ts          # Floor 4 layout configuration
-│   ├── floor-10.ts         # Floor 10 layout configuration
-│   └── index.ts            # Export all configs and helper function
-├── Corridor.tsx            # Corridor rendering component
-├── Wall.tsx                # Wall rendering component
-├── Landmark.tsx            # Landmark (facilities) rendering component
-├── FloorLayoutRenderer.tsx # Main renderer that composes all elements
-└── index.ts                # Main exports
-```
 
 ## Usage
 
@@ -131,7 +106,6 @@ Zones **must** have IDs that match the zone numbers in your locker codes:
 
 ```typescript
 // For lockers like L02-01-05, L02-01-06 (zone "01")
-// and L02-02-03, L02-02-04 (zone "02")
 zones: [
   { 
     id: '01',  // Must match zone part of locker number

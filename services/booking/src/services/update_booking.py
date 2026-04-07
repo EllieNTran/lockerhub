@@ -6,18 +6,31 @@ from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import UpdateBookingResponse
 
-GET_BOOKING_QUERY = """
-SELECT start_date, end_date, user_id FROM lockerhub.bookings
-WHERE booking_id = $1
-"""
-
-UPDATE_BOOKING_QUERY = """
-UPDATE lockerhub.bookings
-SET start_date = $2,
-    end_date = $3,
-    updated_at = CURRENT_TIMESTAMP
-WHERE booking_id = $1
-RETURNING booking_id
+UPDATE_BOOKING_WITH_VALIDATION_QUERY = """
+WITH booking_check AS (
+    SELECT start_date, end_date, user_id
+    FROM lockerhub.bookings
+    WHERE booking_id = $1
+    AND user_id = $2
+),
+updated_booking AS (
+    UPDATE lockerhub.bookings
+    SET start_date = $3,
+        end_date = $4,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE booking_id = $1
+    AND user_id = $2
+    AND $3 >= (SELECT start_date FROM booking_check)
+    AND $4 <= (SELECT end_date FROM booking_check)
+    AND $3 < $4
+    RETURNING booking_id
+)
+SELECT 
+    bc.start_date AS original_start,
+    bc.end_date AS original_end,
+    ub.booking_id
+FROM booking_check bc
+LEFT JOIN updated_booking ub ON true
 """
 
 
@@ -40,42 +53,47 @@ async def update_booking(
         UpdateBookingResponse with the booking ID
     """
     try:
-        async with db.transaction() as connection:
-            booking = await connection.fetchrow(GET_BOOKING_QUERY, booking_id)
+        booking_check = await db.fetchrow(
+            "SELECT start_date, end_date FROM lockerhub.bookings WHERE booking_id = $1 AND user_id = $2",
+            booking_id,
+            user_id,
+        )
 
-            if not booking:
-                logger.warning("Booking not found for update")
-                raise ValueError("Booking not found")
+        if not booking_check:
+            logger.warning("Booking not found or unauthorized")
+            raise ValueError("Booking not found or unauthorized")
 
-            if str(booking["user_id"]) != user_id:
-                logger.warning("User attempted to update booking not owned by them")
-                raise ValueError("Unauthorized")
+        original_start = booking_check["start_date"]
+        original_end = booking_check["end_date"]
 
-            original_start = booking["start_date"]
-            original_end = booking["end_date"]
+        start_date = (
+            date.fromisoformat(new_start_date) if new_start_date else original_start
+        )
+        end_date = date.fromisoformat(new_end_date) if new_end_date else original_end
 
-            start_date = (
-                date.fromisoformat(new_start_date) if new_start_date else original_start
-            )
-            end_date = (
-                date.fromisoformat(new_end_date) if new_end_date else original_end
-            )
+        if start_date < original_start:
+            raise ValueError("Cannot move start date earlier")
+        if end_date > original_end:
+            raise ValueError("Cannot move end date later (use extension request)")
+        if start_date >= end_date:
+            raise ValueError("Start date must be before end date")
 
-            if start_date < original_start:
-                raise ValueError("Cannot move start date earlier")
+        result = await db.fetchrow(
+            UPDATE_BOOKING_WITH_VALIDATION_QUERY,
+            booking_id,
+            user_id,
+            start_date,
+            end_date,
+        )
 
-            if end_date > original_end:
-                raise ValueError("Cannot move end date later (use extension request)")
+        if not result or not result["booking_id"]:
+            logger.error("Failed to update booking - validation failed")
+            raise ValueError("Failed to update booking")
 
-            if start_date >= end_date:
-                raise ValueError("Start date must be before end date")
-
-            updated_id = await connection.fetchval(
-                UPDATE_BOOKING_QUERY, booking_id, start_date, end_date
-            )
-            logger.info("Updated booking")
-
-            return UpdateBookingResponse(booking_id=updated_id)
+        logger.info("Updated booking")
+        return UpdateBookingResponse(booking_id=result["booking_id"])
+    except ValueError:
+        raise
     except Exception:
         logger.error("Error updating booking")
         raise

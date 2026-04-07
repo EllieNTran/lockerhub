@@ -24,6 +24,8 @@ from src.models.responses import (
     AvailabilityResponse,
     FloorsResponse,
     JoinFloorQueueResponse,
+    UserQueuesListResponse,
+    DeleteUserQueueResponse,
     CancelSpecialRequestResponse,
 )
 from src.services.create_booking import create_booking
@@ -36,6 +38,8 @@ from src.services.get_available_lockers import get_available_lockers
 from src.services.check_locker_availability import check_locker_availability
 from src.services.get_floors import get_floors
 from src.services.join_floor_queue import join_floor_queue
+from src.services.get_user_queues import get_user_queues
+from src.services.delete_user_queue import delete_user_queue
 from src.services.process_floor_queue import process_floor_queue
 from src.services.create_special_request import create_special_request
 from src.services.get_user_special_requests import get_user_special_requests
@@ -82,19 +86,130 @@ async def get_floors_endpoint(_: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Failed to retrieve floors")
 
 
-@router.delete(
-    "/special-requests/{request_id}", response_model=CancelSpecialRequestResponse
-)
-async def cancel_special_request_endpoint(
-    request_id: int,
+@router.get("/booking-rule/{rule_type}", response_model=BookingRuleResponse)
+async def get_booking_rule_endpoint(rule_type: str):
+    """Get a booking rule by type."""
+    try:
+        rule = await get_booking_rule(rule_type)
+        if rule:
+            return rule
+        else:
+            raise HTTPException(status_code=404, detail="Booking rule not found")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to retrieve booking rule")
+
+
+@router.get("/lockers/available", response_model=AvailableLockersResponse)
+async def get_available_lockers_endpoint(
+    floor_id: str = Query(..., description="ID of the floor"),
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    _: dict = Depends(get_current_user),
+):
+    """Get all lockers for a given floor with availability status for a date range."""
+    try:
+        lockers = await get_available_lockers(floor_id, start_date, end_date)
+        return AvailableLockersResponse(lockers=lockers)
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve available lockers"
+        )
+
+
+@router.get("/lockers/{locker_id}/availability", response_model=AvailabilityResponse)
+async def check_locker_availability_endpoint(
+    locker_id: str,
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    _: dict = Depends(get_current_user),
+):
+    """Check if a locker is available for a date range."""
+    try:
+        is_available = await check_locker_availability(locker_id, start_date, end_date)
+        return AvailabilityResponse(
+            locker_id=locker_id,
+            start_date=start_date,
+            end_date=end_date,
+            available=is_available,
+        )
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to check availability")
+
+
+@router.get("/waitlist", response_model=UserQueuesListResponse)
+async def get_user_queues_endpoint(current_user: dict = Depends(get_current_user)):
+    """Get all waitlist entries for the current user."""
+    try:
+        return await get_user_queues(current_user["user_id"])
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to retrieve user queues")
+
+
+@router.post("/waitlist/join", response_model=JoinFloorQueueResponse)
+async def join_floor_queue_endpoint(
+    request: JoinFloorQueueRequest,
     current_user: dict = Depends(get_current_user),
 ):
-    """Cancel a special request."""
+    """Join a floor queue (waitlist) for a floor."""
     try:
-        result = await cancel_special_request(current_user["user_id"], request_id)
+        result = await join_floor_queue(
+            current_user["user_id"],
+            str(request.floor_id),
+            request.start_date,
+            request.end_date,
+        )
         return result
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+@router.delete("/waitlist/{floor_queue_id}", response_model=DeleteUserQueueResponse)
+async def delete_user_queue_endpoint(
+    floor_queue_id: int,
+    current_user: dict = Depends(get_current_user),
+):
+    """Delete a user's queue entry."""
+    try:
+        result = await delete_user_queue(current_user["user_id"], floor_queue_id)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/waitlist/process-floor-queue")
+async def process_floor_queue_endpoint(
+    floor_id: str = Query(None, description="Optional floor ID to process"),
+    _: dict = Depends(get_current_user),
+):
+    """
+    Trigger floor queue processing for a specific floor or all floors.
+
+    This is event-driven (called after booking cancellation/completion)
+    but can be triggered manually for testing or as a fallback.
+
+    Args:
+        floor_id: Optional floor ID to process. If None, processes all floors.
+    """
+    try:
+        result = await process_floor_queue(floor_id)
+        return {
+            "message": result.message,
+            "allocations_made": result.allocations_made,
+            "success": result.success,
+        }
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to process floor queue")
+
+
+@router.get("/special-requests", response_model=SpecialRequestsListResponse)
+async def get_special_requests_endpoint(current_user: dict = Depends(get_current_user)):
+    """Get all special requests for the current user."""
+    try:
+        return await get_user_special_requests(current_user["user_id"])
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve special requests"
+        )
 
 
 @router.post("/special-requests", response_model=CreateSpecialRequestResponse)
@@ -117,28 +232,19 @@ async def create_special_request_endpoint(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/special-requests", response_model=SpecialRequestsListResponse)
-async def get_special_requests_endpoint(current_user: dict = Depends(get_current_user)):
-    """Get all special requests for the current user."""
+@router.delete(
+    "/special-requests/{request_id}", response_model=CancelSpecialRequestResponse
+)
+async def cancel_special_request_endpoint(
+    request_id: int,
+    current_user: dict = Depends(get_current_user),
+):
+    """Cancel a special request."""
     try:
-        return await get_user_special_requests(current_user["user_id"])
-    except Exception:
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve special requests"
-        )
-
-
-@router.get("/booking-rule/{rule_type}", response_model=BookingRuleResponse)
-async def get_booking_rule_endpoint(rule_type: str):
-    """Get a booking rule by type."""
-    try:
-        rule = await get_booking_rule(rule_type)
-        if rule:
-            return rule
-        else:
-            raise HTTPException(status_code=404, detail="Booking rule not found")
-    except Exception:
-        raise HTTPException(status_code=500, detail="Failed to retrieve booking rule")
+        result = await cancel_special_request(current_user["user_id"], request_id)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/{booking_id}", response_model=BookingResponse)
@@ -199,83 +305,3 @@ async def extend_booking_endpoint(
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/lockers/available", response_model=AvailableLockersResponse)
-async def get_available_lockers_endpoint(
-    floor_id: str = Query(..., description="ID of the floor"),
-    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
-    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
-    _: dict = Depends(get_current_user),
-):
-    """Get all lockers for a given floor with availability status for a date range."""
-    try:
-        lockers = await get_available_lockers(floor_id, start_date, end_date)
-        return AvailableLockersResponse(lockers=lockers)
-    except Exception:
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve available lockers"
-        )
-
-
-@router.get("/lockers/{locker_id}/availability", response_model=AvailabilityResponse)
-async def check_locker_availability_endpoint(
-    locker_id: str,
-    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
-    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
-    _: dict = Depends(get_current_user),
-):
-    """Check if a locker is available for a date range."""
-    try:
-        is_available = await check_locker_availability(locker_id, start_date, end_date)
-        return AvailabilityResponse(
-            locker_id=locker_id,
-            start_date=start_date,
-            end_date=end_date,
-            available=is_available,
-        )
-    except Exception:
-        raise HTTPException(status_code=500, detail="Failed to check availability")
-
-
-@router.post("/waitlist/join", response_model=JoinFloorQueueResponse)
-async def join_floor_queue_endpoint(
-    request: JoinFloorQueueRequest,
-    current_user: dict = Depends(get_current_user),
-):
-    """Join a floor queue (waitlist) for a floor."""
-    try:
-        result = await join_floor_queue(
-            current_user["user_id"],
-            str(request.floor_id),
-            request.start_date,
-            request.end_date,
-        )
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-
-
-@router.post("/waitlist/process-floor-queue")
-async def process_floor_queue_endpoint(
-    floor_id: str = Query(None, description="Optional floor ID to process"),
-    _: dict = Depends(get_current_user),
-):
-    """
-    Trigger floor queue processing for a specific floor or all floors.
-
-    This is event-driven (called after booking cancellation/completion)
-    but can be triggered manually for testing or as a fallback.
-
-    Args:
-        floor_id: Optional floor ID to process. If None, processes all floors.
-    """
-    try:
-        result = await process_floor_queue(floor_id)
-        return {
-            "message": result.message,
-            "allocations_made": result.allocations_made,
-            "success": result.success,
-        }
-    except Exception:
-        raise HTTPException(status_code=500, detail="Failed to process floor queue")

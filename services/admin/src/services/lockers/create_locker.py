@@ -5,35 +5,46 @@ from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import CreateLockerResponse
 
-CREATE_LOCKER_QUERY = """
-INSERT INTO lockerhub.lockers (
-    locker_number,
-    floor_id,
-    location,
-    x_coordinate,
-    y_coordinate,
-    status,
-    created_by,
-    updated_by
+CREATE_LOCKER_WITH_KEY_QUERY = """
+WITH floor_check AS (
+    SELECT floor_id 
+    FROM lockerhub.floors 
+    WHERE floor_id = $2
+),
+inserted_locker AS (
+    INSERT INTO lockerhub.lockers (
+        locker_number,
+        floor_id,
+        location,
+        x_coordinate,
+        y_coordinate,
+        status,
+        created_by,
+        updated_by
+    )
+    SELECT $1, $2, $3, $4, $5, 'available'::lockerhub.locker_status, $6, $6
+    WHERE EXISTS (SELECT 1 FROM floor_check)
+    RETURNING locker_id, locker_number
+),
+inserted_key AS (
+    INSERT INTO lockerhub.keys (
+        key_number,
+        locker_id,
+        status,
+        created_by,
+        updated_by
+    )
+    SELECT $7, il.locker_id, 'available'::lockerhub.key_status, $6, $6
+    FROM inserted_locker il
+    RETURNING key_id, key_number
 )
-VALUES ($1, $2, $3, $4, $5, 'available', $6, $6)
-RETURNING locker_id, locker_number
-"""
-
-CREATE_KEY_QUERY = """
-INSERT INTO lockerhub.keys (
-    key_number,
-    locker_id,
-    status,
-    created_by,
-    updated_by
-)
-VALUES ($1, $2, 'available', $3, $3)
-RETURNING key_id, key_number
-"""
-
-CHECK_FLOOR_EXISTS_QUERY = """
-SELECT floor_id FROM lockerhub.floors WHERE floor_id = $1
+SELECT 
+    il.locker_id,
+    il.locker_number,
+    ik.key_id,
+    ik.key_number
+FROM inserted_locker il
+CROSS JOIN inserted_key ik
 """
 
 
@@ -61,38 +72,32 @@ async def create_locker(
         CreateLockerResponse with locker and key details
     """
     try:
-        async with db.transaction() as connection:
-            floor = await connection.fetchrow(CHECK_FLOOR_EXISTS_QUERY, floor_id)
-            if not floor:
-                logger.warning("Floor not found")
-                raise ValueError("Floor not found")
+        result = await db.fetchrow(
+            CREATE_LOCKER_WITH_KEY_QUERY,
+            locker_number,
+            floor_id,
+            location,
+            x_coordinate,
+            y_coordinate,
+            user_id,
+            key_number,
+        )
 
-            locker = await connection.fetchrow(
-                CREATE_LOCKER_QUERY,
-                locker_number,
-                floor_id,
-                location,
-                x_coordinate,
-                y_coordinate,
-                user_id,
-            )
+        if not result:
+            logger.warning("Floor not found")
+            raise ValueError("Floor not found")
 
-            key = await connection.fetchrow(
-                CREATE_KEY_QUERY,
-                key_number,
-                locker["locker_id"],
-                user_id,
-            )
+        logger.info("Created locker and key")
 
-            logger.info("Created locker and key")
+        return CreateLockerResponse(
+            locker_id=result["locker_id"],
+            locker_number=result["locker_number"],
+            key_id=result["key_id"],
+            key_number=result["key_number"],
+        )
 
-            return CreateLockerResponse(
-                locker_id=locker["locker_id"],
-                locker_number=locker["locker_number"],
-                key_id=key["key_id"],
-                key_number=key["key_number"],
-            )
-
+    except ValueError:
+        raise
     except Exception:
         logger.error("Error creating locker")
         raise

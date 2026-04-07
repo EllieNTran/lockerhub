@@ -80,7 +80,7 @@ const Home = () => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-xl border border-grey-outline bg-white p-6 flex flex-col shadow-sm">
+          <div className="rounded-xl border border-grey-outline bg-white p-6 flex flex-col shadow-sm min-h-[350px]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-dark-blue">Notifications</h3>
               {unreadCount > 0 && (
@@ -99,7 +99,7 @@ const Home = () => {
                 <p className="text-sm text-grey">No notifications</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[440px] overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pr-2">
                 {notifications.map((notification: Notification) => (
                   <NotificationCard
                     key={notification.notification_id}
@@ -111,7 +111,7 @@ const Home = () => {
             )}
           </div>
 
-          <div className="rounded-xl border border-grey-outline bg-white p-6 flex flex-col shadow-sm">
+          <div className="rounded-xl border border-grey-outline bg-white p-6 flex flex-col shadow-sm min-h-[350px]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-dark-blue">Upcoming Bookings</h3>
               <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ const Home = () => {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[440px] overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pr-2">
                 {upcomingBookings.map((booking) => (
                   <BookingCard key={booking.booking_id} booking={booking} />
                 ))}

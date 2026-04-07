@@ -4,19 +4,28 @@ from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import LockerStatusResponse
 
-GET_LOCKER_QUERY = """
+MARK_LOCKER_MAINTENANCE_QUERY = """
+WITH locker_check AS (
+    SELECT 
+        locker_id,
+        status
+    FROM lockerhub.lockers
+    WHERE locker_id = $1
+    AND status = 'available'::lockerhub.locker_status
+),
+updated_locker AS (
+    UPDATE lockerhub.lockers
+    SET status = 'maintenance'::lockerhub.locker_status, updated_at = CURRENT_TIMESTAMP
+    WHERE locker_id = $1
+    AND EXISTS (SELECT 1 FROM locker_check)
+    RETURNING locker_id, locker_number, status
+)
 SELECT 
-    locker_id,
-    status
-FROM lockerhub.lockers
-WHERE locker_id = $1
-"""
-
-UPDATE_LOCKER_STATUS_QUERY = """
-UPDATE lockerhub.lockers
-SET status = 'maintenance', updated_at = CURRENT_TIMESTAMP
-WHERE locker_id = $1
-RETURNING locker_id, locker_number, status
+    ul.locker_id,
+    ul.locker_number,
+    ul.status,
+    (SELECT COUNT(*) FROM locker_check) AS was_available
+FROM updated_locker ul
 """
 
 
@@ -30,24 +39,18 @@ async def mark_locker_maintenance(locker_id: str) -> LockerStatusResponse:
         LockerStatusResponse with updated locker details
     """
     try:
-        async with db.transaction() as connection:
-            locker = await connection.fetchrow(GET_LOCKER_QUERY, locker_id)
-            if not locker:
-                logger.warning("Locker not found")
-                raise ValueError("Locker not found")
+        result = await db.fetchrow(MARK_LOCKER_MAINTENANCE_QUERY, locker_id)
 
-            if locker["status"] != "available":
-                logger.warning("Cannot mark locker as maintenance")
-                raise ValueError("Locker must be 'available' to mark as maintenance")
+        if not result:
+            logger.warning("Locker not found or not available")
+            raise ValueError("Locker must be 'available' to mark as maintenance")
 
-            updated_locker = await connection.fetchrow(
-                UPDATE_LOCKER_STATUS_QUERY, locker_id
-            )
+        logger.info("Marked locker as under maintenance")
 
-            logger.info("Marked locker as under maintenance")
+        return LockerStatusResponse(**dict(result))
 
-            return LockerStatusResponse(**dict(updated_locker))
-
+    except ValueError:
+        raise
     except Exception:
         logger.error("Error marking locker as maintenance")
         raise

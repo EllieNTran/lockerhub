@@ -4,26 +4,28 @@ from src.logger import logger
 from src.connectors.db import db
 from src.models.responses import DeleteBookingResponse
 
-GET_BOOKING_QUERY = """
+DELETE_BOOKING_AND_REQUESTS_QUERY = """
+WITH deleted_requests AS (
+    DELETE FROM lockerhub.requests
+    WHERE booking_id = $1 
+    AND request_type = 'extension'
+    AND EXISTS (
+        SELECT 1 FROM lockerhub.bookings 
+        WHERE booking_id = $1 AND user_id = $2
+    )
+),
+deleted_booking AS (
+    DELETE FROM lockerhub.bookings
+    WHERE booking_id = $1 AND user_id = $2
+    RETURNING booking_id, user_id, locker_id
+)
 SELECT 
-    b.user_id,
-    b.locker_id,
+    db.booking_id,
+    db.user_id,
     k.key_number,
     k.status AS key_status
-FROM lockerhub.bookings b
-INNER JOIN lockerhub.keys k ON b.locker_id = k.locker_id
-WHERE b.booking_id = $1
-"""
-
-DELETE_BOOKING_QUERY = """
-DELETE FROM lockerhub.bookings
-WHERE booking_id = $1
-RETURNING booking_id
-"""
-
-DELETE_EXTENSION_REQUESTS_QUERY = """
-DELETE FROM lockerhub.requests
-WHERE booking_id = $1 AND request_type = 'extension'
+FROM deleted_booking db
+INNER JOIN lockerhub.keys k ON db.locker_id = k.locker_id
 """
 
 
@@ -39,29 +41,21 @@ async def delete_booking(user_id: str, booking_id: str) -> DeleteBookingResponse
         The deleted booking details with key information
     """
     try:
-        async with db.transaction() as connection:
-            booking = await connection.fetchrow(GET_BOOKING_QUERY, booking_id)
+        result = await db.fetchrow(
+            DELETE_BOOKING_AND_REQUESTS_QUERY, booking_id, user_id
+        )
 
-            if not booking:
-                logger.warning("Booking not found for deletion")
-                raise ValueError("Booking not found")
+        if not result:
+            logger.warning("Booking not found or unauthorized")
+            raise ValueError("Booking not found or unauthorized")
 
-            if str(booking["user_id"]) != user_id:
-                logger.warning(
-                    f"User {user_id} attempted to delete booking {booking_id} not owned by them"
-                )
-                raise ValueError("Unauthorized")
+        logger.info("Deleted booking")
 
-            await connection.execute(DELETE_EXTENSION_REQUESTS_QUERY, booking_id)
-
-            deleted_id = await connection.fetchval(DELETE_BOOKING_QUERY, booking_id)
-            logger.info("Deleted booking")
-
-            return DeleteBookingResponse(
-                booking_id=deleted_id,
-                key_number=booking["key_number"],
-                key_status=booking["key_status"],
-            )
+        return DeleteBookingResponse(
+            booking_id=result["booking_id"],
+            key_number=result["key_number"],
+            key_status=result["key_status"],
+        )
     except ValueError:
         raise
     except Exception:
