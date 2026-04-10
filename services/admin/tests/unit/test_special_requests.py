@@ -331,8 +331,8 @@ class TestReviewSpecialRequest:
     ):
         """Test approving a special request when no locker is available.
 
-        Verifies that a ValueError is raised when no available locker
-        can be found on the requested floor.
+        Verifies that the request is auto-rejected with an appropriate reason
+        when no available locker can be found on the requested floor.
         """
         from src.services.special_requests.review_special_request import (
             review_special_request,
@@ -353,7 +353,10 @@ class TestReviewSpecialRequest:
             "locker_number": None,
         }
 
+        review_result = [{"request_id": 1, "user_id": user_id}]
+
         mock_db.fetchrow.return_value = request_details
+        mock_db.fetch.return_value = review_result
 
         with (
             patch("src.services.special_requests.review_special_request.db", mock_db),
@@ -364,18 +367,31 @@ class TestReviewSpecialRequest:
         ):
             mock_create_booking = AsyncMock()
 
-            with pytest.raises(ValueError, match="No available lockers found"):
-                with patch(
-                    "src.services.special_requests.review_special_request.create_booking",
-                    mock_create_booking,
-                ):
-                    await review_special_request(
-                        status="approved", reviewed_by=sample_user_id, request_id=1
-                    )
+            with patch(
+                "src.services.special_requests.review_special_request.create_booking",
+                mock_create_booking,
+            ):
+                result = await review_special_request(
+                    status="approved", reviewed_by=sample_user_id, request_id=1
+                )
 
             mock_create_booking.assert_not_called()
 
-            assert mock_notifications_client.post.call_count == 0
+            assert len(result) == 1
+            assert result[0]["request_id"] == 1
+
+            assert mock_notifications_client.post.call_count == 1
+            rejection_call = mock_notifications_client.post.call_args_list[0]
+            assert rejection_call[0][0] == "/special-request/rejected"
+            rejection_data = rejection_call[0][1]
+            assert rejection_data["userId"] == str(user_id)
+            assert rejection_data["email"] == "bob.jones@example.com"
+            assert rejection_data["name"] == "Bob"
+            assert "No available lockers" in rejection_data["reason"]
+            assert (
+                "different dates" in rejection_data["reason"]
+                or "different floor" in rejection_data["reason"]
+            )
 
     @pytest.mark.asyncio
     async def test_review_special_request_reject(

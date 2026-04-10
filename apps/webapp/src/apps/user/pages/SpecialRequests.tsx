@@ -12,7 +12,7 @@ import { SPECIAL_REQUEST_STEPS } from '@/components/tutorial/steps';
 import PageTour from '@/components/tutorial/PageTour';
 import PaginationControls from '@/components/PaginationControls';
 
-const REQUESTS_PER_PAGE = 8;
+const REQUESTS_PER_PAGE = 5;
 
 const SpecialRequests = () => {
   const navigate = useNavigate();

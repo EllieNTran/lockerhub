@@ -1,4 +1,4 @@
-import { CircleDashed } from 'lucide-react'
+import { CircleDashed, KeyRound } from 'lucide-react'
 import SearchBar from '@/components/SearchBar'
 import FloorDropdown from '@/components/FloorDropdown'
 import CustomDropdown from '@/components/CustomDropdown'
@@ -9,9 +9,13 @@ interface FiltersProps {
   searchQuery: string
   floorFilter: string
   statusFilter: string
+  keyStatusOptions?: { value: string; label: string }[]
+  keyStatusFilter?: string
+  statusAllOptionLabel?: string
   onSearchChange: (query: string) => void
   onFloorChange: (floor: string) => void
   onStatusChange: (status: string) => void
+  onKeyStatusChange?: (status: string) => void
 }
 
 const Filters = ({
@@ -20,9 +24,13 @@ const Filters = ({
   searchQuery,
   floorFilter,
   statusFilter,
+  keyStatusOptions,
+  keyStatusFilter,
+  statusAllOptionLabel = 'All Statuses',
   onSearchChange,
   onFloorChange,
-  onStatusChange
+  onStatusChange,
+  onKeyStatusChange
 }: FiltersProps) => {
   return (
     <div className='flex items-center justify-between gap-4'>
@@ -41,8 +49,19 @@ const Filters = ({
           items={statusOptions.map(opt => ({ id: opt.value, label: opt.label }))}
           icon={CircleDashed}
           placeholder='Select status'
-          allOptionLabel='All Statuses'
+          allOptionLabel={statusAllOptionLabel}
         />
+
+        {keyStatusOptions && keyStatusFilter !== undefined && onKeyStatusChange && (
+          <CustomDropdown
+            value={keyStatusFilter}
+            onChange={onKeyStatusChange}
+            items={keyStatusOptions.map(opt => ({ id: opt.value, label: opt.label }))}
+            icon={KeyRound}
+            placeholder='Select key status'
+            allOptionLabel='All Key Statuses'
+          />
+        )}
       </div>
     </div>
   )

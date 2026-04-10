@@ -100,7 +100,7 @@ const Login = () => {
             </CardDescription>
             {!showForgotPassword && (
               <p className="text-sm text-center text-grey mt-2">
-                Pre-registered staff?{' '}
+                First time using LockerHub?{' '}
                 <Link to="/check-account" className="text-primary hover:underline font-medium">
                   Check your account status
                 </Link>

@@ -30,12 +30,19 @@ const statusColors = {
   expired: 'red',
 } as const;
 
-const STATUS_OPTIONS = [
+const BOOKING_STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
   { value: 'upcoming', label: 'Upcoming' },
   { value: 'completed', label: 'Completed' },
   { value: 'cancelled', label: 'Cancelled' },
   { value: 'expired', label: 'Expired' },
+];
+
+const KEY_STATUS_OPTIONS = [
+  { value: 'available', label: 'Available' },
+  { value: 'awaiting_handover', label: 'Awaiting Handover' },
+  { value: 'with_employee', label: 'With Employee' },
+  { value: 'awaiting_return', label: 'Awaiting Return' },
 ];
 
 const Bookings = () => {
@@ -46,13 +53,20 @@ const Bookings = () => {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [floorFilter, setFloorFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [keyStatusFilter, setKeyStatusFilter] = useState<string>('all')
 
   const { data: bookingsData = [], isLoading: bookingsLoading } = useAllBookings()
 
   useEffect(() => {
     const bookingParam = searchParams.get('booking');
+    const statusParam = searchParams.get('status');
     if (bookingParam) {
       setSearchQuery(bookingParam);
+    }
+    if (statusParam) {
+      setStatusFilter(statusParam);
+    }
+    if (bookingParam || statusParam) {
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
@@ -71,12 +85,14 @@ const Bookings = () => {
     const matchesSearch =
       booking.employee_name?.toLowerCase().includes(query) ||
       booking.staff_number?.toLowerCase().includes(query) ||
-      booking.locker_number?.toLowerCase().includes(query);
+      booking.locker_number?.toLowerCase().includes(query) ||
+      booking.key_number?.toLowerCase().includes(query);
 
     const matchesFloor = floorFilter === 'all' || booking.floor_id === floorFilter;
     const matchesStatus = statusFilter === 'all' || booking.booking_status === statusFilter;
+    const matchesKeyStatus = keyStatusFilter === 'all' || booking.key_status === keyStatusFilter;
 
-    return matchesSearch && matchesFloor && matchesStatus;
+    return matchesSearch && matchesFloor && matchesStatus && matchesKeyStatus;
   }) || [];
 
   const filteredTotalPages = Math.ceil(filteredBookings.length / ITEMS_PER_PAGE);
@@ -86,7 +102,7 @@ const Bookings = () => {
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, floorFilter, statusFilter])
+  }, [searchQuery, floorFilter, statusFilter, keyStatusFilter])
 
   return (
     <AdminLayout>
@@ -103,14 +119,18 @@ const Bookings = () => {
 
         <div data-tour="admin-bookings-filters">
           <Filters
-            statusOptions={STATUS_OPTIONS}
-            placeholder="Search by employee, locker number or staff number..."
+            statusOptions={BOOKING_STATUS_OPTIONS}
+            keyStatusOptions={KEY_STATUS_OPTIONS}
+            placeholder="Search by employee, locker, key or staff number..."
             searchQuery={searchQuery}
             floorFilter={floorFilter}
             statusFilter={statusFilter}
+            keyStatusFilter={keyStatusFilter}
+            statusAllOptionLabel="All Booking Statuses"
             onSearchChange={setSearchQuery}
             onFloorChange={setFloorFilter}
             onStatusChange={setStatusFilter}
+            onKeyStatusChange={setKeyStatusFilter}
           />
         </div>
 
@@ -121,16 +141,17 @@ const Bookings = () => {
                 <TableRow>
                   <TableHead className="pl-8">Employee</TableHead>
                   <TableHead>Locker</TableHead>
+                  <TableHead>Key</TableHead>
                   <TableHead>Floor</TableHead>
                   <TableHead>Period</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Booking Status</TableHead>
                   <TableHead>Key Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {bookingsLoading ? (
                   <TableRow className="h-16">
-                    <TableCell colSpan={6} className="text-center text-grey">
+                    <TableCell colSpan={7} className="text-center text-grey">
                       Loading bookings...
                     </TableCell>
                   </TableRow>
@@ -161,6 +182,7 @@ const Bookings = () => {
                           </Link>
                         </Button>
                       </TableCell>
+                      <TableCell className="text-grey">{booking.key_number || 'N/A'}</TableCell>
                       <TableCell>Floor {booking.floor_number}</TableCell>
                       <TableCell>{formatDateRange(booking.start_date, booking.end_date)}</TableCell>
                       <TableCell>
@@ -180,7 +202,7 @@ const Bookings = () => {
                   ))
                 ) : (
                   <TableRow className="h-16">
-                    <TableCell colSpan={6} className="text-center text-grey">
+                    <TableCell colSpan={7} className="text-center text-grey">
                       {searchQuery ? 'No bookings found matching your search' : 'No bookings found'}
                     </TableCell>
                   </TableRow>

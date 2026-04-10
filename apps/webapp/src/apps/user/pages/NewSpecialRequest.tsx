@@ -1,5 +1,5 @@
 import { useNavigate, Link } from 'react-router';
-import { useState, useEffect, type SetStateAction } from 'react';
+import { useState, useEffect, useMemo, type SetStateAction } from 'react';
 import UserLayout from '../layout/UserLayout';
 import { ArrowLeft, FileText, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,20 +34,28 @@ const NewSpecialRequest = () => {
   const { data: floors = [] } = useFloors();
   const { mutate: createSpecialRequest, isPending } = useCreateSpecialRequest();
 
-  const getQueryEndDate = () => {
+  const queryEndDate = useMemo(() => {
     if (isPermanent && startDate) {
       const oneYearLater = new Date(startDate);
       oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
       return format(oneYearLater, 'yyyy-MM-dd');
     }
     return endDate ? format(endDate, 'yyyy-MM-dd') : '';
-  };
+  }, [isPermanent, startDate, endDate]);
 
-  const { data: availableLockers = [] } = useAvailableLockers({
+  const { data: lockersResponse = [], isFetched } = useAvailableLockers({
     floor_id: selectedFloorId,
     start_date: startDate ? format(startDate, 'yyyy-MM-dd') : '',
-    end_date: getQueryEndDate(),
+    end_date: queryEndDate,
   });
+
+  const availableLockers = useMemo(
+    () => lockersResponse.filter((locker) => locker.is_available),
+    [lockersResponse]
+  );
+
+  const hasRequiredDates = Boolean(startDate && (isPermanent || endDate));
+  const hasNoAvailableLockers = isFetched && hasRequiredDates && availableLockers.length === 0;
 
   useEffect(() => {
     if (floors.length > 0 && !selectedFloorId) {
@@ -205,15 +213,18 @@ const NewSpecialRequest = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No preference</SelectItem>
-                    {availableLockers
-                      .filter((locker) => locker.is_available)
-                      .map((locker) => (
-                        <SelectItem key={locker.locker_id} value={locker.locker_id}>
-                          {locker.locker_number}
-                        </SelectItem>
-                      ))}
+                    {availableLockers.map((locker) => (
+                      <SelectItem key={locker.locker_id} value={locker.locker_id}>
+                        {locker.locker_number}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                {hasNoAvailableLockers && (
+                  <p className="text-xs text-red mt-4">
+                    There are no available lockers for the selected dates and floor. Choose a different date range or floor.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2" data-tour="justification">
@@ -246,7 +257,7 @@ const NewSpecialRequest = () => {
                 <Button
                   type="submit"
                   variant="highlight"
-                  disabled={isPending || isDateRangeTooShort}
+                  disabled={isPending || isDateRangeTooShort || hasNoAvailableLockers}
                   className="flex-1"
                   data-tour="submit-btn"
                 >

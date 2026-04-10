@@ -53,7 +53,7 @@ export const notifyBookingConfirmation = async (
     ? `from ${startDate} to ${endDate}`
     : `starting ${startDate} (permanent)`
 
-  const title = fromWaitlist ? 'Locker Allocated from Waitlist' : 'Booking Confirmed'
+  const title = fromWaitlist ? 'Locker Allocated from Waiting List' : 'Booking Confirmed'
   const caption = fromWaitlist
     ? `A locker has become available on Floor ${floorNumber}. Locker ${lockerNumber} ${dateRangeText} has been allocated to you from the waitlist.`
     : `Your booking for Locker ${lockerNumber} on Floor ${floorNumber} ${dateRangeText} has been confirmed.`
@@ -62,7 +62,7 @@ export const notifyBookingConfirmation = async (
     entityType: 'booking',
     title,
     adminTitle: fromWaitlist
-      ? `Locker ${lockerNumber} auto-allocated from waitlist`
+      ? `Locker ${lockerNumber} auto-allocated from waiting list`
       : `Booking created for Locker ${lockerNumber}`,
     caption,
     type: fromWaitlist ? 'success' : 'info',
