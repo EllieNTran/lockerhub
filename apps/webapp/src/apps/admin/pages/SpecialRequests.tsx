@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader, FileText, LoaderCircle, CalendarDays } from 'lucide-react'
 import AdminLayout from '../layout/AdminLayout';
 import Heading from '@/components/Heading';
@@ -10,6 +10,9 @@ import PageTour from '@/components/tutorial/PageTour';
 import { ADMIN_SPECIAL_REQUESTS_STEPS } from '@/components/tutorial/steps';
 import { toast } from '@/components/ui/sonner';
 import type { AxiosError } from 'axios';
+import PaginationControls from '@/components/PaginationControls';
+
+const ITEMS_PER_PAGE = 4;
 
 const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
@@ -23,6 +26,7 @@ const SpecialRequests = () => {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [floorFilter, setFloorFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [currentPage, setCurrentPage] = useState<number>(1)
 
   const { data: specialRequests, isLoading } = useAllSpecialRequests()
 
@@ -57,6 +61,15 @@ const SpecialRequests = () => {
 
     return matchesSearch && matchesFloor && matchesStatus
   }) || []
+
+  const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const endIndex = startIndex + ITEMS_PER_PAGE
+  const paginatedRequests = filteredRequests.slice(startIndex, endIndex)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, floorFilter, statusFilter])
 
   const pendingCount = specialRequests?.filter((r) => r.status === 'pending').length || 0
   const activeCount = specialRequests?.filter((r) => r.status === 'active').length || 0
@@ -100,17 +113,25 @@ const SpecialRequests = () => {
           <div className="flex items-center justify-center py-10">
             <LoaderCircle className="h-12 w-12 animate-spin text-grey" />
           </div>
-        ) : filteredRequests.length > 0 ? (
-          <div className="space-y-4">
-            {filteredRequests.map((request) => (
-              <SpecialRequestCard
-                key={request.request_id}
-                specialRequest={request}
-                onReview={(approved, reason) => handleReview(request.request_id, approved, reason)}
-                isAdmin
-              />
-            ))}
-          </div>
+        ) : paginatedRequests.length > 0 ? (
+          <>
+            <div className="space-y-4">
+              {paginatedRequests.map((request) => (
+                <SpecialRequestCard
+                  key={request.request_id}
+                  specialRequest={request}
+                  onReview={(approved, reason) => handleReview(request.request_id, approved, reason)}
+                  isAdmin
+                />
+              ))}
+            </div>
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              className="mt-4 mb-4"
+            />
+          </>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center text-grey/40">
             <FileText className="h-15 w-15 mb-4" />

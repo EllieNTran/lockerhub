@@ -21,7 +21,7 @@ import type { Booking } from '@/types/booking';
 import PageTour from '@/components/tutorial/PageTour';
 import { MY_BOOKINGS_STEPS } from '@/components/tutorial/steps';
 
-const BOOKINGS_PER_PAGE = 10;
+const BOOKINGS_PER_PAGE = 6;
 
 const MyBookings = () => {
   const [extendOpen, setExtendOpen] = useState(false);
@@ -77,8 +77,10 @@ const MyBookings = () => {
       setExtendOpen(false);
       setSelectedBooking(null);
       setNewEndDate(undefined);
-    } catch {
-      toast.error('Failed to extend booking');
+    } catch (error) {
+      toast.error('Failed to extend booking', {
+        description: error instanceof Error ? error.message : 'Please try again later.'
+      });
     }
   };
 

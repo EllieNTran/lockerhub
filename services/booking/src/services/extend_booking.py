@@ -36,7 +36,14 @@ availability_check AS (
             WHERE locker_id = (SELECT locker_id FROM booking_info)
             AND booking_id != $1
             AND daterange($3, $4, '[]') && daterange(start_date, end_date, '[]')
-        ) AS is_available
+        ) AS is_locker_available,
+        NOT EXISTS (
+            SELECT 1 FROM lockerhub.bookings
+            WHERE user_id = (SELECT user_id FROM booking_info)
+            AND booking_id != $1
+            AND status IN ('active', 'upcoming')
+            AND daterange($3, $4, '[]') && daterange(start_date, end_date, '[]')
+        ) AS is_user_available
 ),
 extension_request AS (
     INSERT INTO lockerhub.requests (
@@ -54,7 +61,7 @@ extension_request AS (
         $4,
         'extension'::lockerhub.request_type,
         CASE 
-            WHEN ac.is_available THEN 'approved'::lockerhub.request_status
+            WHEN ac.is_locker_available AND ac.is_user_available THEN 'approved'::lockerhub.request_status
             ELSE 'rejected'::lockerhub.request_status
         END
     FROM booking_info bi
@@ -84,7 +91,8 @@ SELECT
     bi.floor_number,
     er.request_id,
     er.status AS request_status,
-    ac.is_available,
+    ac.is_locker_available,
+    ac.is_user_available,
     ub.booking_id AS was_extended
 FROM booking_info bi
 CROSS JOIN availability_check ac
@@ -143,24 +151,42 @@ async def extend_booking(
         status = result["request_status"]
 
         if status == "rejected":
-            logger.info("Extension request conflicts with existing bookings")
-        else:
-            logger.info("Extension request approved and booking extended")
+            if not result["is_locker_available"]:
+                logger.info(
+                    "Extension request rejected: locker is not available during the extended period"
+                )
+                raise ValueError(
+                    "This locker is already booked during the requested extension period. Please try a different end date."
+                )
+            elif not result["is_user_available"]:
+                logger.info(
+                    "Extension request rejected: user has overlapping bookings during the extended period"
+                )
+                raise ValueError(
+                    "You have another active booking that overlaps with this extension period. Please cancel or modify your other booking first."
+                )
+            else:
+                logger.info("Extension request rejected")
+                raise ValueError(
+                    "Extension request was rejected. Please contact support for assistance."
+                )
 
-            await NotificationsServiceClient().post(
-                "/booking/extension",
-                {
-                    "userId": user_id,
-                    "email": result["email"],
-                    "name": result["first_name"],
-                    "lockerNumber": result["locker_number"],
-                    "floorNumber": result["floor_number"],
-                    "originalEndDate": result["end_date"].isoformat(),
-                    "newEndDate": new_end_date_obj.isoformat(),
-                    "userBookingsPath": "/user/my-bookings",
-                    "adminBookingsPath": "/admin/bookings",
-                },
-            )
+        logger.info("Extension request approved and booking extended")
+
+        await NotificationsServiceClient().post(
+            "/booking/extension",
+            {
+                "userId": user_id,
+                "email": result["email"],
+                "name": result["first_name"],
+                "lockerNumber": result["locker_number"],
+                "floorNumber": result["floor_number"],
+                "originalEndDate": result["end_date"].isoformat(),
+                "newEndDate": new_end_date_obj.isoformat(),
+                "userBookingsPath": "/user/my-bookings",
+                "adminBookingsPath": "/admin/bookings",
+            },
+        )
 
         return ExtendBookingResponse(request_id=request_id, status=status)
     except ValueError:

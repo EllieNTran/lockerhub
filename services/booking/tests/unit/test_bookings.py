@@ -435,7 +435,8 @@ class TestExtendBooking:
                 "floor_number": "10",
                 "request_id": request_id,
                 "request_status": "approved",
-                "is_available": True,
+                "is_locker_available": True,
+                "is_user_available": True,
                 "was_extended": sample_booking_id,
             },
         ]
@@ -463,7 +464,7 @@ class TestExtendBooking:
         """
         Verify booking extension rejection when locker is unavailable.
         Mock availability check returns False indicating conflict.
-        Expect rejected extension request.
+        Expect ValueError with appropriate message.
         """
         from src.services.extend_booking import extend_booking
 
@@ -489,7 +490,8 @@ class TestExtendBooking:
                 "floor_number": "10",
                 "request_id": request_id,
                 "request_status": "rejected",
-                "is_available": False,
+                "is_locker_available": False,
+                "is_user_available": True,
                 "was_extended": None,
             },
         ]
@@ -498,13 +500,12 @@ class TestExtendBooking:
             "src.services.extend_booking.NotificationsServiceClient",
             return_value=mock_notifications_client,
         ):
-            result = await extend_booking(
-                str(sample_booking_id), str(new_end_date), str(sample_user_id)
-            )
-
-        assert result.request_id == request_id
-        assert result.status == "rejected"
-        assert mock_db.fetchrow.call_count == 2
+            with pytest.raises(
+                ValueError, match="already booked during the requested extension period"
+            ):
+                await extend_booking(
+                    str(sample_booking_id), str(new_end_date), str(sample_user_id)
+                )
 
     @pytest.mark.asyncio
     async def test_extend_booking_invalid_date(

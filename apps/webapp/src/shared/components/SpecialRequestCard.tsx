@@ -200,7 +200,7 @@ const SpecialRequestCard = ({ specialRequest, onCancel, onReview, isAdmin = fals
               />
             </div>
             <DialogFooter>
-              <Button variant='outline' onClick={() => {
+              <Button onClick={() => {
                 setRejectDialogOpen(false)
                 setRejectionReason('')
               }}>

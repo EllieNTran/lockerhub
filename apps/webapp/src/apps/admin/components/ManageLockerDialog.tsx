@@ -426,7 +426,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             <div className="space-y-2">
               <p className="text-sm text-grey">
                 This locker is currently occupied. To end the booking and confirm key return, go to the{' '}
-                <Link to={`/admin/bookings?booking=${locker.locker_number}`} className="font-medium text-dark-blue hover:text-secondary hover:underline">
+                <Link to={`/admin/bookings?booking=${locker.locker_number}&status=active`} className="font-medium text-dark-blue hover:text-secondary hover:underline">
                   Bookings
                 </Link>{' '}
                 page.
@@ -470,7 +470,7 @@ const ManageLockerDialog = ({ locker, isOpen, onOpenChange, statusColor }: Manag
             <div className="space-y-2">
               <p className="text-sm text-grey">
                 This locker is reserved for an upcoming booking. To cancel the booking, go to the{' '}
-                <Link to={`/admin/bookings?booking=${locker.locker_number}`} className="font-medium text-dark-blue hover:text-secondary hover:underline">
+                <Link to={`/admin/bookings?booking=${locker.locker_number}&status=upcoming`} className="font-medium text-dark-blue hover:text-secondary hover:underline">
                   Bookings
                 </Link>{' '}
                 page.

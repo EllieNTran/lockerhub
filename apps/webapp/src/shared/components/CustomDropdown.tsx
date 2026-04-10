@@ -50,7 +50,6 @@ const CustomDropdown = ({
     ? getDisplayText(value, items)
     : defaultGetDisplayText(value, items);
 
-  const isFullWidth = className?.includes('w-full');
   const hasValue = value && value !== '';
 
   const textColor = highlightSelected && hasValue && !isLoading ? 'text-dark-blue' : 'text-grey';
@@ -75,7 +74,7 @@ const CustomDropdown = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className={`${isFullWidth ? 'w-[var(--radix-dropdown-menu-trigger-width)]' : 'min-w-[150px]'} max-h-[400px] overflow-y-auto`}
+        className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[400px] overflow-y-auto"
       >
         {showAllOption && (
           <DropdownMenuItem onClick={() => onChange('all')}>
