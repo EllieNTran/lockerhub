@@ -27,6 +27,8 @@ import {
   createLockerKey,
   getAllKeys,
   getAllFloors,
+  getFloorClosures,
+  deleteFloorClosure,
 } from './index';
 import type {
   CreateAdminBookingData,
@@ -278,6 +280,7 @@ export const useUpdateFloorStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['floorsUtilization'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       queryClient.invalidateQueries({ queryKey: ['recentActivity'] });
+      queryClient.invalidateQueries({ queryKey: ['floorClosures'] });
     },
   });
 };
@@ -287,6 +290,25 @@ export const useAllFloors = () =>
     queryKey: ['adminFloors'],
     queryFn: getAllFloors,
   });
+
+export const useFloorClosures = (floorId: string) =>
+  useQuery({
+    queryKey: ['floorClosures', floorId],
+    queryFn: () => getFloorClosures(floorId),
+    enabled: !!floorId,
+  });
+
+export const useDeleteFloorClosure = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (closureId: string) => deleteFloorClosure(closureId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['floorClosures'] });
+      queryClient.invalidateQueries({ queryKey: ['adminFloors'] });
+    },
+  });
+};
 
 // Audit Logs Hooks
 export const useAuditLogs = (params?: GetAuditLogsParams) =>

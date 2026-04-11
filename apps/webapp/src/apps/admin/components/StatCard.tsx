@@ -16,10 +16,16 @@ interface StatCardProps {
   sub?: string;
   icon: React.ElementType;
   color: color;
+  onClick?: () => void;
 }
 
-const StatCard = ({ label, value, sub, icon: Icon, color }: StatCardProps) => (
-  <div className="rounded-xl border border-grey-outline bg-white p-5 shadow-sm flex items-start gap-4">
+const StatCard = ({ label, value, sub, icon: Icon, color, onClick }: StatCardProps) => (
+  <div
+    className={`rounded-xl border border-grey-outline bg-white p-5 shadow-sm flex items-start gap-4 ${
+      onClick ? 'hover:border-primary' : ''
+    }`}
+    onClick={onClick}
+  >
     <div className={`flex h-13 w-13 shrink-0 items-center justify-center rounded-lg ${colorMap[color]}`}>
       <Icon className="h-7 w-7" />
     </div>

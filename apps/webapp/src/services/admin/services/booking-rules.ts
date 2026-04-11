@@ -46,3 +46,28 @@ export async function getAllFloors(): Promise<FloorWithLockerCount[]> {
   const response = await apiClient.get<{ floors: FloorWithLockerCount[] }>('/admin/booking-rules/floors');
   return response.floors;
 }
+
+export interface FloorClosure {
+  closure_id: string;
+  floor_id: string;
+  start_date: string;
+  end_date: string | null;
+  reason: string | null;
+  created_at: string;
+  created_by: string;
+}
+
+/**
+ * Get all closures for a specific floor
+ */
+export async function getFloorClosures(floorId: string): Promise<FloorClosure[]> {
+  const response = await apiClient.get<{ closures: FloorClosure[] }>(`/admin/booking-rules/floors/${floorId}/closures`);
+  return response.closures;
+}
+
+/**
+ * Delete a specific floor closure
+ */
+export async function deleteFloorClosure(closureId: string): Promise<void> {
+  await apiClient.delete(`/admin/booking-rules/closures/${closureId}`);
+}

@@ -80,6 +80,16 @@ const Lockers = () => {
     setManageDialogOpen(true);
   };
 
+  const handleAvailableClick = () => {
+    setStatusFilter('available');
+    setCurrentPage(1);
+  };
+
+  const handleMaintenanceClick = () => {
+    setStatusFilter('maintenance');
+    setCurrentPage(1);
+  };
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, floorFilter, statusFilter]);
@@ -99,8 +109,20 @@ const Lockers = () => {
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-tour="admin-lockers-stats">
           <StatCard label="Total Lockers" value={totalLockers} icon={Lock} color="blue" />
-          <StatCard label="Available" value={availableLockers} icon={CircleCheckBig} color="green" />
-          <StatCard label="Under Maintenance" value={maintenanceLockers} icon={Wrench} color="red" />
+          <StatCard
+            label="Available"
+            value={availableLockers}
+            icon={CircleCheckBig}
+            color="green"
+            onClick={handleAvailableClick}
+          />
+          <StatCard
+            label="Under Maintenance"
+            value={maintenanceLockers}
+            icon={Wrench}
+            color="red"
+            onClick={handleMaintenanceClick}
+          />
         </div>
 
         <div data-tour="admin-lockers-filters">
