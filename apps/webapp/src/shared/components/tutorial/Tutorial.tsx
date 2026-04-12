@@ -27,7 +27,7 @@ const Tutorial = ({ mode, hasSeenTutorial, isAdmin }: TutorialProps) => {
       setTourMode('admin');
       setRunTour(true);
     }
-  }, [mode, hasSeenTutorial, isAdmin, runTour, hasCompletedTutorial]);
+  }, [mode, hasSeenTutorial, isAdmin]);
 
   const handleJoyrideEvent = (data: EventData, _controls: Controls) => {
     const { status, action } = data;

@@ -20,6 +20,7 @@ export const findUserByEmail = async (email: string): Promise<User | null> => {
         office,
         is_pre_registered,
         account_activated,
+        has_seen_tutorial,
         created_at
       FROM lockerhub.users 
       WHERE email = $1`,
@@ -47,6 +48,7 @@ export const findUserById = async (userId: string): Promise<User | null> => {
         role,
         staff_number,
         department_id,
+        has_seen_tutorial,
         created_at
       FROM lockerhub.users 
       WHERE user_id = $1`,
@@ -100,6 +102,7 @@ export const createUser = async (userData: {
         office,
         is_pre_registered,
         account_activated,
+        has_seen_tutorial,
         created_at`,
       [firstName, lastName, email, passwordHash, role, staffNumber, departmentId, office],
     )

@@ -112,7 +112,6 @@ export const useCompleteTutorial = () => {
       const userRole = localStorage.getItem('userRole');
       if (userRole) {
         localStorage.setItem('hasSeenTutorial', 'true');
-
         window.dispatchEvent(new Event('tutorialCompleted'));
       }
 

@@ -33,12 +33,15 @@ interface AdminLayoutProps {
 }
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
-  const [hasSeenTutorial, setHasSeenTutorial] = useState(true);
+  const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('hasSeenTutorial') === 'true';
+    }
+    return false;
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const tutorialStatus = localStorage.getItem('hasSeenTutorial');
-      setHasSeenTutorial(tutorialStatus === 'true');
 
       const handleStorageChange = () => {
         const updatedStatus = localStorage.getItem('hasSeenTutorial');

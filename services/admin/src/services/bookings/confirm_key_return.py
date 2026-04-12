@@ -15,11 +15,15 @@ WITH booking_info AS (
         b.special_request_id,
         u.user_id,
         l.locker_number,
-        f.floor_id
+        f.floor_id,
+        k.key_id,
+        k.key_number,
+        k.status AS key_status
     FROM lockerhub.bookings b
     INNER JOIN lockerhub.users u ON b.user_id = u.user_id
     INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
     INNER JOIN lockerhub.floors f ON l.floor_id = f.floor_id
+    LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
     WHERE b.booking_id = $1
     AND b.status NOT IN ('upcoming'::lockerhub.booking_status, 'completed'::lockerhub.booking_status)
 ),
@@ -39,7 +43,8 @@ updated_locker AS (
 updated_special_request AS (
     UPDATE lockerhub.requests
     SET status = 'completed'::lockerhub.request_status
-    WHERE request_id = (SELECT special_request_id FROM booking_info WHERE special_request_id IS NOT NULL)
+    WHERE request_id = (SELECT special_request_id FROM booking_info)
+    AND (SELECT special_request_id FROM booking_info) IS NOT NULL
     RETURNING request_id
 ),
 updated_booking AS (
@@ -57,16 +62,16 @@ SELECT
     bi.locker_number,
     bi.floor_id,
     bi.special_request_id,
-    uk.key_id,
-    uk.key_number,
-    uk.status AS key_status,
+    bi.key_id,
+    bi.key_number,
+    bi.key_status,
     ub.booking_id AS booking_updated,
     ub.status AS booking_status,
     usr.request_id AS special_request_updated
 FROM booking_info bi
-CROSS JOIN updated_key uk
+LEFT JOIN updated_key uk ON true
 LEFT JOIN updated_locker ul ON true
-CROSS JOIN updated_booking ub
+LEFT JOIN updated_booking ub ON true
 LEFT JOIN updated_special_request usr ON true
 """
 
@@ -135,6 +140,6 @@ async def confirm_key_return(admin_id: str, booking_id: str) -> KeyReturnRespons
 
     except ValueError:
         raise
-    except Exception:
-        logger.error("Error confirming return for booking")
+    except Exception as e:
+        logger.error("Error confirming return for booking: %s", e)
         raise

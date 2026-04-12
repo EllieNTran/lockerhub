@@ -9,7 +9,7 @@ export const USER_TUTORIAL_STEPS: Step[] = [
   },
   {
     target: '[data-tour="nav-home"]',
-    content: 'This is the homepage where you can see your current bookings and quick actions.',
+    content: 'This is the homepage where you can see your upcoming bookings, quick actions, and important notifications.',
     placement: 'bottom',
   },
   {

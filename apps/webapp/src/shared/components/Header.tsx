@@ -46,6 +46,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('userRole');
+          localStorage.removeItem('hasSeenTutorial');
           navigate('/');
           toast.success('Logged out successfully');
         },
@@ -53,6 +54,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('userRole');
+          localStorage.removeItem('hasSeenTutorial');
           navigate('/');
           console.error('Logout error:', error);
         },
@@ -61,6 +63,7 @@ const Header = ({ showNav = true }: HeaderProps) => {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userRole');
+      localStorage.removeItem('hasSeenTutorial');
       navigate('/');
     }
   };

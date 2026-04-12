@@ -10,6 +10,7 @@ export interface User {
   office?: string | null;
   is_pre_registered?: boolean;
   account_activated?: boolean;
+  has_seen_tutorial: boolean;
   created_at: Date;
 }
 
@@ -19,4 +20,5 @@ export interface UserResponse {
   role: string;
   firstName: string;
   lastName: string;
+  hasSeenTutorial: boolean;
 }

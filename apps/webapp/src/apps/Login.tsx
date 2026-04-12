@@ -30,6 +30,7 @@ const Login = () => {
         onSuccess: (response) => {
           storeTokens(response.accessToken, response.refreshToken);
           localStorage.setItem('userRole', response.user.role);
+          localStorage.setItem('hasSeenTutorial', String(response.user.hasSeenTutorial));
           navigate(response.user.role === 'admin' ? '/admin' : '/user');
         },
         onError: (err) => {
