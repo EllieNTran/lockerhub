@@ -20,5 +20,5 @@ export interface UserResponse {
   role: string;
   firstName: string;
   lastName: string;
-  has_seen_tutorial: boolean;
+  hasSeenTutorial: boolean;
 }

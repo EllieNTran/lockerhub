@@ -84,7 +84,7 @@ export const signup = async (
       role: user.role,
       firstName: user.first_name,
       lastName: user.last_name,
-      has_seen_tutorial: user.has_seen_tutorial,
+      hasSeenTutorial: user.has_seen_tutorial,
     },
   }
 }
@@ -158,7 +158,7 @@ export const login = async (email: string, password: string): Promise<LoginRespo
       role: user.role,
       firstName: user.first_name,
       lastName: user.last_name,
-      has_seen_tutorial: user.has_seen_tutorial,
+      hasSeenTutorial: user.has_seen_tutorial,
     },
   }
 }
