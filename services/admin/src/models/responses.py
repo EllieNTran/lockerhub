@@ -336,3 +336,17 @@ class AllFloorsResponse(BaseModel):
     """Response model for all floors."""
 
     floors: List[FloorResponse]
+
+
+class FloorClosuresResponse(BaseModel):
+    """Response model for floor closures."""
+
+    closures: List[Dict[str, Any]]
+
+
+class DeleteFloorClosureResponse(BaseModel):
+    """Response model for deleted floor closure."""
+
+    closure_id: UUID
+    floor_id: UUID
+    message: str

@@ -1,4 +1,4 @@
-import { CheckCircle, Settings, Save, LockKeyhole, SquarePen } from 'lucide-react';
+import { CheckCircle, Settings, Save, LockKeyhole, SquarePen, X } from 'lucide-react';
 import AdminLayout from '../layout/AdminLayout';
 import Heading from '@/components/Heading';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,15 @@ import { Label } from '@/components/ui/label';
 import { TextArea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/sonner';
 import { format } from 'date-fns';
-import { useBookingRules, useUpdateBookingRules, useUpdateFloorStatus, useAllFloors, type UpdateFloorStatusData } from '@/services/admin';
+import {
+  useBookingRules,
+  useUpdateBookingRules,
+  useUpdateFloorStatus,
+  useAllFloors,
+  useFloorClosures,
+  useDeleteFloorClosure,
+  type UpdateFloorStatusData,
+} from '@/services/admin';
 import ColorBadge from '@/components/ColorBadge';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import type { FloorWithLockerCount } from '@/types/floor';
@@ -82,8 +90,10 @@ const BookingRules = () => {
 
   const { data: rulesData } = useBookingRules();
   const { data: floors } = useAllFloors();
+  const { data: floorClosures } = useFloorClosures(selectedFloor?.floor_id || '');
   const updateBookingRulesMutation = useUpdateBookingRules();
   const updateFloorStatusMutation = useUpdateFloorStatus();
+  const deleteFloorClosureMutation = useDeleteFloorClosure();
 
   const rules = useMemo(() => {
     return RULE_METADATA.map(meta => {
@@ -186,6 +196,15 @@ const BookingRules = () => {
       setOpenFloorDialog(false);
     } catch {
       toast.error('Failed to update floor status');
+    }
+  };
+
+  const handleDeleteClosure = async (closureId: string) => {
+    try {
+      await deleteFloorClosureMutation.mutateAsync(closureId);
+      toast.success('Floor closure deleted successfully');
+    } catch {
+      toast.error('Failed to delete floor closure');
     }
   };
 
@@ -348,6 +367,46 @@ const BookingRules = () => {
                 </span>
               </div>
             </div>
+
+            {floorStatus === 'open' && floorClosures && floorClosures.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Scheduled Closures</Label>
+                <p className="text-xs text-grey mb-4">
+                  Cancel any upcoming scheduled closures.
+                </p>
+                <div className="space-y-2">
+                  {floorClosures.map((closure) => (
+                    <div
+                      key={closure.closure_id}
+                      className="rounded-lg border border-grey-outline/50 bg-background p-3 relative group"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClosure(closure.closure_id)}
+                        disabled={deleteFloorClosureMutation.isPending}
+                        className="absolute top-2 right-2 h-5 w-5 rounded-full bg-white border border-grey-outline/50 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red hover:border-red hover:text-white disabled:opacity-50"
+                        aria-label="Delete closure"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+
+                      <div className="pr-8">
+                        <p className="text-sm text-dark-blue">
+                          {closure.end_date
+                            ? `${format(new Date(closure.start_date), 'dd MMM yyyy')} - ${format(new Date(closure.end_date), 'dd MMM yyyy')}`
+                            : `Indefinite closure from ${format(new Date(closure.start_date), 'dd MMM yyyy')}`
+                          }
+                        </p>
+                        {closure.reason && (
+                          <p className="text-xs text-grey mt-1">{closure.reason}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {floorStatus === 'closed' && (
               <>

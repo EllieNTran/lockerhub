@@ -777,3 +777,90 @@ class TestBookingRulesRoutes:
         data = response.json()
         assert data["floor_id"] == str(floor_id)
         assert data["status"] == "closed"
+
+    async def test_get_floor_closures(self, test_client):
+        """
+        Verify retrieval of floor closures.
+        Mock service returns list of closures for a floor.
+        Expect 200 status with closures array.
+        """
+        from src.models.responses import FloorClosuresResponse
+        from datetime import date
+
+        floor_id = uuid4()
+        closures = [
+            {
+                "closure_id": str(uuid4()),
+                "floor_id": str(floor_id),
+                "start_date": date(2026, 4, 15),
+                "end_date": date(2026, 4, 20),
+                "reason": "Maintenance",
+                "created_at": datetime.now(),
+                "created_by": str(uuid4()),
+            }
+        ]
+
+        mock_response = FloorClosuresResponse(closures=closures)
+
+        with patch(
+            "src.routes.booking_rules.get_floor_closures",
+            AsyncMock(return_value=mock_response),
+        ):
+            response = await test_client.get(
+                f"/admin/booking-rules/floors/{str(floor_id)}/closures"
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "closures" in data
+        assert len(data["closures"]) == 1
+        assert data["closures"][0]["reason"] == "Maintenance"
+
+    async def test_delete_floor_closure(self, test_client):
+        """
+        Verify deleting a floor closure.
+        Mock service returns deletion confirmation.
+        Expect 200 status with closure details.
+        """
+        from src.models.responses import DeleteFloorClosureResponse
+
+        closure_id = uuid4()
+        floor_id = uuid4()
+
+        mock_response = DeleteFloorClosureResponse(
+            closure_id=closure_id,
+            floor_id=floor_id,
+            message="Floor closure deleted successfully",
+        )
+
+        with patch(
+            "src.routes.booking_rules.delete_floor_closure",
+            AsyncMock(return_value=mock_response),
+        ):
+            response = await test_client.delete(
+                f"/admin/booking-rules/closures/{str(closure_id)}"
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["closure_id"] == str(closure_id)
+        assert data["floor_id"] == str(floor_id)
+        assert data["message"] == "Floor closure deleted successfully"
+
+    async def test_delete_floor_closure_not_found(self, test_client):
+        """
+        Verify error handling for non-existent closure.
+        Mock service raises ValueError.
+        Expect 404 status.
+        """
+        closure_id = uuid4()
+
+        with patch(
+            "src.routes.booking_rules.delete_floor_closure",
+            AsyncMock(side_effect=ValueError("Floor closure not found")),
+        ):
+            response = await test_client.delete(
+                f"/admin/booking-rules/closures/{str(closure_id)}"
+            )
+
+        assert response.status_code == 404

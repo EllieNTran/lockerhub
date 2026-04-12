@@ -459,3 +459,198 @@ class TestGetAllFloors:
         with patch("src.services.booking_rules.get_all_floors.db", mock_db):
             result = await get_all_floors()
             assert len(result.floors) == 3
+
+
+@pytest.mark.unit
+class TestGetFloorClosures:
+    """Tests for get_floor_closures service."""
+
+    @pytest.mark.asyncio
+    async def test_get_floor_closures_success(self, mock_db, sample_floor_id):
+        """Test retrieving closures for a floor.
+
+        Verifies that fetching closures returns a list with closure details.
+        """
+        from src.services.booking_rules.get_floor_closures import get_floor_closures
+        from datetime import date
+
+        closures = [
+            {
+                "closure_id": uuid4(),
+                "floor_id": sample_floor_id,
+                "start_date": date(2026, 4, 15),
+                "end_date": date(2026, 4, 20),
+                "reason": "Maintenance",
+                "created_at": datetime.now(),
+                "created_by": uuid4(),
+            },
+            {
+                "closure_id": uuid4(),
+                "floor_id": sample_floor_id,
+                "start_date": date(2026, 5, 1),
+                "end_date": None,
+                "reason": "Renovation",
+                "created_at": datetime.now(),
+                "created_by": uuid4(),
+            },
+        ]
+        mock_db.fetch.return_value = closures
+
+        with patch("src.services.booking_rules.get_floor_closures.db", mock_db):
+            result = await get_floor_closures(str(sample_floor_id))
+
+            assert len(result.closures) == 2
+            assert result.closures[0]["reason"] == "Maintenance"
+            assert result.closures[1]["end_date"] is None
+
+    @pytest.mark.asyncio
+    async def test_get_floor_closures_empty(self, mock_db, sample_floor_id):
+        """Test retrieving closures when none exist.
+
+        Verifies that fetching closures from a floor with no closures
+        returns an empty list.
+        """
+        from src.services.booking_rules.get_floor_closures import get_floor_closures
+
+        mock_db.fetch.return_value = []
+
+        with patch("src.services.booking_rules.get_floor_closures.db", mock_db):
+            result = await get_floor_closures(str(sample_floor_id))
+
+            assert len(result.closures) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_floor_closures_only_active(self, mock_db, sample_floor_id):
+        """Test retrieving only active/upcoming closures.
+
+        Verifies that only closures with end_date >= current date or
+        null end_date are returned.
+        """
+        from src.services.booking_rules.get_floor_closures import get_floor_closures
+        from datetime import date
+
+        # Only future closures should be returned by the query
+        closures = [
+            {
+                "closure_id": uuid4(),
+                "floor_id": sample_floor_id,
+                "start_date": date(2026, 4, 15),
+                "end_date": date(2026, 4, 20),
+                "reason": "Future closure",
+                "created_at": datetime.now(),
+                "created_by": uuid4(),
+            },
+        ]
+        mock_db.fetch.return_value = closures
+
+        with patch("src.services.booking_rules.get_floor_closures.db", mock_db):
+            result = await get_floor_closures(str(sample_floor_id))
+
+            assert len(result.closures) == 1
+            assert result.closures[0]["reason"] == "Future closure"
+
+
+@pytest.mark.unit
+class TestDeleteFloorClosure:
+    """Tests for delete_floor_closure service."""
+
+    @pytest.mark.asyncio
+    async def test_delete_floor_closure_success(
+        self, mock_db, sample_floor_id, sample_user_id
+    ):
+        """Test deleting a floor closure.
+
+        Verifies that deleting a closure successfully removes it and
+        returns the closure details.
+        """
+        from src.services.booking_rules.delete_floor_closure import (
+            delete_floor_closure,
+        )
+        from datetime import date
+
+        closure_id = uuid4()
+        mock_db.fetchrow.return_value = {
+            "closure_id": closure_id,
+            "floor_id": sample_floor_id,
+            "start_date": date(2026, 4, 15),
+            "end_date": date(2026, 4, 20),
+            "reason": "Maintenance",
+            "floor_number": "10",
+        }
+
+        with patch("src.services.booking_rules.delete_floor_closure.db", mock_db):
+            from unittest.mock import AsyncMock
+
+            with patch(
+                "src.services.booking_rules.delete_floor_closure.NotificationsServiceClient"
+            ) as mock_notif:
+                mock_notif_instance = AsyncMock()
+                mock_notif.return_value = mock_notif_instance
+
+                result = await delete_floor_closure(
+                    str(sample_user_id), str(closure_id)
+                )
+
+                assert str(result.closure_id) == str(closure_id)
+                assert str(result.floor_id) == str(sample_floor_id)
+                assert result.message == "Floor closure deleted successfully"
+                mock_notif_instance.post.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_delete_floor_closure_not_found(self, mock_db, sample_user_id):
+        """Test deleting non-existent closure.
+
+        Verifies that attempting to delete a non-existent closure
+        raises a ValueError with the message 'Floor closure not found'.
+        """
+        from src.services.booking_rules.delete_floor_closure import (
+            delete_floor_closure,
+        )
+
+        mock_db.fetchrow.return_value = None
+
+        with patch("src.services.booking_rules.delete_floor_closure.db", mock_db):
+            with pytest.raises(ValueError, match="Floor closure not found"):
+                await delete_floor_closure(str(sample_user_id), str(uuid4()))
+
+    @pytest.mark.asyncio
+    async def test_delete_indefinite_closure(
+        self, mock_db, sample_floor_id, sample_user_id
+    ):
+        """Test deleting an indefinite closure.
+
+        Verifies that deleting a closure with no end_date (indefinite)
+        is handled correctly with appropriate notification message.
+        """
+        from src.services.booking_rules.delete_floor_closure import (
+            delete_floor_closure,
+        )
+        from datetime import date
+
+        closure_id = uuid4()
+        mock_db.fetchrow.return_value = {
+            "closure_id": closure_id,
+            "floor_id": sample_floor_id,
+            "start_date": date(2026, 4, 15),
+            "end_date": None,
+            "reason": "Indefinite maintenance",
+            "floor_number": "10",
+        }
+
+        with patch("src.services.booking_rules.delete_floor_closure.db", mock_db):
+            from unittest.mock import AsyncMock
+
+            with patch(
+                "src.services.booking_rules.delete_floor_closure.NotificationsServiceClient"
+            ) as mock_notif:
+                mock_notif_instance = AsyncMock()
+                mock_notif.return_value = mock_notif_instance
+
+                result = await delete_floor_closure(
+                    str(sample_user_id), str(closure_id)
+                )
+
+                assert str(result.closure_id) == str(closure_id)
+                # Check that notification was sent with indefinite closure message
+                call_args = mock_notif_instance.post.call_args
+                assert "Indefinite" in call_args[0][1]["title"]

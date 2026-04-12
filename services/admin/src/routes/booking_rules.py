@@ -8,11 +8,15 @@ from src.models.responses import (
     AllBookingRulesResponse,
     UpdateFloorStatusResponse,
     AllFloorsResponse,
+    FloorClosuresResponse,
+    DeleteFloorClosureResponse,
 )
 from src.services.booking_rules.get_booking_rules import get_booking_rules
 from src.services.booking_rules.update_booking_rules import update_booking_rules
 from src.services.booking_rules.update_floor_status import update_floor_status
 from src.services.booking_rules.get_all_floors import get_all_floors
+from src.services.booking_rules.get_floor_closures import get_floor_closures
+from src.services.booking_rules.delete_floor_closure import delete_floor_closure
 
 router = APIRouter(prefix="/booking-rules", tags=["admin-rules"])
 
@@ -75,3 +79,29 @@ async def get_floors_endpoint(_: dict = Depends(get_current_user)):
         return await get_all_floors()
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve floors")
+
+
+@router.get("/floors/{floor_id}/closures", response_model=FloorClosuresResponse)
+async def get_floor_closures_endpoint(
+    floor_id: str,
+    _: dict = Depends(get_current_user),
+):
+    """Get all active and upcoming closures for a specific floor."""
+    try:
+        return await get_floor_closures(floor_id)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to retrieve floor closures")
+
+
+@router.delete("/closures/{closure_id}", response_model=DeleteFloorClosureResponse)
+async def delete_floor_closure_endpoint(
+    closure_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Delete a specific floor closure."""
+    try:
+        return await delete_floor_closure(current_user["user_id"], closure_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to delete floor closure")

@@ -71,6 +71,16 @@ const SpecialRequests = () => {
     setCurrentPage(1)
   }, [searchQuery, floorFilter, statusFilter])
 
+  const handlePendingClick = () => {
+    setStatusFilter('pending');
+    setCurrentPage(1);
+  };
+
+  const handleActiveClick = () => {
+    setStatusFilter('active');
+    setCurrentPage(1);
+  };
+
   const pendingCount = specialRequests?.filter((r) => r.status === 'pending').length || 0
   const activeCount = specialRequests?.filter((r) => r.status === 'active').length || 0
 
@@ -87,12 +97,14 @@ const SpecialRequests = () => {
             value={pendingCount}
             icon={Loader}
             color="orange"
+            onClick={handlePendingClick}
           />
           <StatCard
             label="Active Requests"
             value={activeCount}
             icon={CalendarDays}
             color="brightBlue"
+            onClick={handleActiveClick}
           />
         </div>
 

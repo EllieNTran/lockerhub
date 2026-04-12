@@ -26,7 +26,7 @@ updated_key AS (
     UPDATE lockerhub.keys
     SET status = 'with_employee'::lockerhub.key_status, updated_at = CURRENT_TIMESTAMP, updated_by = $2
     WHERE locker_id = (SELECT locker_id FROM booking_info) 
-    AND status = 'awaiting_handover'::lockerhub.key_status
+    AND status IN ('available'::lockerhub.key_status, 'awaiting_handover'::lockerhub.key_status)
     RETURNING key_id, key_number, status
 ),
 updated_locker AS (

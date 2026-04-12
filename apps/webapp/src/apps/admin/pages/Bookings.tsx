@@ -80,6 +80,24 @@ const Bookings = () => {
     setManageDialogOpen(true);
   };
 
+  const handleActiveBookingsClick = () => {
+    setStatusFilter('active');
+    setKeyStatusFilter('all');
+    setCurrentPage(1);
+  };
+
+  const handlePendingHandoversClick = () => {
+    setKeyStatusFilter('awaiting_handover');
+    setStatusFilter('all');
+    setCurrentPage(1);
+  };
+
+  const handlePendingReturnsClick = () => {
+    setKeyStatusFilter('awaiting_return');
+    setStatusFilter('all');
+    setCurrentPage(1);
+  };
+
   const filteredBookings = bookingsData?.filter((booking) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
@@ -112,9 +130,27 @@ const Bookings = () => {
           description="Track all bookings, confirm key handovers, and record key returns."
         />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-tour="admin-bookings-stats">
-          <StatCard label="Active Bookings" value={activeBookings} icon={CalendarDays} color="green" />
-          <StatCard label="Pending Key Handover" value={pendingHandovers} icon={KeyRound} color="orange" />
-          <StatCard label="Pending Key Return" value={pendingReturns} icon={Undo2} color="brightBlue" />
+          <StatCard
+            label="Active Bookings"
+            value={activeBookings}
+            icon={CalendarDays}
+            color="green"
+            onClick={handleActiveBookingsClick}
+          />
+          <StatCard
+            label="Pending Key Handover"
+            value={pendingHandovers}
+            icon={KeyRound}
+            color="orange"
+            onClick={handlePendingHandoversClick}
+          />
+          <StatCard
+            label="Pending Key Return"
+            value={pendingReturns}
+            icon={Undo2}
+            color="brightBlue"
+            onClick={handlePendingReturnsClick}
+          />
         </div>
 
         <div data-tour="admin-bookings-filters">
