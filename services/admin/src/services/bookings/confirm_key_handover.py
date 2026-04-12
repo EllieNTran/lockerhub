@@ -13,11 +13,16 @@ WITH booking_info AS (
         b.locker_id,
         b.status,
         b.start_date,
+        b.special_request_id,
         u.user_id,
-        l.locker_number
+        l.locker_number,
+        k.key_id,
+        k.key_number,
+        k.status AS key_status
     FROM lockerhub.bookings b
     INNER JOIN lockerhub.users u ON b.user_id = u.user_id
     INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
+    LEFT JOIN lockerhub.keys k ON l.locker_id = k.locker_id
     WHERE booking_id = $1
     AND b.status = 'upcoming'::lockerhub.booking_status
     AND b.start_date <= $3
@@ -35,6 +40,13 @@ updated_locker AS (
     WHERE locker_id = (SELECT locker_id FROM booking_info)
     RETURNING locker_id
 ),
+updated_request AS (
+    UPDATE lockerhub.requests
+    SET status = 'active'::lockerhub.request_status
+    WHERE request_id = (SELECT special_request_id FROM booking_info)
+    AND (SELECT special_request_id FROM booking_info) IS NOT NULL
+    RETURNING request_id
+),
 updated_booking AS (
     UPDATE lockerhub.bookings
     SET status = 'active'::lockerhub.booking_status,
@@ -48,15 +60,16 @@ SELECT
     bi.booking_id,
     bi.user_id,
     bi.locker_number,
-    uk.key_id,
-    uk.key_number,
-    uk.status AS key_status,
+    bi.key_id,
+    bi.key_number,
+    bi.key_status,
     ub.booking_id AS booking_updated,
     ub.status AS booking_status
 FROM booking_info bi
-CROSS JOIN updated_key uk
+LEFT JOIN updated_key uk ON true
 LEFT JOIN updated_locker ul ON true
-CROSS JOIN updated_booking ub
+LEFT JOIN updated_request ur ON true
+LEFT JOIN updated_booking ub ON true
 """
 
 
