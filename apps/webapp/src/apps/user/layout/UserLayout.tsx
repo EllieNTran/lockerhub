@@ -9,18 +9,16 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [hasSeenTutorial, setHasSeenTutorial] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('hasSeenTutorial') === 'true';
+    }
+    return false;
+  });
+  const isAdmin = typeof window !== 'undefined' && localStorage.getItem('userRole') === 'admin';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const tutorialStatus = localStorage.getItem('hasSeenTutorial');
-      const userRole = localStorage.getItem('userRole');
-
-      setHasSeenTutorial(tutorialStatus === 'true');
-      setIsAdmin(userRole === 'admin');
-
-      // Listen for storage changes (tutorial completion)
       const handleStorageChange = () => {
         const updatedStatus = localStorage.getItem('hasSeenTutorial');
         setHasSeenTutorial(updatedStatus === 'true');
