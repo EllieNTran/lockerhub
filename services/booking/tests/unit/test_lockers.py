@@ -204,3 +204,43 @@ class TestLockerStatusValidation:
         """
         valid_statuses = ["available", "occupied", "reserved", "maintenance"]
         assert locker_status in valid_statuses
+
+
+class TestCheckLockerAvailabilityException:
+    """Tests for exception handling in check_locker_availability."""
+
+    @pytest.mark.asyncio
+    async def test_check_locker_availability_database_error(self, mock_db):
+        """Test exception handler in check_locker_availability."""
+        from src.services.check_locker_availability import check_locker_availability
+        from uuid import uuid4
+
+        mock_db.fetchval.side_effect = Exception("Database connection failed")
+
+        with patch("src.services.check_locker_availability.db", mock_db):
+            with pytest.raises(Exception):
+                await check_locker_availability(
+                    str(uuid4()),
+                    "2026-04-01",
+                    "2026-04-10",
+                )
+
+
+class TestGetAvailableLockersException:
+    """Tests for exception handling in get_available_lockers."""
+
+    @pytest.mark.asyncio
+    async def test_get_available_lockers_database_error(self, mock_db):
+        """Test exception handler in get_available_lockers."""
+        from src.services.get_available_lockers import get_available_lockers
+        from uuid import uuid4
+
+        mock_db.fetch.side_effect = Exception("Database connection failed")
+
+        with patch("src.services.get_available_lockers.db", mock_db):
+            with pytest.raises(Exception):
+                await get_available_lockers(
+                    str(uuid4()),
+                    "2026-04-01",
+                    "2026-04-10",
+                )

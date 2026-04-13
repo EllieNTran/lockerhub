@@ -211,3 +211,19 @@ class TestGetMostPopularFloors:
             assert (
                 result.floors[i].occupied_count >= result.floors[i + 1].occupied_count
             )
+
+    @pytest.mark.asyncio
+    async def test_get_most_popular_floors_value_error(self, mock_db):
+        """
+        Verify ValueError is propagated from date_utils.
+        Mock get_date_range to raise ValueError.
+        Expect ValueError to be raised.
+        """
+        from src.services.get_most_popular_floors import get_most_popular_floors
+
+        with patch(
+            "src.services.get_most_popular_floors.get_date_range",
+            side_effect=ValueError("Invalid period"),
+        ):
+            with pytest.raises(ValueError, match="Invalid period"):
+                await get_most_popular_floors(period="invalid_period")

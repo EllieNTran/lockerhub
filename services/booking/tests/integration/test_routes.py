@@ -115,6 +115,21 @@ class TestBookingRoutes:
         assert len(data["bookings"]) == 1
         assert data["bookings"][0]["booking_id"] == str(booking_id)
 
+    async def test_get_user_bookings_error(self, test_client):
+        """
+        Verify error handling when retrieval fails.
+        Mock service raises exception.
+        Expect 500 status with error message.
+        """
+        with patch(
+            "src.routes.bookings.get_user_bookings",
+            AsyncMock(side_effect=Exception("Database connection error")),
+        ):
+            response = await test_client.get("/bookings")
+
+        assert response.status_code == 500
+        assert "Failed to retrieve bookings" in response.json()["detail"]
+
     async def test_get_booking_by_id(self, test_client):
         """
         Verify retrieval of specific booking by ID.
@@ -246,6 +261,65 @@ class TestBookingRoutes:
         data = response.json()
         assert data["booking_id"] == str(booking_id)
 
+    async def test_update_booking_error(self, test_client):
+        """
+        Verify error handling when update fails.
+        Mock service raises ValueError.
+        Expect 400 status with error message.
+        """
+        booking_id = uuid4()
+        new_end_date = date.today() + timedelta(days=2)
+
+        with patch(
+            "src.routes.bookings.update_booking",
+            AsyncMock(side_effect=ValueError("Cannot extend booking end date")),
+        ):
+            response = await test_client.put(
+                f"/bookings/{str(booking_id)}",
+                json={"new_end_date": str(new_end_date)},
+            )
+
+        assert response.status_code == 400
+        assert "Cannot extend booking end date" in response.json()["detail"]
+
+    async def test_cancel_booking_error(self, test_client):
+        """
+        Verify error handling when cancellation fails.
+        Mock service raises ValueError.
+        Expect 400 status with error message.
+        """
+        booking_id = uuid4()
+
+        with patch(
+            "src.routes.bookings.cancel_booking",
+            AsyncMock(side_effect=ValueError("Booking already cancelled")),
+        ):
+            response = await test_client.put(f"/bookings/{str(booking_id)}/cancel")
+
+        assert response.status_code == 400
+        assert "Booking already cancelled" in response.json()["detail"]
+
+    async def test_extend_booking_error(self, test_client):
+        """
+        Verify error handling when extension fails.
+        Mock service raises ValueError.
+        Expect 400 status with error message.
+        """
+        booking_id = uuid4()
+        new_end_date = date.today() + timedelta(days=7)
+
+        with patch(
+            "src.routes.bookings.extend_booking",
+            AsyncMock(side_effect=ValueError("Extension exceeds maximum duration")),
+        ):
+            response = await test_client.post(
+                f"/bookings/{str(booking_id)}/extend",
+                json={"new_end_date": str(new_end_date)},
+            )
+
+        assert response.status_code == 400
+        assert "Extension exceeds maximum duration" in response.json()["detail"]
+
 
 class TestLockerRoutes:
     """Test locker availability HTTP endpoints."""
@@ -305,6 +379,27 @@ class TestLockerRoutes:
         assert "lockers" in data
         assert len(data["lockers"]) == 2
 
+    async def test_get_available_lockers_error(self, test_client):
+        """
+        Verify error handling when retrieval of available lockers fails.
+        Mock service raises exception.
+        Expect 500 status with error message.
+        """
+        floor_id = str(uuid4())
+        today = date.today()
+        end_date = today + timedelta(days=3)
+
+        with patch(
+            "src.routes.bookings.get_available_lockers",
+            AsyncMock(side_effect=Exception("Database query failed")),
+        ):
+            response = await test_client.get(
+                f"/bookings/lockers/available?floor_id={floor_id}&start_date={today}&end_date={end_date}"
+            )
+
+        assert response.status_code == 500
+        assert "Failed to retrieve available lockers" in response.json()["detail"]
+
     async def test_check_locker_availability(self, test_client):
         """
         Verify locker availability check for date range.
@@ -328,9 +423,114 @@ class TestLockerRoutes:
         assert data["available"] is True
         assert data["locker_id"] == locker_id
 
+    async def test_check_locker_availability_error(self, test_client):
+        """
+        Verify error handling when availability check fails.
+        Mock service raises exception.
+        Expect 500 status with error message.
+        """
+        locker_id = str(uuid4())
+        today = date.today()
+        end_date = today + timedelta(days=3)
+
+        with patch(
+            "src.routes.bookings.check_locker_availability",
+            AsyncMock(side_effect=Exception("Database connection error")),
+        ):
+            response = await test_client.get(
+                f"/bookings/lockers/{locker_id}/availability?start_date={today}&end_date={end_date}"
+            )
+
+        assert response.status_code == 500
+        assert "Failed to check availability" in response.json()["detail"]
+
+
+class TestBookingRuleRoutes:
+    """Test booking rule HTTP endpoints."""
+
+    pytestmark = pytest.mark.asyncio
+
+    async def test_get_booking_rule_success(self, test_client):
+        """
+        Verify retrieval of booking rule by type.
+        Mock service returns rule details.
+        Expect 200 status with rule value.
+        """
+        rule_type = "max_booking_days"
+        mock_rule = {
+            "booking_rule_id": uuid4(),
+            "name": "Maximum Booking Duration",
+            "value": 90,
+            "rule_type": rule_type,
+        }
+
+        from src.models.responses import BookingRuleResponse
+
+        mock_response = BookingRuleResponse(**mock_rule)
+
+        with patch(
+            "src.routes.bookings.get_booking_rule",
+            AsyncMock(return_value=mock_response),
+        ):
+            response = await test_client.get(f"/bookings/booking-rule/{rule_type}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["rule_type"] == rule_type
+        assert data["value"] == 90
+
+    async def test_get_booking_rule_not_found(self, test_client):
+        """
+        Verify error handling for non-existent rule type.
+        Mock service returns None.
+        Expect 404 status.
+        """
+        rule_type = "nonexistent_rule"
+
+        with patch(
+            "src.routes.bookings.get_booking_rule",
+            AsyncMock(return_value=None),
+        ):
+            response = await test_client.get(f"/bookings/booking-rule/{rule_type}")
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"]
+
+    async def test_get_booking_rule_service_error(self, test_client):
+        """
+        Verify error handling when service fails.
+        Mock service raises exception.
+        Expect 500 status.
+        """
+        rule_type = "max_booking_days"
+
+        with patch(
+            "src.routes.bookings.get_booking_rule",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get(f"/bookings/booking-rule/{rule_type}")
+
+        assert response.status_code == 500
+        assert "Failed to retrieve booking rule" in response.json()["detail"]
+
 
 class TestFloorRoutes:
     """Test floor HTTP endpoints."""
+
+    async def test_get_floors_error(self, test_client):
+        """
+        Verify error handling when floor retrieval fails.
+        Mock service raises exception.
+        Expect 500 status with error message.
+        """
+        with patch(
+            "src.routes.bookings.get_floors",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/bookings/floors")
+
+        assert response.status_code == 500
+        assert "Failed to retrieve floors" in response.json()["detail"]
 
     pytestmark = pytest.mark.asyncio
 
@@ -439,11 +639,255 @@ class TestWaitlistRoutes:
 
         assert response.status_code == 409
 
+    async def test_get_user_queues(self, test_client):
+        """
+        Verify retrieval of user's waitlist entries.
+        Mock service returns list of queue entries.
+        Expect 200 status with queues array.
+        """
+        floor_id = uuid4()
+        today = date.today()
+        now = datetime.now()
+
+        mock_queues = {
+            "queues": [
+                {
+                    "floor_queue_id": 1,
+                    "request_id": 123,
+                    "floor_id": floor_id,
+                    "floor_number": "10",
+                    "start_date": today,
+                    "end_date": today + timedelta(days=3),
+                    "created_at": now,
+                }
+            ]
+        }
+
+        with patch(
+            "src.routes.bookings.get_user_queues", AsyncMock(return_value=mock_queues)
+        ):
+            response = await test_client.get("/bookings/waitlist")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "queues" in data
+        assert len(data["queues"]) == 1
+        assert data["queues"][0]["floor_queue_id"] == 1
+        assert data["queues"][0]["request_id"] == 123
+
+    async def test_delete_user_queue_success(self, test_client):
+        """
+        Verify removal of user from waitlist.
+        Mock service successfully deletes queue entry.
+        Expect 200 status with floor_queue_id.
+        """
+        floor_queue_id = 123
+
+        mock_result = {
+            "message": "Successfully removed from waitlist",
+            "floor_queue_id": floor_queue_id,
+        }
+
+        with patch(
+            "src.routes.bookings.delete_user_queue",
+            AsyncMock(return_value=mock_result),
+        ):
+            response = await test_client.delete(f"/bookings/waitlist/{floor_queue_id}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["floor_queue_id"] == floor_queue_id
+        assert "message" in data
+
+    async def test_delete_user_queue_not_found(self, test_client):
+        """
+        Verify error handling when queue entry doesn't exist.
+        Mock service raises ValueError.
+        Expect 404 status.
+        """
+        floor_queue_id = 999
+
+        with patch(
+            "src.routes.bookings.delete_user_queue",
+            AsyncMock(side_effect=ValueError("Queue entry not found")),
+        ):
+            response = await test_client.delete(f"/bookings/waitlist/{floor_queue_id}")
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"]
+
+    async def test_process_floor_queue_all_floors(self, test_client):
+        """
+        Verify processing queue for all floors.
+        Mock service processes all floor queues.
+        Expect 200 status with allocation results.
+        """
+        mock_result = {
+            "message": "Processed queues for all floors",
+            "allocations_made": 3,
+            "success": True,
+        }
+
+        with patch(
+            "src.routes.bookings.process_floor_queue",
+            AsyncMock(return_value=type("obj", (object,), mock_result)),
+        ):
+            response = await test_client.post("/bookings/waitlist/process-floor-queue")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["allocations_made"] == 3
+        assert data["success"] is True
+
+    async def test_process_floor_queue_specific_floor(self, test_client):
+        """
+        Verify processing queue for specific floor.
+        Mock service processes queue for given floor_id.
+        Expect 200 status with allocation results.
+        """
+        floor_id = str(uuid4())
+        mock_result = {
+            "message": f"Processed queue for floor {floor_id}",
+            "allocations_made": 1,
+            "success": True,
+        }
+
+        with patch(
+            "src.routes.bookings.process_floor_queue",
+            AsyncMock(return_value=type("obj", (object,), mock_result)),
+        ):
+            response = await test_client.post(
+                f"/bookings/waitlist/process-floor-queue?floor_id={floor_id}"
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["allocations_made"] == 1
+        assert data["success"] is True
+
+    async def test_get_user_queues_error(self, test_client):
+        """
+        Verify error handling when queue retrieval fails.
+        Mock service raises exception.
+        Expect 500 status with error message.
+        """
+        with patch(
+            "src.routes.bookings.get_user_queues",
+            AsyncMock(side_effect=Exception("Database connection error")),
+        ):
+            response = await test_client.get("/bookings/waitlist")
+
+        assert response.status_code == 500
+        assert "Failed to retrieve user queues" in response.json()["detail"]
+
+    async def test_process_floor_queue_error(self, test_client):
+        """
+        Verify error handling when queue processing fails.
+        Mock service raises exception.
+        Expect 500 status with error message.
+        """
+        with patch(
+            "src.routes.bookings.process_floor_queue",
+            AsyncMock(side_effect=Exception("Failed to allocate lockers")),
+        ):
+            response = await test_client.post("/bookings/waitlist/process-floor-queue")
+
+        assert response.status_code == 500
+        assert "Failed to process floor queue" in response.json()["detail"]
+
 
 class TestScheduledJobRoutes:
     """Test scheduled job HTTP endpoints."""
 
     pytestmark = pytest.mark.asyncio
+
+    async def test_update_booking_statuses(self, test_client):
+        """
+        Verify manual trigger of update booking statuses job.
+        Mock scheduled job completes successfully.
+        Expect 200 status with success message.
+        """
+        with patch("src.routes.scheduled_jobs.update_booking_statuses", AsyncMock()):
+            response = await test_client.post("/scheduled-jobs/update-booking-statuses")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "Update booking statuses job completed" in data["message"]
+
+    async def test_expire_overdue_bookings(self, test_client):
+        """
+        Verify manual trigger of expire overdue bookings job.
+        Mock scheduled job completes successfully.
+        Expect 200 status with success message.
+        """
+        with patch("src.routes.scheduled_jobs.expire_overdue_bookings", AsyncMock()):
+            response = await test_client.post("/scheduled-jobs/expire-overdue-bookings")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "Expire overdue bookings job completed" in data["message"]
+
+    async def test_send_key_return_reminders(self, test_client):
+        """
+        Verify manual trigger of send key return reminders job.
+        Mock scheduled job completes successfully.
+        Expect 200 status with success message.
+        """
+        with patch("src.routes.scheduled_jobs.send_key_return_reminders", AsyncMock()):
+            response = await test_client.post(
+                "/scheduled-jobs/send-key-return-reminders"
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "Send key return reminders job completed" in data["message"]
+
+    async def test_update_booking_statuses_error(self, test_client):
+        """
+        Verify error handling when update booking statuses job fails.
+        Mock scheduled job raises exception.
+        Expect 500 status with error message.
+        """
+        with patch(
+            "src.routes.scheduled_jobs.update_booking_statuses",
+            AsyncMock(side_effect=Exception("Database connection error")),
+        ):
+            response = await test_client.post("/scheduled-jobs/update-booking-statuses")
+
+        assert response.status_code == 500
+        assert "Failed to update booking statuses" in response.json()["detail"]
+
+    async def test_expire_overdue_bookings_error(self, test_client):
+        """
+        Verify error handling when expire overdue bookings job fails.
+        Mock scheduled job raises exception.
+        Expect 500 status with error message.
+        """
+        with patch(
+            "src.routes.scheduled_jobs.expire_overdue_bookings",
+            AsyncMock(side_effect=Exception("Database query failed")),
+        ):
+            response = await test_client.post("/scheduled-jobs/expire-overdue-bookings")
+
+        assert response.status_code == 500
+        assert "Failed to expire overdue bookings" in response.json()["detail"]
+
+    async def test_send_key_return_reminders_error(self, test_client):
+        """
+        Verify error handling when send key return reminders job fails.
+        Mock scheduled job raises exception.
+        Expect 500 status with error message.
+        """
+        with patch(
+            "src.routes.scheduled_jobs.send_key_return_reminders",
+            AsyncMock(side_effect=Exception("Notifications service unavailable")),
+        ):
+            response = await test_client.post(
+                "/scheduled-jobs/send-key-return-reminders"
+            )
+
+        assert response.status_code == 500
+        assert "Failed to send key return reminders" in response.json()["detail"]
 
 
 class TestSpecialRequestRoutes:

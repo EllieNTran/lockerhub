@@ -43,5 +43,5 @@ async def update_locker_coordinates(
     except ValueError:
         raise
     except Exception:
-        logger.error(f"Error updating locker coordinates: {e}")
+        logger.error("Error updating locker coordinates")
         raise

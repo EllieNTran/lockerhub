@@ -282,6 +282,225 @@ class TestUpdateFloorStatus:
                     user_id=str(sample_user_id),
                 )
 
+    @pytest.mark.asyncio
+    async def test_update_floor_status_scheduled_closure_with_end_date(
+        self, mock_db, sample_floor_id, sample_user_id
+    ):
+        """Test scheduled closure with start and end dates.
+
+        Verifies that scheduling a floor closure with both start and end dates
+        creates a closure and cancels affected bookings.
+        """
+        from src.services.booking_rules.update_floor_status import update_floor_status
+        from datetime import date
+
+        mock_db.fetchrow.return_value = {
+            "floor_id": sample_floor_id,
+            "floor_number": "10",
+            "status": "open",
+            "closure_id": 1,
+        }
+        mock_db.fetch.return_value = [
+            {
+                "booking_id": uuid4(),
+                "user_id": uuid4(),
+                "email": "test@example.com",
+                "first_name": "Test",
+                "last_name": "User",
+                "locker_number": "DL10-01-01",
+                "start_date": date(2026, 4, 1),
+                "end_date": date(2026, 4, 30),
+                "floor_number": "10",
+                "key_status": "with_user",
+                "key_number": "AA123",
+            }
+        ]
+
+        with patch("src.services.booking_rules.update_floor_status.db", mock_db):
+            from unittest.mock import AsyncMock
+
+            with patch(
+                "src.services.booking_rules.update_floor_status.NotificationsServiceClient"
+            ) as mock_notif:
+                mock_notif_instance = AsyncMock()
+                mock_notif.return_value = mock_notif_instance
+
+                result = await update_floor_status(
+                    floor_id=str(sample_floor_id),
+                    status="closed",
+                    start_date=date(2026, 4, 1),
+                    end_date=date(2026, 4, 30),
+                    user_id=str(sample_user_id),
+                )
+
+                assert str(result.floor_id) == str(sample_floor_id)
+                assert result.floor_number == "10"
+                assert result.status == "open"
+                assert mock_notif_instance.post.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_update_floor_status_scheduled_closure_no_end_date(
+        self, mock_db, sample_floor_id, sample_user_id
+    ):
+        """Test scheduled closure without end date.
+
+        Verifies that scheduling an indefinite floor closure without end date
+        creates the closure correctly.
+        """
+        from src.services.booking_rules.update_floor_status import update_floor_status
+        from datetime import date
+
+        mock_db.fetchrow.return_value = {
+            "floor_id": sample_floor_id,
+            "floor_number": "10",
+            "status": "open",
+            "closure_id": 1,
+        }
+        mock_db.fetch.return_value = []
+
+        with patch("src.services.booking_rules.update_floor_status.db", mock_db):
+            from unittest.mock import AsyncMock
+
+            with patch(
+                "src.services.booking_rules.update_floor_status.NotificationsServiceClient"
+            ) as mock_notif:
+                mock_notif_instance = AsyncMock()
+                mock_notif.return_value = mock_notif_instance
+
+                result = await update_floor_status(
+                    floor_id=str(sample_floor_id),
+                    status="closed",
+                    start_date=date(2026, 5, 1),
+                    user_id=str(sample_user_id),
+                )
+
+                assert str(result.floor_id) == str(sample_floor_id)
+                assert result.status == "open"
+
+    @pytest.mark.asyncio
+    async def test_update_floor_status_scheduled_closure_floor_not_found(
+        self, mock_db, sample_floor_id, sample_user_id
+    ):
+        """Test scheduled closure when floor doesn't exist.
+
+        Verifies that attempting to schedule a closure for non-existent floor
+        raises ValueError.
+        """
+        from src.services.booking_rules.update_floor_status import update_floor_status
+        from datetime import date
+
+        mock_db.fetchrow.return_value = None
+
+        with patch("src.services.booking_rules.update_floor_status.db", mock_db):
+            with pytest.raises(ValueError, match="Floor not found"):
+                await update_floor_status(
+                    floor_id=str(sample_floor_id),
+                    status="closed",
+                    start_date=date(2026, 5, 1),
+                    user_id=str(sample_user_id),
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_floor_status_immediate_closure_with_reason(
+        self, mock_db, sample_floor_id, sample_user_id
+    ):
+        """Test immediate closure with reason.
+
+        Verifies that closing a floor immediately with a reason includes
+        the reason in the notification.
+        """
+        from src.services.booking_rules.update_floor_status import update_floor_status
+
+        mock_db.fetch.return_value = []
+        mock_db.fetchrow.return_value = {
+            "floor_id": sample_floor_id,
+            "floor_number": "10",
+            "status": "closed",
+        }
+
+        with patch("src.services.booking_rules.update_floor_status.db", mock_db):
+            from unittest.mock import AsyncMock
+
+            with patch(
+                "src.services.booking_rules.update_floor_status.NotificationsServiceClient"
+            ) as mock_notif:
+                mock_notif_instance = AsyncMock()
+                mock_notif.return_value = mock_notif_instance
+
+                result = await update_floor_status(
+                    floor_id=str(sample_floor_id),
+                    status="closed",
+                    reason="Emergency maintenance",
+                    user_id=str(sample_user_id),
+                )
+
+                assert result.status == "closed"
+                assert mock_notif_instance.post.called
+
+    @pytest.mark.asyncio
+    async def test_update_floor_status_immediate_closure_floor_not_found(
+        self, mock_db, sample_floor_id, sample_user_id
+    ):
+        """Test immediate closure when floor doesn't exist.
+
+        Verifies that attempting immediate closure on non-existent floor
+        raises ValueError.
+        """
+        from src.services.booking_rules.update_floor_status import update_floor_status
+
+        mock_db.fetch.return_value = []
+        mock_db.fetchrow.return_value = None
+
+        with patch("src.services.booking_rules.update_floor_status.db", mock_db):
+            with pytest.raises(ValueError, match="Floor not found"):
+                await update_floor_status(
+                    floor_id=str(sample_floor_id),
+                    status="closed",
+                    user_id=str(sample_user_id),
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_floor_status_reopen_floor_not_found(
+        self, mock_db, sample_floor_id, sample_user_id
+    ):
+        """Test reopening when floor doesn't exist.
+
+        Verifies that attempting to reopen a non-existent floor
+        raises ValueError.
+        """
+        from src.services.booking_rules.update_floor_status import update_floor_status
+
+        mock_db.execute.return_value = None
+        mock_db.fetchrow.return_value = None
+
+        with patch("src.services.booking_rules.update_floor_status.db", mock_db):
+            with pytest.raises(ValueError, match="Floor not found"):
+                await update_floor_status(
+                    floor_id=str(sample_floor_id),
+                    status="open",
+                    user_id=str(sample_user_id),
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_floor_status_exception_handling(
+        self, mock_db, sample_floor_id, sample_user_id
+    ):
+        """Test generic exception handling.
+
+        Verifies that unexpected errors are properly raised.
+        """
+        from src.services.booking_rules.update_floor_status import update_floor_status
+
+        mock_db.fetch.side_effect = Exception("Database error")
+
+        with patch("src.services.booking_rules.update_floor_status.db", mock_db):
+            with pytest.raises(Exception, match="Database error"):
+                await update_floor_status(
+                    floor_id=str(sample_floor_id),
+                    status="closed",
+                    user_id=str(sample_user_id),
+                )
+
 
 @pytest.mark.unit
 class TestGetAllFloors:

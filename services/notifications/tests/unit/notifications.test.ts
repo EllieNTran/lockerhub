@@ -112,6 +112,39 @@ describe('Notification Services', () => {
       )
     })
 
+    it('should successfully create floor-scoped notification', async () => {
+      /**
+       * Verify notification creation for floor scope.
+       * Mock database stores floor target.
+       */
+      const floorRequest = {
+        ...validNotificationRequest,
+        scope: 'floor' as const,
+        floorId: '123e4567-e89b-12d3-a456-426614174000',
+      }
+      const mockNotification = createMockNotification({
+        scope: 'floor',
+        target_floor_id: floorRequest.floorId,
+      })
+      const mockClient = createMockDbClient()
+
+      mockClient.query
+        .mockResolvedValueOnce(undefined) // BEGIN
+        .mockResolvedValueOnce(createMockQueryResult([mockNotification])) // INSERT
+        .mockResolvedValueOnce(undefined) // COMMIT
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
+
+      const result = await createNotification(floorRequest)
+
+      expect(result.success).toBe(true)
+      expect(mockClient.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO lockerhub.notifications'),
+        expect.arrayContaining([floorRequest.floorId]),
+      )
+    })
+
     it('should rollback transaction on error', async () => {
       /**
        * Verify transaction rollback on database error.
@@ -130,6 +163,160 @@ describe('Notification Services', () => {
 
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK')
       expect(mockClient.release).toHaveBeenCalled()
+    })
+
+    it('should throw error for user scope without userIds', async () => {
+      /**
+       * Verify validation error when user scope lacks userIds.
+       * Expects error to be thrown before database transaction.
+       */
+      const invalidRequest = {
+        ...validNotificationRequest,
+        scope: 'user' as const,
+        // Missing userIds
+      }
+      const mockClient = createMockDbClient()
+      mockClient.query.mockResolvedValueOnce(undefined) // BEGIN
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
+
+      await expect(createNotification(invalidRequest)).rejects.toThrow('userIds are required for user scope')
+
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK')
+      expect(mockClient.release).toHaveBeenCalled()
+    })
+
+    it('should throw error for user scope with empty userIds array', async () => {
+      /**
+       * Verify validation error when userIds array is empty.
+       * Expects error to be thrown before database transaction.
+       */
+      const invalidRequest = {
+        ...validNotificationRequest,
+        scope: 'user' as const,
+        userIds: [],
+      }
+      const mockClient = createMockDbClient()
+      mockClient.query.mockResolvedValueOnce(undefined) // BEGIN
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
+
+      await expect(createNotification(invalidRequest)).rejects.toThrow('userIds are required for user scope')
+
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK')
+    })
+
+    it('should throw error for department scope without departmentId', async () => {
+      /**
+       * Verify validation error when department scope lacks departmentId.
+       * Expects error to be thrown before database transaction.
+       */
+      const invalidRequest = {
+        ...validNotificationRequest,
+        scope: 'department' as const,
+        // Missing departmentId
+      }
+      const mockClient = createMockDbClient()
+      mockClient.query.mockResolvedValueOnce(undefined) // BEGIN
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
+
+      await expect(createNotification(invalidRequest)).rejects.toThrow('departmentId is required for department scope')
+
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK')
+      expect(mockClient.release).toHaveBeenCalled()
+    })
+
+    it('should throw error for floor scope without floorId', async () => {
+      /**
+       * Verify validation error when floor scope lacks floorId.
+       * Expects error to be thrown before database transaction.
+       */
+      const invalidRequest = {
+        ...validNotificationRequest,
+        scope: 'floor' as const,
+        // Missing floorId
+      }
+      const mockClient = createMockDbClient()
+      mockClient.query.mockResolvedValueOnce(undefined) // BEGIN
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
+
+      await expect(createNotification(invalidRequest)).rejects.toThrow('floorId is required for floor scope')
+
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK')
+      expect(mockClient.release).toHaveBeenCalled()
+    })
+
+    it('should throw error for invalid scope', async () => {
+      /**
+       * Verify validation error for unsupported scope type.
+       * Expects error to be thrown in default case.
+       */
+      const invalidRequest = {
+        ...validNotificationRequest,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        scope: 'invalid-scope' as any,
+      }
+      const mockClient = createMockDbClient()
+      mockClient.query.mockResolvedValueOnce(undefined) // BEGIN
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
+
+      await expect(createNotification(invalidRequest)).rejects.toThrow('Invalid scope: invalid-scope')
+
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK')
+      expect(mockClient.release).toHaveBeenCalled()
+    })
+
+    it('should create notification with minimal required fields and apply default values', async () => {
+      /**
+       * Verify notification creation with only required fields (title, scope).
+       * Test default values for optional fields: adminTitle, caption, type, entityType, createdBy.
+       * Covers lines 130-137 default value branches in notifications.ts.
+       */
+      const minimalRequest = {
+        title: 'Simple Notification',
+        scope: 'global' as const,
+        // All optional fields omitted: adminTitle, caption, type, entityType, createdBy
+      }
+
+      const mockNotification = createMockNotification({
+        title: minimalRequest.title,
+        scope: 'global',
+      })
+      const mockClient = createMockDbClient()
+
+      mockClient.query
+        .mockResolvedValueOnce(undefined) // BEGIN
+        .mockResolvedValueOnce(createMockQueryResult([mockNotification])) // INSERT notification
+        .mockResolvedValueOnce(undefined) // COMMIT
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(db, 'getClient').mockResolvedValue(mockClient as any)
+
+      const result = await createNotification(minimalRequest)
+
+      expect(result.success).toBe(true)
+      expect(result).toHaveProperty('notification_id')
+
+      // Verify INSERT query was called with default values
+      const insertCall = mockClient.query.mock.calls.find((call) => call[0].includes('INSERT INTO lockerhub.notifications'))
+      expect(insertCall).toBeDefined()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const params = insertCall![1] as any[]
+
+      // Expected defaults: adminTitle=null, caption=null, type='info', entityType=null, createdBy=null
+      expect(params).toContain(null) // adminTitle
+      expect(params).toContain(null) // caption
+      expect(params).toContain('info') // type (default)
+      expect(params).toContain(null) // entityType
+      expect(params).toContain(null) // createdBy
     })
   })
 
@@ -269,6 +456,28 @@ describe('Notification Services', () => {
       vi.spyOn(db, 'query').mockRejectedValue(new Error('Query failed'))
 
       await expect(getUserNotifications({ userId: sampleUserId })).rejects.toThrow('Query failed')
+    })
+
+    it('should handle empty unread count result with optional chaining default', async () => {
+      /**
+       * Verify unread count defaults to 0 when query returns empty rows.
+       * This covers line 239: unreadResult.rows[0]?.count || '0'
+       * Mock unread count query returns empty result set (no rows).
+       */
+      const mockNotifications = [
+        createMockNotificationWithReadStatus({ read: true }),
+      ]
+      // Empty rows array to trigger optional chaining fallback
+      const mockEmptyCountResult = createMockQueryResult([])
+
+      vi.spyOn(db, 'query')
+        .mockResolvedValueOnce(createMockQueryResult(mockNotifications))
+        .mockResolvedValueOnce(mockEmptyCountResult) // Empty rows array
+
+      const result = await getUserNotifications({ userId: sampleUserId })
+
+      expect(result.notifications).toHaveLength(1)
+      expect(result.unread).toBe(0) // Should default to 0 via || '0'
     })
   })
 })

@@ -89,6 +89,28 @@ class TestUserRoutes:
         # Route bug: HTTPException(404) is caught by except Exception, returns 500
         assert response.status_code == 500
 
+    async def test_get_all_users_error(self, test_client):
+        """Test error handling when retrieving users fails."""
+        with patch(
+            "src.routes.users.get_all_users",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/users")
+
+        assert response.status_code == 500
+
+    async def test_get_user_error(self, test_client):
+        """Test error handling when retrieving user fails."""
+        user_id = uuid4()
+
+        with patch(
+            "src.routes.users.get_user",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get(f"/admin/users/{str(user_id)}")
+
+        assert response.status_code == 500
+
 
 class TestLockerRoutes:
     """Test locker management HTTP endpoints."""
@@ -222,6 +244,27 @@ class TestLockerRoutes:
         assert data["locker_number"] == "DL10-01-01"
         assert "key_number" in data
 
+    async def test_create_locker_value_error(self, test_client):
+        """Test creating locker with invalid floor ID."""
+        floor_id = str(uuid4())
+
+        with patch(
+            "src.routes.lockers.create_locker",
+            AsyncMock(side_effect=ValueError("Floor does not exist")),
+        ):
+            response = await test_client.post(
+                "/admin/lockers",
+                json={
+                    "locker_number": "DL10-01-01",
+                    "floor_id": floor_id,
+                    "location": "Near elevator",
+                    "key_number": "AA123",
+                },
+            )
+
+        assert response.status_code == 400
+        assert "Floor does not exist" in response.json()["detail"]
+
     async def test_update_locker_coordinates(self, test_client):
         """
         Verify updating locker coordinates.
@@ -242,6 +285,22 @@ class TestLockerRoutes:
             )
 
         assert response.status_code == 200
+
+    async def test_update_locker_coordinates_value_error(self, test_client):
+        """Test updating coordinates with invalid locker ID."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.update_locker_coordinates",
+            AsyncMock(side_effect=ValueError("Locker not found")),
+        ):
+            response = await test_client.patch(
+                f"/admin/lockers/{str(locker_id)}/coordinates",
+                json={"x_coordinate": 150, "y_coordinate": 250},
+            )
+
+        assert response.status_code == 400
+        assert "Locker not found" in response.json()["detail"]
 
     async def test_get_all_keys(self, test_client):
         """
@@ -270,6 +329,356 @@ class TestLockerRoutes:
         data = response.json()
         assert "keys" in data
         assert len(data["keys"]) == 1
+
+    async def test_get_all_lockers_error(self, test_client):
+        """Test error handling when retrieving lockers fails."""
+        with patch(
+            "src.routes.lockers.get_all_lockers",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/lockers")
+
+        assert response.status_code == 500
+        assert "Failed to retrieve lockers" in response.json()["detail"]
+
+    async def test_get_locker_stats_error(self, test_client):
+        """Test error handling when retrieving locker stats fails."""
+        with patch(
+            "src.routes.lockers.get_locker_availability_statistics",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/lockers/stats")
+
+        assert response.status_code == 500
+
+    async def test_mark_locker_maintenance_value_error(self, test_client):
+        """Test marking locker maintenance with invalid locker."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.mark_locker_maintenance",
+            AsyncMock(side_effect=ValueError("Locker not found")),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/maintenance"
+            )
+
+        assert response.status_code == 400
+        assert "Locker not found" in response.json()["detail"]
+
+    async def test_mark_locker_maintenance_error(self, test_client):
+        """Test error handling when marking locker maintenance fails."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.mark_locker_maintenance",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/maintenance"
+            )
+
+        assert response.status_code == 500
+
+    async def test_report_lost_key(self, test_client):
+        """Test reporting a lost key."""
+        locker_id = uuid4()
+
+        mock_result = {
+            "locker_id": locker_id,
+            "locker_number": "DL10-01-01",
+            "status": "maintenance",
+        }
+
+        with patch(
+            "src.routes.lockers.report_lost_key",
+            AsyncMock(return_value=mock_result),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/lost-key"
+            )
+
+        assert response.status_code == 200
+
+    async def test_report_lost_key_value_error(self, test_client):
+        """Test reporting lost key with invalid locker."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.report_lost_key",
+            AsyncMock(side_effect=ValueError("Locker not found")),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/lost-key"
+            )
+
+        assert response.status_code == 400
+
+    async def test_report_lost_key_error(self, test_client):
+        """Test error handling when reporting lost key fails."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.report_lost_key",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/lost-key"
+            )
+
+        assert response.status_code == 500
+
+    async def test_order_replacement_key(self, test_client):
+        """Test ordering a replacement key."""
+        locker_id = uuid4()
+
+        mock_result = {
+            "locker_id": locker_id,
+            "locker_number": "DL10-01-01",
+            "status": "maintenance",
+        }
+
+        with patch(
+            "src.routes.lockers.order_replacement_key",
+            AsyncMock(return_value=mock_result),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/order-replacement-key"
+            )
+
+        assert response.status_code == 200
+
+    async def test_order_replacement_key_value_error(self, test_client):
+        """Test ordering replacement key with invalid locker."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.order_replacement_key",
+            AsyncMock(side_effect=ValueError("Locker not found")),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/order-replacement-key"
+            )
+
+        assert response.status_code == 400
+
+    async def test_order_replacement_key_error(self, test_client):
+        """Test error handling when ordering replacement key fails."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.order_replacement_key",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/order-replacement-key"
+            )
+
+        assert response.status_code == 500
+
+    async def test_mark_locker_available(self, test_client):
+        """Test marking locker as available."""
+        locker_id = uuid4()
+
+        mock_result = {
+            "locker_id": locker_id,
+            "locker_number": "DL10-01-01",
+            "status": "available",
+        }
+
+        with patch(
+            "src.routes.lockers.mark_locker_available",
+            AsyncMock(return_value=mock_result),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/available"
+            )
+
+        assert response.status_code == 200
+
+    async def test_mark_locker_available_value_error(self, test_client):
+        """Test marking locker available with invalid locker."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.mark_locker_available",
+            AsyncMock(side_effect=ValueError("Locker not found")),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/available"
+            )
+
+        assert response.status_code == 400
+
+    async def test_mark_locker_available_error(self, test_client):
+        """Test error handling when marking locker available fails."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.mark_locker_available",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                f"/admin/lockers/{str(locker_id)}/available"
+            )
+
+        assert response.status_code == 500
+
+    async def test_update_locker_coordinates_error(self, test_client):
+        """Test error handling when updating coordinates fails."""
+        locker_id = uuid4()
+
+        with patch(
+            "src.routes.lockers.update_locker_coordinates",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.patch(
+                f"/admin/lockers/{str(locker_id)}/coordinates",
+                json={"x_coordinate": 150, "y_coordinate": 250},
+            )
+
+        assert response.status_code == 500
+
+    async def test_create_locker_duplicate_locker_number(self, test_client):
+        """Test creating locker with duplicate locker number."""
+        floor_id = str(uuid4())
+
+        with patch(
+            "src.routes.lockers.create_locker",
+            AsyncMock(side_effect=Exception("duplicate key locker_number")),
+        ):
+            response = await test_client.post(
+                "/admin/lockers",
+                json={
+                    "locker_number": "DL10-01-01",
+                    "floor_id": floor_id,
+                    "location": "Near elevator",
+                    "key_number": "AA123",
+                },
+            )
+
+        assert response.status_code == 409
+        assert "Locker number already exists" in response.json()["detail"]
+
+    async def test_create_locker_duplicate_key_number(self, test_client):
+        """Test creating locker with duplicate key number."""
+        floor_id = str(uuid4())
+
+        with patch(
+            "src.routes.lockers.create_locker",
+            AsyncMock(side_effect=Exception("duplicate key key_number")),
+        ):
+            response = await test_client.post(
+                "/admin/lockers",
+                json={
+                    "locker_number": "DL10-01-01",
+                    "floor_id": floor_id,
+                    "location": "Near elevator",
+                    "key_number": "AA123",
+                },
+            )
+
+        assert response.status_code == 409
+        assert "Key number already exists" in response.json()["detail"]
+
+    async def test_create_locker_error(self, test_client):
+        """Test error handling when creating locker fails."""
+        floor_id = str(uuid4())
+
+        with patch(
+            "src.routes.lockers.create_locker",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                "/admin/lockers",
+                json={
+                    "locker_number": "DL10-01-01",
+                    "floor_id": floor_id,
+                    "location": "Near elevator",
+                    "key_number": "AA123",
+                },
+            )
+
+        assert response.status_code == 500
+
+    async def test_create_key(self, test_client):
+        """Test creating a key for existing locker."""
+        locker_id = str(uuid4())
+        key_id = uuid4()
+
+        mock_result = {
+            "key_id": key_id,
+            "locker_id": uuid4(),
+            "key_number": "BB456",
+            "message": "Key created successfully",
+        }
+
+        with patch(
+            "src.routes.lockers.create_locker_key",
+            AsyncMock(return_value=mock_result),
+        ):
+            response = await test_client.post(
+                "/admin/lockers/keys",
+                json={"locker_id": locker_id, "key_number": "BB456"},
+            )
+
+        assert response.status_code == 200
+
+    async def test_create_key_value_error(self, test_client):
+        """Test creating key with invalid locker ID."""
+        locker_id = str(uuid4())
+
+        with patch(
+            "src.routes.lockers.create_locker_key",
+            AsyncMock(side_effect=ValueError("Locker not found")),
+        ):
+            response = await test_client.post(
+                "/admin/lockers/keys",
+                json={"locker_id": locker_id, "key_number": "BB456"},
+            )
+
+        assert response.status_code == 400
+
+    async def test_create_key_duplicate(self, test_client):
+        """Test creating key with duplicate key number."""
+        locker_id = str(uuid4())
+
+        with patch(
+            "src.routes.lockers.create_locker_key",
+            AsyncMock(side_effect=Exception("duplicate key key_number")),
+        ):
+            response = await test_client.post(
+                "/admin/lockers/keys",
+                json={"locker_id": locker_id, "key_number": "BB456"},
+            )
+
+        assert response.status_code == 409
+        assert "Key number already exists" in response.json()["detail"]
+
+    async def test_create_key_error(self, test_client):
+        """Test error handling when creating key fails."""
+        locker_id = str(uuid4())
+
+        with patch(
+            "src.routes.lockers.create_locker_key",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                "/admin/lockers/keys",
+                json={"locker_id": locker_id, "key_number": "BB456"},
+            )
+
+        assert response.status_code == 500
+
+    async def test_get_all_keys_error(self, test_client):
+        """Test error handling when retrieving keys fails."""
+        with patch(
+            "src.routes.lockers.get_all_keys",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/lockers/keys")
+
+        assert response.status_code == 500
 
 
 class TestBookingRoutes:
@@ -308,6 +717,31 @@ class TestBookingRoutes:
         assert response.status_code == 200
         data = response.json()
         assert data["booking_id"] == str(booking_id)
+
+    async def test_create_booking_value_error(self, test_client):
+        """Test creating booking with conflict (locker unavailable)."""
+        user_id = str(uuid4())
+        locker_id = str(uuid4())
+        today = date.today()
+
+        with patch(
+            "src.routes.bookings.create_booking",
+            AsyncMock(
+                side_effect=ValueError("Locker not available for selected dates")
+            ),
+        ):
+            response = await test_client.post(
+                "/admin/bookings",
+                json={
+                    "user_id": user_id,
+                    "locker_id": locker_id,
+                    "start_date": str(today),
+                    "end_date": str(today + timedelta(days=7)),
+                },
+            )
+
+        assert response.status_code == 409
+        assert "Locker not available" in response.json()["detail"]
 
     async def test_get_all_bookings(self, test_client):
         """
@@ -431,6 +865,122 @@ class TestBookingRoutes:
         data = response.json()
         assert data["key_number"] == "AA123"
 
+    async def test_create_booking_error(self, test_client):
+        """Test error handling when creating booking fails."""
+        user_id = str(uuid4())
+        locker_id = str(uuid4())
+        today = date.today()
+
+        with patch(
+            "src.routes.bookings.create_booking",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                "/admin/bookings",
+                json={
+                    "user_id": user_id,
+                    "locker_id": locker_id,
+                    "start_date": str(today),
+                    "end_date": str(today + timedelta(days=7)),
+                },
+            )
+
+        assert response.status_code == 500
+
+    async def test_get_all_bookings_error(self, test_client):
+        """Test error handling when retrieving bookings fails."""
+        with patch(
+            "src.routes.bookings.get_all_bookings",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/bookings")
+
+        assert response.status_code == 500
+
+    async def test_cancel_booking_value_error(self, test_client):
+        """Test cancelling booking with invalid booking ID."""
+        booking_id = uuid4()
+
+        with patch(
+            "src.routes.bookings.cancel_booking",
+            AsyncMock(side_effect=ValueError("Booking not found")),
+        ):
+            response = await test_client.post(
+                f"/admin/bookings/{str(booking_id)}/cancel"
+            )
+
+        assert response.status_code == 400
+
+    async def test_cancel_booking_error(self, test_client):
+        """Test error handling when cancelling booking fails."""
+        booking_id = uuid4()
+
+        with patch(
+            "src.routes.bookings.cancel_booking",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                f"/admin/bookings/{str(booking_id)}/cancel"
+            )
+
+        assert response.status_code == 500
+
+    async def test_key_handover_value_error(self, test_client):
+        """Test key handover with invalid booking."""
+        booking_id = uuid4()
+
+        with patch(
+            "src.routes.bookings.confirm_key_handover",
+            AsyncMock(side_effect=ValueError("Booking not found")),
+        ):
+            response = await test_client.post(
+                f"/admin/bookings/{str(booking_id)}/handover"
+            )
+
+        assert response.status_code == 400
+
+    async def test_key_handover_error(self, test_client):
+        """Test error handling when key handover fails."""
+        booking_id = uuid4()
+
+        with patch(
+            "src.routes.bookings.confirm_key_handover",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                f"/admin/bookings/{str(booking_id)}/handover"
+            )
+
+        assert response.status_code == 500
+
+    async def test_key_return_value_error(self, test_client):
+        """Test key return with invalid booking."""
+        booking_id = uuid4()
+
+        with patch(
+            "src.routes.bookings.confirm_key_return",
+            AsyncMock(side_effect=ValueError("Booking not found")),
+        ):
+            response = await test_client.post(
+                f"/admin/bookings/{str(booking_id)}/return"
+            )
+
+        assert response.status_code == 400
+
+    async def test_key_return_error(self, test_client):
+        """Test error handling when key return fails."""
+        booking_id = uuid4()
+
+        with patch(
+            "src.routes.bookings.confirm_key_return",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                f"/admin/bookings/{str(booking_id)}/return"
+            )
+
+        assert response.status_code == 500
+
 
 class TestDashboardRoutes:
     """Test dashboard HTTP endpoints."""
@@ -539,6 +1089,36 @@ class TestDashboardRoutes:
         data = response.json()
         assert "activities" in data
 
+    async def test_get_dashboard_stats_error(self, test_client):
+        """Test error handling when retrieving dashboard stats fails."""
+        with patch(
+            "src.routes.dashboard.get_dashboard_stats",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/dashboard/stats")
+
+        assert response.status_code == 500
+
+    async def test_get_floor_utilization_error(self, test_client):
+        """Test error handling when retrieving floor utilization fails."""
+        with patch(
+            "src.routes.dashboard.get_floor_lockers_util",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/dashboard/floors/utilization")
+
+        assert response.status_code == 500
+
+    async def test_get_recent_activity_error(self, test_client):
+        """Test error handling when retrieving recent activity fails."""
+        with patch(
+            "src.routes.dashboard.get_recent_activity",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/dashboard/recent-activity")
+
+        assert response.status_code == 500
+
 
 class TestSpecialRequestRoutes:
     """Test special request HTTP endpoints."""
@@ -622,6 +1202,46 @@ class TestSpecialRequestRoutes:
         data = response.json()
         assert data["request_id"] == request_id
 
+    async def test_get_all_special_requests_error(self, test_client):
+        """Test error handling when retrieving special requests fails."""
+        with patch(
+            "src.routes.special_requests.get_all_special_requests",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/special-requests")
+
+        assert response.status_code == 500
+
+    async def test_review_special_request_value_error(self, test_client):
+        """Test reviewing special request with invalid request ID."""
+        request_id = 999
+
+        with patch(
+            "src.routes.special_requests.review_special_request",
+            AsyncMock(side_effect=ValueError("Request not found")),
+        ):
+            response = await test_client.post(
+                f"/admin/special-requests/{request_id}/review",
+                json={"status": "approved"},
+            )
+
+        assert response.status_code == 400
+
+    async def test_review_special_request_error(self, test_client):
+        """Test error handling when reviewing special request fails."""
+        request_id = 1
+
+        with patch(
+            "src.routes.special_requests.review_special_request",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.post(
+                f"/admin/special-requests/{request_id}/review",
+                json={"status": "approved"},
+            )
+
+        assert response.status_code == 500
+
 
 class TestAuditRoutes:
     """Test audit log HTTP endpoints."""
@@ -670,6 +1290,50 @@ class TestAuditRoutes:
         data = response.json()
         assert "logs" in data
         assert data["total"] == 1
+
+    async def test_get_audit_logs_value_error(self, test_client):
+        """Test audit logs with invalid parameters."""
+        with patch(
+            "src.routes.audit.get_audit_logs",
+            AsyncMock(side_effect=ValueError("Invalid page number")),
+        ):
+            response = await test_client.get("/admin/audit-logs?page=1&limit=1")
+
+        assert response.status_code == 400
+
+    async def test_get_audit_logs_error(self, test_client):
+        """Test error handling when retrieving audit logs fails."""
+        with patch(
+            "src.routes.audit.get_audit_logs",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/audit-logs")
+
+        assert response.status_code == 500
+
+
+class TestScheduledJobsRoutes:
+    """Test scheduled jobs HTTP endpoints."""
+
+    pytestmark = pytest.mark.asyncio
+
+    async def test_trigger_update_floor_statuses(self, test_client):
+        """
+        Verify manual triggering of update floor statuses job.
+        Mock the function in the route's namespace to avoid DB access.
+        Expect 200 status with success message.
+        """
+        with patch(
+            "src.routes.scheduled_jobs.update_floor_statuses",
+            AsyncMock(return_value=None),
+        ):
+            response = await test_client.post(
+                "/admin/scheduled-jobs/update-floor-statuses"
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "Update floor statuses job completed"
 
 
 class TestBookingRulesRoutes:
@@ -864,3 +1528,137 @@ class TestBookingRulesRoutes:
             )
 
         assert response.status_code == 404
+
+    async def test_get_booking_rules_error(self, test_client):
+        """Test error handling when retrieving booking rules fails."""
+        with patch(
+            "src.routes.booking_rules.get_booking_rules",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/booking-rules")
+
+        assert response.status_code == 500
+
+    async def test_update_booking_rules_value_error(self, test_client):
+        """Test updating booking rules with invalid values."""
+        with patch(
+            "src.routes.booking_rules.update_booking_rules",
+            AsyncMock(side_effect=ValueError("Invalid duration")),
+        ):
+            response = await test_client.put(
+                "/admin/booking-rules",
+                json={
+                    "max_booking_duration": 120,
+                    "max_extension": 30,
+                },
+            )
+
+        assert response.status_code == 400
+
+    async def test_update_booking_rules_error(self, test_client):
+        """Test error handling when updating booking rules fails."""
+        with patch(
+            "src.routes.booking_rules.update_booking_rules",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.put(
+                "/admin/booking-rules",
+                json={"max_booking_duration": 120},
+            )
+
+        assert response.status_code == 500
+
+    async def test_update_floor_status_value_error(self, test_client):
+        """Test updating floor status with invalid floor ID."""
+        floor_id = uuid4()
+
+        with patch(
+            "src.routes.booking_rules.update_floor_status",
+            AsyncMock(side_effect=ValueError("Floor not found")),
+        ):
+            response = await test_client.put(
+                f"/admin/booking-rules/floors/{str(floor_id)}/status",
+                json={"status": "closed"},
+            )
+
+        assert response.status_code == 400
+
+    async def test_update_floor_status_error(self, test_client):
+        """Test error handling when updating floor status fails."""
+        floor_id = uuid4()
+
+        with patch(
+            "src.routes.booking_rules.update_floor_status",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.put(
+                f"/admin/booking-rules/floors/{str(floor_id)}/status",
+                json={"status": "closed"},
+            )
+
+        assert response.status_code == 500
+
+    async def test_get_floors(self, test_client):
+        """Test retrieving all floors."""
+        from src.models.responses import AllFloorsResponse
+
+        floor_id = uuid4()
+        now = datetime.now()
+        mock_response = AllFloorsResponse(
+            floors=[
+                {
+                    "floor_id": floor_id,
+                    "floor_number": "10",
+                    "total_lockers": 50,
+                    "status": "open",
+                    "created_at": now,
+                    "updated_at": now,
+                }
+            ]
+        )
+
+        with patch(
+            "src.routes.booking_rules.get_all_floors",
+            AsyncMock(return_value=mock_response),
+        ):
+            response = await test_client.get("/admin/booking-rules/floors")
+
+        assert response.status_code == 200
+
+    async def test_get_floors_error(self, test_client):
+        """Test error handling when retrieving floors fails."""
+        with patch(
+            "src.routes.booking_rules.get_all_floors",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get("/admin/booking-rules/floors")
+
+        assert response.status_code == 500
+
+    async def test_get_floor_closures_error(self, test_client):
+        """Test error handling when retrieving floor closures fails."""
+        floor_id = uuid4()
+
+        with patch(
+            "src.routes.booking_rules.get_floor_closures",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.get(
+                f"/admin/booking-rules/floors/{str(floor_id)}/closures"
+            )
+
+        assert response.status_code == 500
+
+    async def test_delete_floor_closure_error(self, test_client):
+        """Test error handling when deleting floor closure fails."""
+        closure_id = uuid4()
+
+        with patch(
+            "src.routes.booking_rules.delete_floor_closure",
+            AsyncMock(side_effect=Exception("Database error")),
+        ):
+            response = await test_client.delete(
+                f"/admin/booking-rules/closures/{str(closure_id)}"
+            )
+
+        assert response.status_code == 500
