@@ -32,10 +32,9 @@ CREATE TABLE IF NOT EXISTS lockerhub.requests (
         OR status != 'queued'
         OR floor_id IS NOT NULL
     ),
-    CONSTRAINT chk_normal_pending_floor_locker CHECK (
+    CONSTRAINT chk_normal_not_pending CHECK (
         request_type != 'normal'
         OR status != 'pending'
-        OR (floor_id IS NOT NULL AND locker_id IS NOT NULL)
     )
 );
 
