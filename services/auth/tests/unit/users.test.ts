@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { findUserByEmail, findUserById, createUser } from '../../src/services/users'
+import { findUserByEmail, findUserById, createUser, updateUserPassword } from '../../src/services/users'
 import * as db from '../../src/connectors/db'
 import { createMockUser, createMockQueryResult, sampleUserId, validSignupData } from '../fixtures'
 
@@ -96,6 +96,16 @@ describe('User Services', () => {
 
       expect(result).toBeNull()
     })
+
+    it('should handle database errors during user lookup', async () => {
+      /**
+       * Verify error handling during findUserById.
+       * Mock database throws error.
+       */
+      vi.spyOn(db, 'query').mockRejectedValue(new Error('Database connection failed'))
+
+      await expect(findUserById(sampleUserId)).rejects.toThrow('Database connection failed')
+    })
   })
 
   describe('createUser', () => {
@@ -173,6 +183,75 @@ describe('User Services', () => {
           passwordHash: 'hashed-password',
         }),
       ).rejects.toThrow('Unique constraint violation')
+    })
+  })
+
+  describe('updateUserPassword', () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
+    it('should successfully update user password', async () => {
+      /**
+       * Verify password update for existing user.
+       * Mock database returns rowCount > 0 indicating success.
+       */
+      const mockResult = createMockQueryResult([])
+      mockResult.rowCount = 1
+
+      vi.spyOn(db, 'query').mockResolvedValue(mockResult)
+
+      const result = await updateUserPassword(sampleUserId, 'new-hashed-password')
+
+      expect(result).toBe(true)
+      expect(db.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE lockerhub.users'),
+        expect.arrayContaining(['new-hashed-password', sampleUserId]),
+      )
+
+      // Verify updated_at is set
+      const queryString = (db.query as any).mock.calls[0][0]
+      expect(queryString).toContain('updated_at = CURRENT_TIMESTAMP')
+    })
+
+    it('should return false when user is not found', async () => {
+      /**
+       * Verify function returns false when user does not exist.
+       * Mock database returns rowCount = 0.
+       */
+      const mockResult = createMockQueryResult([])
+      mockResult.rowCount = 0
+
+      vi.spyOn(db, 'query').mockResolvedValue(mockResult)
+
+      const result = await updateUserPassword('non-existent-id', 'new-hashed-password')
+
+      expect(result).toBe(false)
+    })
+
+    it('should handle null rowCount', async () => {
+      /**
+       * Verify function handles null rowCount gracefully.
+       * Tests the (result.rowCount ?? 0) > 0 branch.
+       */
+      const mockResult = createMockQueryResult([])
+      mockResult.rowCount = null as any
+
+      vi.spyOn(db, 'query').mockResolvedValue(mockResult)
+
+      const result = await updateUserPassword(sampleUserId, 'new-hashed-password')
+
+      expect(result).toBe(false)
+    })
+
+    it('should handle database errors during password update', async () => {
+      /**
+       * Verify error handling during password update.
+       * Mock database throws error.
+       */
+      vi.spyOn(db, 'query').mockRejectedValue(new Error('Database error'))
+
+      await expect(updateUserPassword(sampleUserId, 'new-hashed-password')).rejects.toThrow('Database error')
     })
   })
 })

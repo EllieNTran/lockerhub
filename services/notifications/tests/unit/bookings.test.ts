@@ -117,6 +117,148 @@ describe('Booking Notification Services', () => {
         ),
       ).rejects.toThrow('Database connection failed')
     })
+
+    it('should send booking confirmation from waitlist with different title and caption', async () => {
+      /**
+       * Verify booking confirmation from waitlist has special messaging.
+       * Mock notification creation with fromWaitlist flag.
+       * Expect different title and caption for waitlist allocations.
+       */
+      vi.spyOn(notifications, 'createNotification').mockResolvedValue({
+        success: true,
+        notification_id: 'notif-209',
+        message: 'Notification created successfully',
+      })
+      vi.spyOn(sendEmail, 'default').mockResolvedValue(undefined)
+
+      const createdBy = 'system-user-id'
+
+      await notifyBookingConfirmation(
+        sampleUserId,
+        testEmail,
+        testName,
+        testLockerNumber,
+        testFloorNumber,
+        testStartDate,
+        testEndDate,
+        userBookingsPath,
+        adminBookingsPath,
+        createdBy,
+        true, // fromWaitlist = true
+      )
+
+      expect(notifications.createNotification).toHaveBeenCalledWith({
+        entityType: 'booking',
+        title: 'Locker Allocated from Waiting List',
+        adminTitle: `Locker ${testLockerNumber} auto-allocated from waiting list`,
+        caption: expect.stringContaining('A locker has become available'),
+        type: 'success',
+        scope: 'user',
+        userIds: [sampleUserId],
+        createdBy: createdBy,
+      })
+
+      expect(sendEmail.default).toHaveBeenCalledTimes(2)
+    })
+
+    it('should send booking confirmation for permanent allocation without end date', async () => {
+      /**
+       * Verify booking confirmation for permanent allocation.
+       * Pass null as endDate to indicate permanent allocation.
+       * Expect caption to include "permanent" instead of date range.
+       */
+      vi.spyOn(notifications, 'createNotification').mockResolvedValue({
+        success: true,
+        notification_id: 'notif-210',
+        message: 'Notification created successfully',
+      })
+      vi.spyOn(sendEmail, 'default').mockResolvedValue(undefined)
+
+      await notifyBookingConfirmation(
+        sampleUserId,
+        testEmail,
+        testName,
+        testLockerNumber,
+        testFloorNumber,
+        testStartDate,
+        null, // endDate = null for permanent allocation
+        userBookingsPath,
+        adminBookingsPath,
+      )
+
+      expect(notifications.createNotification).toHaveBeenCalledWith({
+        entityType: 'booking',
+        title: 'Booking Confirmed',
+        adminTitle: `Booking created for Locker ${testLockerNumber}`,
+        caption: expect.stringContaining('starting'),
+        type: 'info',
+        scope: 'user',
+        userIds: [sampleUserId],
+        createdBy: sampleUserId,
+      })
+
+      // Verify caption includes "permanent"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const captionArg = (notifications.createNotification as any).mock.calls[0][0].caption
+      expect(captionArg).toContain('permanent')
+      expect(captionArg).toContain(`starting ${testStartDate}`)
+      expect(captionArg).not.toContain('to')
+
+      expect(sendEmail.default).toHaveBeenCalledTimes(2)
+      // Verify email shows N/A for end date
+      expect(sendEmail.default).toHaveBeenCalledWith(
+        testEmail,
+        expect.objectContaining({
+          END_DATE: 'N/A',
+        }),
+        'locker-booking-confirmation-user',
+        'User Booking Confirmation',
+      )
+    })
+
+    it('should send permanent allocation from waitlist with combined messaging', async () => {
+      /**
+       * Verify permanent allocation from waitlist combines both special cases.
+       * Pass null endDate and fromWaitlist=true.
+       * Expect waitlist title with permanent duration text.
+       */
+      vi.spyOn(notifications, 'createNotification').mockResolvedValue({
+        success: true,
+        notification_id: 'notif-211',
+        message: 'Notification created successfully',
+      })
+      vi.spyOn(sendEmail, 'default').mockResolvedValue(undefined)
+
+      await notifyBookingConfirmation(
+        sampleUserId,
+        testEmail,
+        testName,
+        testLockerNumber,
+        testFloorNumber,
+        testStartDate,
+        null, // permanent allocation
+        userBookingsPath,
+        adminBookingsPath,
+        'system-user-id',
+        true, // from waitlist
+      )
+
+      expect(notifications.createNotification).toHaveBeenCalledWith({
+        entityType: 'booking',
+        title: 'Locker Allocated from Waiting List',
+        adminTitle: `Locker ${testLockerNumber} auto-allocated from waiting list`,
+        caption: expect.stringContaining('permanent'),
+        type: 'success',
+        scope: 'user',
+        userIds: [sampleUserId],
+        createdBy: 'system-user-id',
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const captionArg = (notifications.createNotification as any).mock.calls[0][0].caption
+      expect(captionArg).toContain('A locker has become available')
+      expect(captionArg).toContain('permanent')
+    })
   })
 
   describe('notifyBookingCancellation', () => {
@@ -212,6 +354,124 @@ describe('Booking Notification Services', () => {
         }),
         'locker-booking-cancellation-user',
         'User Booking Cancellation',
+      )
+    })
+
+    it('should send cancellation notification for permanent booking without end date', async () => {
+      /**
+       * Verify cancellation for permanent booking (no end date).
+       * Mock notification creation with null end date.
+       */
+      const keyStatus = 'available'
+      const keyNumber = 'AA123'
+
+      vi.spyOn(notifications, 'createNotification').mockResolvedValue({
+        success: true,
+        notification_id: 'notif-212',
+        message: 'Notification created successfully',
+      })
+      vi.spyOn(sendEmail, 'default').mockResolvedValue(undefined)
+
+      await notifyBookingCancellation(
+        sampleUserId,
+        testEmail,
+        testName,
+        testLockerNumber,
+        testFloorNumber,
+        testStartDate,
+        null, // permanent booking
+        keyStatus,
+        keyNumber,
+        adminBookingsPath,
+      )
+
+      // Verify caption includes "permanent"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const captionArg = (notifications.createNotification as any).mock.calls[0][0].caption
+      expect(captionArg).toContain('permanent')
+      expect(captionArg).toContain(`starting ${testStartDate}`)
+
+      // Verify email shows N/A for end date
+      expect(sendEmail.default).toHaveBeenCalledWith(
+        testEmail,
+        expect.objectContaining({
+          END_DATE: 'N/A',
+        }),
+        'locker-booking-cancellation-user',
+        'User Booking Cancellation',
+      )
+    })
+
+    it('should use userId as createdBy when createdBy is not provided in cancellation', async () => {
+      /**
+       * Verify createdBy defaults to userId when not provided.
+       * Call without createdBy parameter.
+       */
+      const keyStatus = 'available'
+      const keyNumber = 'AA123'
+
+      vi.spyOn(notifications, 'createNotification').mockResolvedValue({
+        success: true,
+        notification_id: 'notif-213',
+        message: 'Notification created successfully',
+      })
+      vi.spyOn(sendEmail, 'default').mockResolvedValue(undefined)
+
+      await notifyBookingCancellation(
+        sampleUserId,
+        testEmail,
+        testName,
+        testLockerNumber,
+        testFloorNumber,
+        testStartDate,
+        testEndDate,
+        keyStatus,
+        keyNumber,
+        adminBookingsPath,
+        // createdBy not provided - should default to userId
+      )
+
+      expect(notifications.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          createdBy: sampleUserId, // Should use userId as default
+        }),
+      )
+    })
+
+    it('should use provided createdBy when specified in cancellation', async () => {
+      /**
+       * Verify createdBy uses provided value when specified.
+       * Call with explicit createdBy parameter.
+       */
+      const keyStatus = 'available'
+      const keyNumber = 'AA123'
+      const adminId = 'admin-user-id'
+
+      vi.spyOn(notifications, 'createNotification').mockResolvedValue({
+        success: true,
+        notification_id: 'notif-214',
+        message: 'Notification created successfully',
+      })
+      vi.spyOn(sendEmail, 'default').mockResolvedValue(undefined)
+
+      await notifyBookingCancellation(
+        sampleUserId,
+        testEmail,
+        testName,
+        testLockerNumber,
+        testFloorNumber,
+        testStartDate,
+        testEndDate,
+        keyStatus,
+        keyNumber,
+        adminBookingsPath,
+        adminId, // explicit createdBy
+      )
+
+      expect(notifications.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          createdBy: adminId, // Should use provided value
+        }),
       )
     })
   })

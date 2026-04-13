@@ -346,3 +346,271 @@ class TestGetAuditLogs:
             assert result.logs[2].action == "delete"
             assert result.logs[0].old_value is None
             assert result.logs[2].new_value is None
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_filter_by_action(self, mock_db):
+        """Test filtering audit logs by action."""
+        from src.services.audit.get_audit_logs import get_audit_logs
+
+        logs = [
+            {
+                "audit_log_id": uuid4(),
+                "user_id": uuid4(),
+                "user_name": "User A",
+                "user_role": "user",
+                "action": "create",
+                "entity_type": "booking",
+                "entity_id": uuid4(),
+                "reference": "Created",
+                "old_value": None,
+                "new_value": {"test": "data"},
+                "audit_date": datetime(2026, 3, 21, 10, 0, 0),
+            },
+        ]
+
+        mock_db.fetchrow.return_value = {"total": 1}
+        mock_db.fetch.return_value = logs
+
+        with patch("src.services.audit.get_audit_logs.db", mock_db):
+            result = await get_audit_logs(action="create")
+
+            assert len(result.logs) == 1
+            assert result.logs[0].action == "create"
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_filter_by_entity_type(self, mock_db):
+        """Test filtering audit logs by entity type."""
+        from src.services.audit.get_audit_logs import get_audit_logs
+
+        logs = [
+            {
+                "audit_log_id": uuid4(),
+                "user_id": uuid4(),
+                "user_name": "User A",
+                "user_role": "user",
+                "action": "update",
+                "entity_type": "locker",
+                "entity_id": uuid4(),
+                "reference": "Updated",
+                "old_value": {"status": "available"},
+                "new_value": {"status": "maintenance"},
+                "audit_date": datetime(2026, 3, 21, 10, 0, 0),
+            },
+        ]
+
+        mock_db.fetchrow.return_value = {"total": 1}
+        mock_db.fetch.return_value = logs
+
+        with patch("src.services.audit.get_audit_logs.db", mock_db):
+            result = await get_audit_logs(entity_type="locker")
+
+            assert len(result.logs) == 1
+            assert result.logs[0].entity_type == "locker"
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_filter_by_user_role(self, mock_db):
+        """Test filtering audit logs by user role."""
+        from src.services.audit.get_audit_logs import get_audit_logs
+
+        logs = [
+            {
+                "audit_log_id": uuid4(),
+                "user_id": uuid4(),
+                "user_name": "Admin User",
+                "user_role": "admin",
+                "action": "delete",
+                "entity_type": "key",
+                "entity_id": uuid4(),
+                "reference": "Deleted",
+                "old_value": {"key": "old"},
+                "new_value": None,
+                "audit_date": datetime(2026, 3, 21, 10, 0, 0),
+            },
+        ]
+
+        mock_db.fetchrow.return_value = {"total": 1}
+        mock_db.fetch.return_value = logs
+
+        with patch("src.services.audit.get_audit_logs.db", mock_db):
+            result = await get_audit_logs(user_role="admin")
+
+            assert len(result.logs) == 1
+            assert result.logs[0].user_role == "admin"
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_filter_by_system_role(self, mock_db):
+        """Test filtering audit logs by system role."""
+        from src.services.audit.get_audit_logs import get_audit_logs
+
+        logs = [
+            {
+                "audit_log_id": uuid4(),
+                "user_id": None,
+                "user_name": None,
+                "user_role": None,
+                "action": "update",
+                "entity_type": "booking",
+                "entity_id": uuid4(),
+                "reference": "System update",
+                "old_value": {"status": "upcoming"},
+                "new_value": {"status": "active"},
+                "audit_date": datetime(2026, 3, 21, 10, 0, 0),
+            },
+        ]
+
+        mock_db.fetchrow.return_value = {"total": 1}
+        mock_db.fetch.return_value = logs
+
+        with patch("src.services.audit.get_audit_logs.db", mock_db):
+            result = await get_audit_logs(user_role="system")
+
+            assert len(result.logs) == 1
+            assert result.logs[0].user_role is None
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_search_by_user_name(self, mock_db):
+        """Test searching audit logs by user name."""
+        from src.services.audit.get_audit_logs import get_audit_logs
+
+        logs = [
+            {
+                "audit_log_id": uuid4(),
+                "user_id": uuid4(),
+                "user_name": "John Doe",
+                "user_role": "user",
+                "action": "create",
+                "entity_type": "booking",
+                "entity_id": uuid4(),
+                "reference": "Created booking",
+                "old_value": None,
+                "new_value": {"test": "data"},
+                "audit_date": datetime(2026, 3, 21, 10, 0, 0),
+            },
+        ]
+
+        mock_db.fetchrow.return_value = {"total": 1}
+        mock_db.fetch.return_value = logs
+
+        with patch("src.services.audit.get_audit_logs.db", mock_db):
+            result = await get_audit_logs(search="John")
+
+            assert len(result.logs) == 1
+            assert "John" in result.logs[0].user_name
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_search_by_reference(self, mock_db):
+        """Test searching audit logs by reference."""
+        from src.services.audit.get_audit_logs import get_audit_logs
+
+        logs = [
+            {
+                "audit_log_id": uuid4(),
+                "user_id": uuid4(),
+                "user_name": "User A",
+                "user_role": "user",
+                "action": "update",
+                "entity_type": "locker",
+                "entity_id": uuid4(),
+                "reference": "DL10-01-01",
+                "old_value": None,
+                "new_value": {"test": "data"},
+                "audit_date": datetime(2026, 3, 21, 10, 0, 0),
+            },
+        ]
+
+        mock_db.fetchrow.return_value = {"total": 1}
+        mock_db.fetch.return_value = logs
+
+        with patch("src.services.audit.get_audit_logs.db", mock_db):
+            result = await get_audit_logs(search="DL10")
+
+            assert len(result.logs) == 1
+            assert "DL10" in result.logs[0].reference
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_multiple_filters(self, mock_db):
+        """Test filtering audit logs with multiple filters."""
+        from src.services.audit.get_audit_logs import get_audit_logs
+
+        logs = [
+            {
+                "audit_log_id": uuid4(),
+                "user_id": uuid4(),
+                "user_name": "Admin User",
+                "user_role": "admin",
+                "action": "update",
+                "entity_type": "locker",
+                "entity_id": uuid4(),
+                "reference": "Updated locker",
+                "old_value": {"status": "available"},
+                "new_value": {"status": "maintenance"},
+                "audit_date": datetime(2026, 3, 21, 10, 0, 0),
+            },
+        ]
+
+        mock_db.fetchrow.return_value = {"total": 1}
+        mock_db.fetch.return_value = logs
+
+        with patch("src.services.audit.get_audit_logs.db", mock_db):
+            result = await get_audit_logs(
+                action="update",
+                entity_type="locker",
+                user_role="admin",
+                search="locker",
+            )
+
+            assert len(result.logs) == 1
+            assert result.logs[0].action == "update"
+            assert result.logs[0].entity_type == "locker"
+            assert result.logs[0].user_role == "admin"
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_database_error(self, mock_db):
+        """Test error handling when database query fails."""
+        from src.services.audit.get_audit_logs import get_audit_logs
+
+        mock_db.fetchrow.side_effect = Exception("Database connection error")
+
+        with patch("src.services.audit.get_audit_logs.db", mock_db):
+            with pytest.raises(Exception):
+                await get_audit_logs()
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_build_query_with_all_filters(self, mock_db):
+        """Test query building with all filters applied."""
+        from src.services.audit.get_audit_logs import build_audit_logs_query
+
+        select_query, count_query, params = build_audit_logs_query(
+            action="create", entity_type="booking", user_role="admin", search="test"
+        )
+
+        assert "$1::lockerhub.audit_action" in select_query
+        assert "$2::lockerhub.entity_type" in select_query
+        assert "$3::lockerhub.user_role" in select_query
+        assert "ILIKE $4" in select_query
+        assert len(params) == 4
+        assert params[0] == "create"
+        assert params[1] == "booking"
+        assert params[2] == "admin"
+        assert params[3] == "%test%"
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_build_query_no_filters(self, mock_db):
+        """Test query building with no filters."""
+        from src.services.audit.get_audit_logs import build_audit_logs_query
+
+        select_query, count_query, params = build_audit_logs_query()
+
+        assert "WHERE 1=1" in select_query
+        assert " AND " not in select_query.split("WHERE 1=1")[1].split("ORDER BY")[0]
+        assert len(params) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_audit_logs_build_query_system_role(self, mock_db):
+        """Test query building with system role filter."""
+        from src.services.audit.get_audit_logs import build_audit_logs_query
+
+        select_query, count_query, params = build_audit_logs_query(user_role="system")
+
+        assert "u.role IS NULL" in select_query
+        assert len(params) == 0  # system role doesn't use a parameter

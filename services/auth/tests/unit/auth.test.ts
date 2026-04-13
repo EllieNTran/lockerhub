@@ -323,6 +323,18 @@ describe('Authentication Services', () => {
       await expect(refresh('invalid-token')).rejects.toThrow()
     })
 
+    it('should handle non-Error throws from token verification', async () => {
+      /**
+       * Verify error handling when token.verifyToken throws non-Error value.
+       * Tests the error instanceof Error ternary for unknown error types.
+       */
+      vi.spyOn(token, 'verifyToken').mockImplementation(() => {
+        throw 'String error' // Non-Error throw
+      })
+
+      await expect(refresh('invalid-token')).rejects.toThrow('Invalid or expired refresh token')
+    })
+
     it('should throw error when user no longer exists', async () => {
       /**
        * Verify error when token is valid but user was deleted.
@@ -384,6 +396,20 @@ describe('Authentication Services', () => {
        */
       vi.spyOn(token, 'verifyToken').mockImplementation(() => {
         throw new Error('Invalid token')
+      })
+
+      const result = await logout('invalid-token')
+
+      expect(result).toHaveProperty('message', 'Logged out successfully')
+    })
+
+    it('should handle non-Error throws in logout gracefully', async () => {
+      /**
+       * Verify logout handles non-Error throws gracefully.
+       * Tests the error instanceof Error ternary in logout error handling.
+       */
+      vi.spyOn(token, 'verifyToken').mockImplementation(() => {
+        throw { code: 'CUSTOM_ERROR' } // Non-Error throw
       })
 
       const result = await logout('invalid-token')

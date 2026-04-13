@@ -110,16 +110,37 @@ class TestCreateLockerKey:
         """Test creating key when locker already has one.
 
         Verifies that attempting to create a key for a locker that already has a key
-        raises a ValueError. CTE returns None when key already exists.
+        raises a ValueError. CTE returns None when key already exists and locker exists.
         """
         from src.services.lockers.create_locker_key import create_locker_key
 
         mock_db.fetchrow.return_value = None
+        mock_db.fetchval.return_value = 1
 
         with patch("src.services.lockers.create_locker_key.db", mock_db):
             with pytest.raises(ValueError, match="Locker already has a key"):
                 await create_locker_key(
                     locker_id=sample_locker_id,
+                    key_number="BB456",
+                    user_id=sample_user_id,
+                )
+
+    @pytest.mark.asyncio
+    async def test_create_locker_key_locker_not_found(self, mock_db, sample_user_id):
+        """Test creating key when locker doesn't exist.
+
+        Verifies that attempting to create a key for a non-existent locker
+        raises a ValueError with 'Locker not found'.
+        """
+        from src.services.lockers.create_locker_key import create_locker_key
+
+        mock_db.fetchrow.return_value = None
+        mock_db.fetchval.return_value = 0
+
+        with patch("src.services.lockers.create_locker_key.db", mock_db):
+            with pytest.raises(ValueError, match="Locker not found"):
+                await create_locker_key(
+                    locker_id="non-existent-id",
                     key_number="BB456",
                     user_id=sample_user_id,
                 )
@@ -318,6 +339,26 @@ class TestOrderReplacementKey:
             ):
                 await order_replacement_key(str(sample_locker_id))
 
+    @pytest.mark.asyncio
+    async def test_order_replacement_key_locker_not_found(
+        self, mock_db, sample_locker_id
+    ):
+        """Test ordering replacement for non-existent locker.
+
+        Verifies that attempting to order a replacement key for a locker that
+        doesn't exist or is not under maintenance raises a ValueError.
+        """
+        from src.services.lockers.order_replacement_key import order_replacement_key
+
+        mock_db.fetchrow.return_value = None
+
+        with patch("src.services.lockers.order_replacement_key.db", mock_db):
+            with pytest.raises(
+                ValueError,
+                match="Locker must be 'maintenance' to order replacement key",
+            ):
+                await order_replacement_key(str(sample_locker_id))
+
 
 @pytest.mark.unit
 class TestGetAllLockers:
@@ -406,6 +447,50 @@ class TestUpdateLockerCoordinates:
             assert result["locker_id"] == sample_locker_id
             assert result["x_coordinate"] == 150
             assert result["y_coordinate"] == 250
+
+    @pytest.mark.asyncio
+    async def test_update_locker_coordinates_not_found(self, mock_db, sample_locker_id):
+        """Test updating coordinates for non-existent locker.
+
+        Verifies that attempting to update coordinates for a locker that
+        doesn't exist raises a ValueError.
+        """
+        from src.services.lockers.update_locker_coordinates import (
+            update_locker_coordinates,
+        )
+
+        mock_db.fetchrow.return_value = None
+
+        with patch("src.services.lockers.update_locker_coordinates.db", mock_db):
+            with pytest.raises(ValueError, match="not found"):
+                await update_locker_coordinates(
+                    locker_id=str(sample_locker_id),
+                    x_coordinate=150,
+                    y_coordinate=250,
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_locker_coordinates_exception_handling(
+        self, mock_db, sample_locker_id
+    ):
+        """Test generic exception handling.
+
+        Verifies that unexpected errors during coordinate update
+        are properly raised.
+        """
+        from src.services.lockers.update_locker_coordinates import (
+            update_locker_coordinates,
+        )
+
+        mock_db.fetchrow.side_effect = Exception("Database error")
+
+        with patch("src.services.lockers.update_locker_coordinates.db", mock_db):
+            with pytest.raises(Exception):
+                await update_locker_coordinates(
+                    locker_id=str(sample_locker_id),
+                    x_coordinate=150,
+                    y_coordinate=250,
+                )
 
 
 @pytest.mark.unit

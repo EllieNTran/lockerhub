@@ -140,6 +140,6 @@ async def confirm_key_return(admin_id: str, booking_id: str) -> KeyReturnRespons
 
     except ValueError:
         raise
-    except Exception as e:
-        logger.error("Error confirming return for booking: %s", e)
+    except Exception:
+        logger.error("Error confirming return for booking")
         raise

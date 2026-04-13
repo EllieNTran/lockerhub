@@ -99,3 +99,18 @@ class TestGetBookingRule:
 
         assert result.rule_type == "advance_booking_window"
         assert result.value == 90
+
+
+class TestGetBookingRuleException:
+    """Tests for exception handling in get_booking_rule."""
+
+    @pytest.mark.asyncio
+    async def test_get_booking_rule_database_error(self, mock_db):
+        """Test exception handler in get_booking_rule."""
+        from src.services.get_booking_rule import get_booking_rule
+
+        mock_db.fetchrow.side_effect = Exception("Database connection failed")
+
+        with patch("src.services.get_booking_rule.db", mock_db):
+            with pytest.raises(Exception):
+                await get_booking_rule("max_booking_duration")

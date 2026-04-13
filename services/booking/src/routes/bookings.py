@@ -72,7 +72,8 @@ async def get_user_bookings_endpoint(current_user: dict = Depends(get_current_us
     """Get all bookings for the current user."""
     try:
         return await get_user_bookings(current_user["user_id"])
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error retrieving user bookings: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve bookings")
 
 
@@ -81,8 +82,8 @@ async def get_floors_endpoint(_: dict = Depends(get_current_user)):
     """Get all open floors with their IDs and numbers."""
     try:
         return await get_floors()
-    except Exception:
-        logger.error("Error in get_floors_endpoint")
+    except Exception as e:
+        logger.error(f"Error in get_floors_endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve floors")
 
 
@@ -95,7 +96,11 @@ async def get_booking_rule_endpoint(rule_type: str):
             return rule
         else:
             raise HTTPException(status_code=404, detail="Booking rule not found")
-    except Exception:
+    except HTTPException:
+        # Re-raise HTTPException without catching it
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving booking rule: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve booking rule")
 
 
@@ -110,7 +115,8 @@ async def get_available_lockers_endpoint(
     try:
         lockers = await get_available_lockers(floor_id, start_date, end_date)
         return AvailableLockersResponse(lockers=lockers)
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error retrieving available lockers: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500, detail="Failed to retrieve available lockers"
         )
@@ -132,7 +138,8 @@ async def check_locker_availability_endpoint(
             end_date=end_date,
             available=is_available,
         )
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error checking locker availability: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to check availability")
 
 
@@ -141,7 +148,8 @@ async def get_user_queues_endpoint(current_user: dict = Depends(get_current_user
     """Get all waitlist entries for the current user."""
     try:
         return await get_user_queues(current_user["user_id"])
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error retrieving user queues: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve user queues")
 
 
@@ -197,7 +205,8 @@ async def process_floor_queue_endpoint(
             "allocations_made": result.allocations_made,
             "success": result.success,
         }
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error processing floor queue: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to process floor queue")
 
 
@@ -206,7 +215,8 @@ async def get_special_requests_endpoint(current_user: dict = Depends(get_current
     """Get all special requests for the current user."""
     try:
         return await get_user_special_requests(current_user["user_id"])
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error retrieving special requests: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500, detail="Failed to retrieve special requests"
         )

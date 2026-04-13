@@ -178,3 +178,19 @@ class TestGetTopDepartments:
                 await get_top_departments(period="last_7_days")
 
         assert "Database connection failed" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_get_top_departments_value_error(self, mock_db):
+        """
+        Verify ValueError is propagated from date_utils.
+        Mock get_date_range to raise ValueError.
+        Expect ValueError to be raised.
+        """
+        from src.services.get_top_departments import get_top_departments
+
+        with patch(
+            "src.services.get_top_departments.get_date_range",
+            side_effect=ValueError("Invalid period"),
+        ):
+            with pytest.raises(ValueError, match="Invalid period"):
+                await get_top_departments(period="invalid_period")

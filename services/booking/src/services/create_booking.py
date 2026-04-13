@@ -109,8 +109,8 @@ async def create_booking(
             logger.info("Booking starts today, triggering update_booking_statuses")
             try:
                 await update_booking_statuses()
-            except Exception as e:
-                logger.warning(f"Failed to update booking statuses after creation: {e}")
+            except Exception:
+                logger.warning("Failed to update booking statuses after creation")
 
         return CreateBookingResponse(booking_id=booking_id)
     except ValueError:

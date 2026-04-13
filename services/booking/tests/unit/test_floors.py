@@ -91,3 +91,18 @@ class TestFloorStatusValidation:
         """
         valid_statuses = ["open", "closed"]
         assert floor_status in valid_statuses
+
+
+class TestGetFloorsException:
+    """Tests for exception handling in get_floors."""
+
+    @pytest.mark.asyncio
+    async def test_get_floors_database_error(self, mock_db):
+        """Test exception handler in get_floors."""
+        from src.services.get_floors import get_floors
+
+        mock_db.fetch.side_effect = Exception("Database connection failed")
+
+        with patch("src.services.get_floors.db", mock_db):
+            with pytest.raises(Exception):
+                await get_floors()

@@ -337,3 +337,19 @@ class TestGetLockerUsage:
             result = await get_locker_usage(period="last_3_months")
 
         assert len(result.locker_usage) == 90
+
+    @pytest.mark.asyncio
+    async def test_get_locker_usage_value_error(self, mock_db):
+        """
+        Verify ValueError is propagated from date_utils.
+        Mock get_date_range to raise ValueError.
+        Expect ValueError to be raised.
+        """
+        from src.services.get_locker_usage import get_locker_usage
+
+        with patch(
+            "src.services.get_locker_usage.get_date_range",
+            side_effect=ValueError("Invalid period"),
+        ):
+            with pytest.raises(ValueError, match="Invalid period"):
+                await get_locker_usage(period="invalid_period")

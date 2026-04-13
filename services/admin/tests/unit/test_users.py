@@ -88,3 +88,17 @@ class TestGetUser:
         with patch("src.services.users.get_user.db", mock_db):
             with pytest.raises(ValueError, match="User not found"):
                 await get_user("non-existent-id")
+
+    @pytest.mark.asyncio
+    async def test_get_user_exception_handling(self, mock_db):
+        """Test exception handling in get_user.
+
+        Verifies that unexpected errors are properly raised.
+        """
+        from src.services.users.get_user import get_user
+
+        mock_db.fetch.side_effect = Exception("Database error")
+
+        with patch("src.services.users.get_user.db", mock_db):
+            with pytest.raises(Exception):
+                await get_user("test-user-id")

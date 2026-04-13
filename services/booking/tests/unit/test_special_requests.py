@@ -366,3 +366,73 @@ class TestCancelSpecialRequest:
         ):
             with pytest.raises(ValueError, match="not found or user not authorized"):
                 await cancel_special_request(str(sample_user_id), sample_request_id)
+
+    @pytest.mark.asyncio
+    async def test_cancel_special_request_with_booking(
+        self, mock_db, sample_user_id, mock_notifications_client
+    ):
+        """Test cancelling special request that has an associated booking."""
+        from src.services.cancel_special_request import cancel_special_request
+
+        request_id = 123
+
+        mock_db.fetchrow.return_value = {
+            "request_id": request_id,
+            "user_id": uuid4(),
+            "end_date": None,
+            "floor_number": "10",
+            "booking_id": uuid4(),  # Has associated booking
+            "booking_start_date": date.today(),
+            "booking_end_date": date.today() + timedelta(days=7),
+            "email": "test@example.com",
+            "first_name": "Test",
+            "locker_number": "DL10-01-05",
+            "booking_floor_number": "10",
+            "key_number": "12345",
+            "key_status": "awaiting_handover",
+        }
+
+        with patch("src.services.cancel_special_request.db", mock_db), patch(
+            "src.services.cancel_special_request.NotificationsServiceClient",
+            return_value=mock_notifications_client,
+        ):
+            result = await cancel_special_request(str(sample_user_id), request_id)
+
+        assert result.request_id == request_id
+        # Should call notifications twice: once for booking cancellation, once for request cancellation
+        assert mock_notifications_client.post.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_cancel_special_request_generic_exception(
+        self, mock_db, sample_user_id
+    ):
+        """Test generic exception handler in cancel_special_request."""
+        from src.services.cancel_special_request import cancel_special_request
+
+        mock_db.fetchrow.side_effect = Exception("Unexpected database error")
+
+        with patch("src.services.cancel_special_request.db", mock_db):
+            with pytest.raises(Exception):
+                await cancel_special_request(str(sample_user_id), 123)
+
+
+class TestCreateSpecialRequestException:
+    """Tests for exception handling in create_special_request."""
+
+    @pytest.mark.asyncio
+    async def test_create_special_request_generic_exception(self, mock_db):
+        """Test generic exception handler in create_special_request."""
+        from src.services.create_special_request import create_special_request
+
+        mock_db.fetchrow.side_effect = Exception("Unexpected database error")
+
+        with patch("src.services.create_special_request.db", mock_db), patch(
+            "src.services.create_special_request.NotificationsServiceClient"
+        ):
+            with pytest.raises(Exception):
+                await create_special_request(
+                    str(uuid4()),
+                    str(uuid4()),
+                    date.today(),
+                    "Test justification",
+                )

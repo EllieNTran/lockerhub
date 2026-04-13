@@ -76,6 +76,98 @@ class TestCreateBooking:
                     str(sample_user_id), str(sample_locker_id), today, end_date
                 )
 
+    @pytest.mark.asyncio
+    async def test_create_booking_no_result(
+        self, mock_db, sample_user_id, sample_locker_id
+    ):
+        """Test when create_booking returns no result."""
+        from src.services.create_booking import create_booking
+
+        today = date.today()
+        mock_db.fetchrow.return_value = None
+
+        with patch("src.services.create_booking.db", mock_db), patch(
+            "src.services.create_booking.NotificationsServiceClient"
+        ):
+            with pytest.raises(ValueError, match="Failed to create booking"):
+                await create_booking(
+                    str(sample_user_id),
+                    str(sample_locker_id),
+                    today,
+                    today + timedelta(days=7),
+                )
+
+    @pytest.mark.asyncio
+    async def test_create_booking_no_booking_id(
+        self, mock_db, sample_user_id, sample_locker_id
+    ):
+        """Test when result exists but booking_id is None."""
+        from src.services.create_booking import create_booking
+
+        today = date.today()
+        mock_db.fetchrow.return_value = {
+            "booking_id": None,
+            "has_overlap": False,
+            "email": "test@example.com",
+            "first_name": "Test",
+            "locker_number": "DL10-01-05",
+            "floor_number": "10",
+        }
+
+        with patch("src.services.create_booking.db", mock_db), patch(
+            "src.services.create_booking.NotificationsServiceClient"
+        ):
+            with pytest.raises(ValueError, match="Failed to create booking"):
+                await create_booking(
+                    str(sample_user_id),
+                    str(sample_locker_id),
+                    today,
+                    today + timedelta(days=7),
+                )
+
+    @pytest.mark.asyncio
+    async def test_create_booking_exclusion_violation(
+        self, mock_db, sample_user_id, sample_locker_id
+    ):
+        """Test ExclusionViolationError handling (booking conflict)."""
+        from src.services.create_booking import create_booking
+        from asyncpg.exceptions import ExclusionViolationError
+
+        today = date.today()
+        mock_db.fetchrow.side_effect = ExclusionViolationError("exclusion constraint")
+
+        with patch("src.services.create_booking.db", mock_db), patch(
+            "src.services.create_booking.NotificationsServiceClient"
+        ):
+            with pytest.raises(ValueError, match="Booking conflict"):
+                await create_booking(
+                    str(sample_user_id),
+                    str(sample_locker_id),
+                    today,
+                    today + timedelta(days=7),
+                )
+
+    @pytest.mark.asyncio
+    async def test_create_booking_generic_exception(
+        self, mock_db, sample_user_id, sample_locker_id
+    ):
+        """Test generic exception handler in create_booking."""
+        from src.services.create_booking import create_booking
+
+        today = date.today()
+        mock_db.fetchrow.side_effect = Exception("Unexpected database error")
+
+        with patch("src.services.create_booking.db", mock_db), patch(
+            "src.services.create_booking.NotificationsServiceClient"
+        ):
+            with pytest.raises(Exception):
+                await create_booking(
+                    str(sample_user_id),
+                    str(sample_locker_id),
+                    today,
+                    today + timedelta(days=7),
+                )
+
 
 class TestGetBooking:
     """Tests for the get_booking service."""
@@ -186,6 +278,17 @@ class TestGetUserBookings:
             result = await get_user_bookings(str(sample_user_id))
 
         assert len(result.bookings) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_user_bookings_database_error(self, mock_db, sample_user_id):
+        """Test exception handler in get_user_bookings."""
+        from src.services.get_user_bookings import get_user_bookings
+
+        mock_db.fetch.side_effect = Exception("Database connection failed")
+
+        with patch("src.services.get_user_bookings.db", mock_db):
+            with pytest.raises(Exception):
+                await get_user_bookings(str(sample_user_id))
 
 
 class TestCancelBooking:
@@ -394,6 +497,81 @@ class TestCancelBooking:
         assert result.booking_id == sample_booking_id
         assert mock_db.fetchrow.call_count == 1
 
+    @pytest.mark.asyncio
+    async def test_cancel_booking_already_cancelled_no_update(
+        self, mock_db, sample_user_id, sample_booking_id
+    ):
+        """Test when booking is already cancelled and update fails."""
+        from src.services.cancel_booking import cancel_booking
+
+        # Booking exists and is cancelled, but cancelled_booking_id is None (update failed)
+        mock_db.fetchrow.return_value = {
+            "booking_id": sample_booking_id,
+            "user_id": sample_user_id,
+            "status": "cancelled",
+            "cancelled_booking_id": None,
+            "locker_id": uuid4(),
+            "special_request_id": None,
+            "email": "test@example.com",
+            "first_name": "Test",
+            "locker_number": "DL10-01-05",
+            "floor_number": "10",
+            "floor_id": uuid4(),
+            "start_date": date.today(),
+            "end_date": date.today() + timedelta(days=7),
+            "key_status": "awaiting_handover",
+            "key_number": "12345",
+            "new_key_status": None,
+        }
+
+        with patch("src.services.cancel_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Booking is already cancelled"):
+                await cancel_booking(str(sample_user_id), str(sample_booking_id))
+
+    @pytest.mark.asyncio
+    async def test_cancel_booking_update_failed(
+        self, mock_db, sample_user_id, sample_booking_id
+    ):
+        """Test when booking exists but update fails (cancelled_booking_id is None)."""
+        from src.services.cancel_booking import cancel_booking
+
+        # Booking exists and is not cancelled, but update still fails
+        mock_db.fetchrow.return_value = {
+            "booking_id": sample_booking_id,
+            "user_id": sample_user_id,
+            "status": "active",
+            "cancelled_booking_id": None,  # Update failed
+            "locker_id": uuid4(),
+            "special_request_id": None,
+            "email": "test@example.com",
+            "first_name": "Test",
+            "locker_number": "DL10-01-05",
+            "floor_number": "10",
+            "floor_id": uuid4(),
+            "start_date": date.today(),
+            "end_date": date.today() + timedelta(days=7),
+            "key_status": "awaiting_handover",
+            "key_number": "12345",
+            "new_key_status": None,
+        }
+
+        with patch("src.services.cancel_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Failed to cancel booking"):
+                await cancel_booking(str(sample_user_id), str(sample_booking_id))
+
+    @pytest.mark.asyncio
+    async def test_cancel_booking_generic_exception(
+        self, mock_db, sample_user_id, sample_booking_id
+    ):
+        """Test generic exception handler in cancel_booking."""
+        from src.services.cancel_booking import cancel_booking
+
+        mock_db.fetchrow.side_effect = Exception("Unexpected database error")
+
+        with patch("src.services.cancel_booking.db", mock_db):
+            with pytest.raises(Exception):
+                await cancel_booking(str(sample_user_id), str(sample_booking_id))
+
 
 class TestExtendBooking:
     """Tests for the extend_booking service."""
@@ -530,6 +708,163 @@ class TestExtendBooking:
                     str(sample_booking_id), str(new_end_date), str(sample_user_id)
                 )
 
+    @pytest.mark.asyncio
+    async def test_extend_booking_not_found(
+        self, mock_db, sample_booking_id, sample_user_id
+    ):
+        """Test when booking not found or unauthorized."""
+        from src.services.extend_booking import extend_booking
+
+        mock_db.fetchrow.return_value = None
+
+        with patch("src.services.extend_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Booking not found or unauthorized"):
+                await extend_booking(
+                    str(sample_booking_id),
+                    (date.today() + timedelta(days=20)).isoformat(),
+                    str(sample_user_id),
+                )
+
+    @pytest.mark.asyncio
+    async def test_extend_booking_no_result(
+        self, mock_db, sample_booking_id, sample_user_id
+    ):
+        """Test when extension request processing fails (no result)."""
+        from src.services.extend_booking import extend_booking
+
+        # First call returns booking, second call returns None
+        mock_db.fetchrow.side_effect = [
+            {"end_date": date.today() + timedelta(days=7)},
+            None,
+        ]
+
+        with patch("src.services.extend_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Failed to process extension request"):
+                await extend_booking(
+                    str(sample_booking_id),
+                    (date.today() + timedelta(days=20)).isoformat(),
+                    str(sample_user_id),
+                )
+
+    @pytest.mark.asyncio
+    async def test_extend_booking_locker_not_available(
+        self, mock_db, sample_booking_id, sample_user_id
+    ):
+        """Test when extension rejected because locker not available."""
+        from src.services.extend_booking import extend_booking
+
+        # First call returns booking, second call returns rejected request
+        mock_db.fetchrow.side_effect = [
+            {"end_date": date.today() + timedelta(days=7)},
+            {
+                "request_id": 123,
+                "request_status": "rejected",
+                "is_locker_available": False,
+                "is_user_available": True,
+                "email": "test@example.com",
+                "first_name": "Test",
+                "locker_number": "DL10-01-05",
+                "floor_number": "10",
+                "end_date": date.today() + timedelta(days=7),
+            },
+        ]
+
+        with patch("src.services.extend_booking.db", mock_db):
+            with pytest.raises(
+                ValueError,
+                match="This locker is already booked during the requested extension period",
+            ):
+                await extend_booking(
+                    str(sample_booking_id),
+                    (date.today() + timedelta(days=20)).isoformat(),
+                    str(sample_user_id),
+                )
+
+    @pytest.mark.asyncio
+    async def test_extend_booking_user_not_available(
+        self, mock_db, sample_booking_id, sample_user_id
+    ):
+        """Test when extension rejected because user has overlapping booking."""
+        from src.services.extend_booking import extend_booking
+
+        # First call returns booking, second call returns rejected request
+        mock_db.fetchrow.side_effect = [
+            {"end_date": date.today() + timedelta(days=7)},
+            {
+                "request_id": 123,
+                "request_status": "rejected",
+                "is_locker_available": True,
+                "is_user_available": False,
+                "email": "test@example.com",
+                "first_name": "Test",
+                "locker_number": "DL10-01-05",
+                "floor_number": "10",
+                "end_date": date.today() + timedelta(days=7),
+            },
+        ]
+
+        with patch("src.services.extend_booking.db", mock_db):
+            with pytest.raises(
+                ValueError,
+                match="You have another active booking that overlaps with this extension period",
+            ):
+                await extend_booking(
+                    str(sample_booking_id),
+                    (date.today() + timedelta(days=20)).isoformat(),
+                    str(sample_user_id),
+                )
+
+    @pytest.mark.asyncio
+    async def test_extend_booking_rejected_other_reason(
+        self, mock_db, sample_booking_id, sample_user_id
+    ):
+        """Test when extension rejected for other reasons."""
+        from src.services.extend_booking import extend_booking
+
+        # First call returns booking, second call returns rejected request
+        mock_db.fetchrow.side_effect = [
+            {"end_date": date.today() + timedelta(days=7)},
+            {
+                "request_id": 123,
+                "request_status": "rejected",
+                "is_locker_available": True,
+                "is_user_available": True,
+                "email": "test@example.com",
+                "first_name": "Test",
+                "locker_number": "DL10-01-05",
+                "floor_number": "10",
+                "end_date": date.today() + timedelta(days=7),
+            },
+        ]
+
+        with patch("src.services.extend_booking.db", mock_db):
+            with pytest.raises(
+                ValueError,
+                match="Extension request was rejected. Please contact support",
+            ):
+                await extend_booking(
+                    str(sample_booking_id),
+                    (date.today() + timedelta(days=20)).isoformat(),
+                    str(sample_user_id),
+                )
+
+    @pytest.mark.asyncio
+    async def test_extend_booking_generic_exception(
+        self, mock_db, sample_booking_id, sample_user_id
+    ):
+        """Test generic exception handler in extend_booking."""
+        from src.services.extend_booking import extend_booking
+
+        mock_db.fetchrow.side_effect = Exception("Unexpected database error")
+
+        with patch("src.services.extend_booking.db", mock_db):
+            with pytest.raises(Exception):
+                await extend_booking(
+                    str(sample_booking_id),
+                    (date.today() + timedelta(days=20)).isoformat(),
+                    str(sample_user_id),
+                )
+
 
 class TestDeleteBooking:
     """Tests for the delete_booking service."""
@@ -589,6 +924,19 @@ class TestDeleteBooking:
 
         with patch("src.services.delete_booking.db", mock_db):
             with pytest.raises(ValueError, match="Booking not found or unauthorized"):
+                await delete_booking(str(sample_user_id), str(sample_booking_id))
+
+    @pytest.mark.asyncio
+    async def test_delete_booking_generic_exception(
+        self, mock_db, sample_user_id, sample_booking_id
+    ):
+        """Test generic exception handler in delete_booking."""
+        from src.services.delete_booking import delete_booking
+
+        mock_db.fetchrow.side_effect = Exception("Unexpected database error")
+
+        with patch("src.services.delete_booking.db", mock_db):
+            with pytest.raises(Exception):
                 await delete_booking(str(sample_user_id), str(sample_booking_id))
 
 
@@ -801,4 +1149,54 @@ class TestUpdateBooking:
                     str(sample_booking_id),
                     new_start_date=str(start_date),
                     new_end_date=str(end_date),
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_booking_update_failed(
+        self, mock_db, sample_user_id, sample_booking_id
+    ):
+        """Test when update fails (no booking_id returned)."""
+        from src.services.update_booking import update_booking
+
+        today = date.today()
+
+        # First call returns booking, second call returns no booking_id
+        mock_db.fetchrow.side_effect = [
+            {
+                "start_date": today,
+                "end_date": today + timedelta(days=7),
+            },
+            {
+                "original_start": today,
+                "original_end": today + timedelta(days=7),
+                "booking_id": None,
+            },
+        ]
+
+        with patch("src.services.update_booking.db", mock_db):
+            with pytest.raises(ValueError, match="Failed to update booking"):
+                await update_booking(
+                    str(sample_user_id),
+                    str(sample_booking_id),
+                    new_start_date=(today + timedelta(days=1)).isoformat(),
+                    new_end_date=(today + timedelta(days=5)).isoformat(),
+                )
+
+    @pytest.mark.asyncio
+    async def test_update_booking_generic_exception(
+        self, mock_db, sample_user_id, sample_booking_id
+    ):
+        """Test generic exception handler in update_booking."""
+        from src.services.update_booking import update_booking
+
+        today = date.today()
+        mock_db.fetchrow.side_effect = Exception("Unexpected database error")
+
+        with patch("src.services.update_booking.db", mock_db):
+            with pytest.raises(Exception):
+                await update_booking(
+                    str(sample_user_id),
+                    str(sample_booking_id),
+                    new_start_date=(today + timedelta(days=1)).isoformat(),
+                    new_end_date=(today + timedelta(days=5)).isoformat(),
                 )
