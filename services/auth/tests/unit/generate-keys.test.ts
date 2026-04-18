@@ -15,7 +15,6 @@ describe('Generate Keys Utility', () => {
   const testPublicKeyPath = join(testKeysDir, 'public.pem')
 
   beforeEach(() => {
-    // Clean up any existing test keys
     if (existsSync(testPrivateKeyPath)) {
       unlinkSync(testPrivateKeyPath)
     }
@@ -28,7 +27,6 @@ describe('Generate Keys Utility', () => {
   })
 
   afterEach(() => {
-    // Clean up test keys after each test
     if (existsSync(testPrivateKeyPath)) {
       unlinkSync(testPrivateKeyPath)
     }
@@ -47,7 +45,6 @@ describe('Generate Keys Utility', () => {
      */
     const { generateKeys } = await import('../../src/utils/generate-keys')
 
-    // The actual keys directory should already have keys from service initialization
     const result = generateKeys(false)
 
     expect(result.existed).toBe(true)
@@ -60,14 +57,11 @@ describe('Generate Keys Utility', () => {
      * Verify function creates directory and generates keys.
      * This tests the mkdirSync and key generation paths.
      */
-    // Mock the paths to use test directory
     const crypto = await import('crypto')
     const fs = await import('fs')
 
-    // Ensure test directory doesn't exist
     expect(existsSync(testKeysDir)).toBe(false)
 
-    // Manually create keys to test the generation logic
     if (!existsSync(testKeysDir)) {
       mkdirSync(testKeysDir, { recursive: true })
     }
@@ -87,11 +81,9 @@ describe('Generate Keys Utility', () => {
     writeFileSync(testPrivateKeyPath, privateKey, { mode: 0o600 })
     writeFileSync(testPublicKeyPath, publicKey, { mode: 0o644 })
 
-    // Verify keys were created
     expect(existsSync(testPrivateKeyPath)).toBe(true)
     expect(existsSync(testPublicKeyPath)).toBe(true)
 
-    // Verify key content
     const privateKeyContent = fs.readFileSync(testPrivateKeyPath, 'utf8')
     const publicKeyContent = fs.readFileSync(testPublicKeyPath, 'utf8')
 
@@ -107,7 +99,6 @@ describe('Generate Keys Utility', () => {
     const { generateKeys } = await import('../../src/utils/generate-keys')
 
     // Call with force=true to regenerate keys
-    // This will execute the full key generation path even though keys exist
     const result = generateKeys(true)
 
     expect(result.existed).toBe(false) // existed: false when keys are generated
@@ -116,7 +107,6 @@ describe('Generate Keys Utility', () => {
     expect(result.privateKeyPath).toContain('private.pem')
     expect(result.publicKeyPath).toContain('public.pem')
 
-    // Verify the generated keys are valid
     const fs = await import('fs')
     const privateKeyContent = fs.readFileSync(result.privateKeyPath, 'utf8')
     const publicKeyContent = fs.readFileSync(result.publicKeyPath, 'utf8')
@@ -133,14 +123,11 @@ describe('Generate Keys Utility', () => {
      * This test exercises the default export behavior of the generate-keys module.
      */
     const { generateKeys } = await import('../../src/utils/generate-keys')
-
-    // Since keys exist, use force=true to regenerate and test the generation logic
     const result = generateKeys(true)
 
     expect(result.privateKeyPath).toBeDefined()
     expect(result.publicKeyPath).toBeDefined()
 
-    // Verify files were actually written
     expect(existsSync(result.privateKeyPath)).toBe(true)
     expect(existsSync(result.publicKeyPath)).toBe(true)
   })
@@ -155,10 +142,8 @@ describe('Generate Keys Utility', () => {
     const { fileURLToPath } = await import('url')
     const { dirname } = path
 
-    // Create a test scenario where we verify directory creation works
     const testDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'test-keys-dir')
 
-    // Ensure it doesn't exist
     if (existsSync(testDir)) {
       if (existsSync(join(testDir, 'private.pem'))) unlinkSync(join(testDir, 'private.pem'))
       if (existsSync(join(testDir, 'public.pem'))) unlinkSync(join(testDir, 'public.pem'))
@@ -166,13 +151,8 @@ describe('Generate Keys Utility', () => {
     }
 
     expect(existsSync(testDir)).toBe(false)
-
-    // Create the directory (simulating what generateKeys does at line 28-29)
     mkdirSync(testDir, { recursive: true })
-
     expect(existsSync(testDir)).toBe(true)
-
-    // Cleanup
     rmdirSync(testDir)
   })
 
@@ -194,7 +174,6 @@ describe('Generate Keys Utility', () => {
     expect(existsSync(testPrivateKeyPath)).toBe(true)
     expect(existsSync(testPublicKeyPath)).toBe(true)
 
-    // On Unix-like systems, verify permissions
     if (process.platform !== 'win32') {
       const privateStats = fs.statSync(testPrivateKeyPath)
       const publicStats = fs.statSync(testPublicKeyPath)

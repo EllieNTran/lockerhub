@@ -27,7 +27,7 @@ class NotificationsServiceClient:
         if not self.enabled:
             logger.debug("Notifications disabled - skipping notification")
             return {}
-        
+
         url = f"{self.base_url}/notifications{endpoint}"
         try:
             response = requests.post(url, json=payload, timeout=5)
