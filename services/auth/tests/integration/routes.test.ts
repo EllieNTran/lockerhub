@@ -46,6 +46,7 @@ describe('Auth Routes Integration Tests', () => {
           role: 'user',
           firstName: validSignupData.firstName,
           lastName: validSignupData.lastName,
+          hasSeenTutorial: false,
         },
       }
 
@@ -113,6 +114,7 @@ describe('Auth Routes Integration Tests', () => {
           role: mockUser.role,
           firstName: mockUser.first_name,
           lastName: mockUser.last_name,
+          hasSeenTutorial: mockUser.has_seen_tutorial,
         },
       }
 

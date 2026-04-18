@@ -10,13 +10,6 @@ const mockConnect = vi.fn()
 const mockEnd = vi.fn()
 const mockOn = vi.fn()
 
-const _mockPoolInstance = {
-  query: mockQuery,
-  connect: mockConnect,
-  end: mockEnd,
-  on: mockOn,
-}
-
 vi.mock('pg', () => {
   return {
     default: {
