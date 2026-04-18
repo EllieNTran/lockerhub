@@ -22,6 +22,7 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
   const [selectedLockerId, setSelectedLockerId] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [resetKey, setResetKey] = useState(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -31,6 +32,10 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
       }
     }
   }, []);
+
+  useEffect(() => {
+    setResetKey(prev => prev + 1);
+  }, [floorNumber]);
 
   const legend = [
     { classes: 'border-green bg-green/30', label: 'Available' },
@@ -66,8 +71,7 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
   };
 
   const handleResetView = () => {
-    setScale(1);
-    setTranslate({ x: 0, y: 0 });
+    setResetKey(prev => prev + 1);
   };
 
   return (
@@ -123,6 +127,7 @@ const SearchResults = ({ lockers, onSelectLocker, floorNumber }: SearchResultsPr
           translate={translate}
           onScaleChange={setScale}
           onTranslateChange={setTranslate}
+          resetKey={resetKey}
         />
       ) : (
         <ListView

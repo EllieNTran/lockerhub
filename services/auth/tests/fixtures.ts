@@ -27,6 +27,7 @@ export const createMockUser = (overrides: Partial<User> = {}): User => ({
   office: 'Room 101',
   is_pre_registered: false,
   account_activated: true,
+  has_seen_tutorial: false,
   created_at: new Date(),
   ...overrides,
 })
@@ -46,6 +47,7 @@ export const createMockPreRegisteredUser = (overrides: Partial<User> = {}): User
   office: 'Room 202',
   is_pre_registered: true,
   account_activated: false,
+  has_seen_tutorial: false,
   created_at: new Date(),
   ...overrides,
 })

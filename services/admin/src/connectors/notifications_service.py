@@ -1,5 +1,6 @@
 """Connector to the notifications service."""
 
+import os
 import requests
 
 from src.logger import logger
@@ -11,6 +12,7 @@ class NotificationsServiceClient:
 
     def __init__(self):
         self.base_url = settings.NOTIFICATIONS_SERVICE_URL
+        self.enabled = os.getenv("ENABLE_NOTIFICATIONS", "true").lower() == "true"
 
     async def post(self, endpoint: str, payload: dict) -> dict:
         """Send a POST request to the notifications service.
@@ -22,6 +24,10 @@ class NotificationsServiceClient:
         Returns:
             The JSON response from the notifications service
         """
+        if not self.enabled:
+            logger.debug("Notifications disabled - skipping notification")
+            return {}
+
         url = f"{self.base_url}/notifications{endpoint}"
         try:
             response = requests.post(url, json=payload, timeout=5)

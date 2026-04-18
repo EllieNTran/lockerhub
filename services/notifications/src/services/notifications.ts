@@ -50,7 +50,7 @@ const GET_USER_NOTIFICATIONS_QUERY = `
     ON n.notification_id = un.notification_id AND un.user_id = $1
   LEFT JOIN lockerhub.users u ON u.user_id = $1
   LEFT JOIN (
-    SELECT DISTINCT b.user_id, l.floor_id
+    SELECT DISTINCT b.user_id, l.floor_id, b.start_date
     FROM lockerhub.bookings b
     INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
     WHERE b.status NOT IN ('cancelled', 'expired')
@@ -58,7 +58,7 @@ const GET_USER_NOTIFICATIONS_QUERY = `
   WHERE (
     (n.scope = 'user' AND un.user_id = $1)
     OR (n.scope = 'department' AND n.target_department_id = u.department_id)
-    OR (n.scope = 'floor' AND n.target_floor_id = user_floors.floor_id)
+    OR (n.scope = 'floor' AND n.target_floor_id = user_floors.floor_id AND n.created_at >= user_floors.start_date)
     OR (n.scope = 'global')
   )
 `
@@ -70,7 +70,7 @@ const COUNT_UNREAD_NOTIFICATIONS_QUERY = `
     ON n.notification_id = un.notification_id AND un.user_id = $1
   LEFT JOIN lockerhub.users u ON u.user_id = $1
   LEFT JOIN (
-    SELECT DISTINCT b.user_id, l.floor_id
+    SELECT DISTINCT b.user_id, l.floor_id, b.start_date
     FROM lockerhub.bookings b
     INNER JOIN lockerhub.lockers l ON b.locker_id = l.locker_id
     WHERE b.status NOT IN ('cancelled', 'expired')
@@ -79,7 +79,7 @@ const COUNT_UNREAD_NOTIFICATIONS_QUERY = `
     (
       (n.scope = 'user' AND un.user_id = $1)
       OR (n.scope = 'department' AND n.target_department_id = u.department_id)
-      OR (n.scope = 'floor' AND n.target_floor_id = user_floors.floor_id)
+      OR (n.scope = 'floor' AND n.target_floor_id = user_floors.floor_id AND n.created_at >= user_floors.start_date)
       OR (n.scope = 'global')
     )
     AND COALESCE(un.read, FALSE) = FALSE

@@ -1,0 +1,23 @@
+# Environment variables
+.env
+
+# Test results
+results/
+*.log
+
+# Node modules (if any)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Monitoring data
+influxdb-data/
+grafana-data/
