@@ -1,0 +1,73 @@
+services:
+  k6:
+    image: grafana/k6:latest
+    container_name: lockerhub-k6
+    networks:
+      - lockerhub-perf-test
+    volumes:
+      - ./tests:/scripts
+      - ./config.js:/scripts/config.js
+      - ./results:/results
+    environment:
+      - API_BASE_URL=${API_BASE_URL:-http://host.docker.internal:3002}
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-http://host.docker.internal:3003}
+      - BOOKING_BASE_URL=${BOOKING_BASE_URL:-http://host.docker.internal:3004}
+      - ADMIN_BASE_URL=${ADMIN_BASE_URL:-http://host.docker.internal:3005}
+      - ANALYTICS_BASE_URL=${ANALYTICS_BASE_URL:-http://host.docker.internal:3007}
+      - NOTIFICATIONS_BASE_URL=${NOTIFICATIONS_BASE_URL:-http://host.docker.internal:3006}
+      - WEBAPP_BASE_URL=${WEBAPP_BASE_URL:-http://host.docker.internal:3001}
+      - TEST_USER_EMAIL=${TEST_USER_EMAIL:-test.user@example.com}
+      - TEST_USER_PASSWORD=${TEST_USER_PASSWORD:-testpassword123}
+      - TEST_ADMIN_EMAIL=${TEST_ADMIN_EMAIL:-admin@example.com}
+      - TEST_ADMIN_PASSWORD=${TEST_ADMIN_PASSWORD:-adminpassword123}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: run /scripts/core-api.test.js
+
+  # Optional: InfluxDB for storing test results
+  influxdb:
+    image: influxdb:2.7
+    container_name: lockerhub-influxdb
+    networks:
+      - lockerhub-perf-test
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword
+      - DOCKER_INFLUXDB_INIT_ORG=lockerhub
+      - DOCKER_INFLUXDB_INIT_BUCKET=k6
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=lockerhub-perf-token
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    profiles:
+      - monitoring
+
+  # Optional: Grafana for visualizing test results
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lockerhub-grafana
+    networks:
+      - lockerhub-perf-test
+    ports:
+      - "3333:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - influxdb
+    profiles:
+      - monitoring
+
+networks:
+  lockerhub-perf-test:
+    driver: bridge
+
+volumes:
+  influxdb-data:
+  grafana-data:

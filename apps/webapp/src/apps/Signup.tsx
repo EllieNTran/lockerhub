@@ -105,7 +105,16 @@ const Signup = () => {
           navigate('/');
         },
         onError: (err) => {
-          setError(err instanceof Error ? err.message : 'Signup failed. Please try again.');
+          if (err instanceof Error) {
+            const errMessage = err.message;
+            if (errMessage === 'Conflict') {
+              setError('An account with this email already exists');
+            } else {
+              setError(errMessage);
+            }
+          } else {
+            setError('Signup failed. Please try again.');
+          }
         },
       }
     );

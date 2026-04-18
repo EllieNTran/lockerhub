@@ -148,5 +148,72 @@ npm run import-lockers
 6. ✅ Skips FREE/placeholder entries (where Key Number is "FREE" or "#N/A")
 7. ✅ Skips duplicate lockers and keys
 8. ✅ Sets location from the Floor column
-9. ✅ Sets initial status to 'available'
-10. ✅ Provides detailed summary for each floor
+
+---
+
+## Generate Past Bookings
+
+Generate 2,000 historical bookings for performance testing and analytics.
+
+### What it does
+
+1. ✅ Creates 2,000 past bookings with realistic data
+2. ✅ Ensures no overlapping bookings for the same locker
+3. ✅ Random mix of 'completed' (85%) and 'cancelled' (15%) statuses
+4. ✅ Spreads bookings across past 12 months
+5. ✅ Realistic booking durations (1-14 days)
+6. ✅ Random user and locker assignments
+
+### Configuration
+
+Edit these constants in `generate_past_bookings.py`:
+- `TARGET_BOOKINGS` - Number of bookings to generate (default: 2000)
+- `MONTHS_OF_HISTORY` - How far back to generate data (default: 12 months)
+- `MIN_BOOKING_DAYS` / `MAX_BOOKING_DAYS` - Booking duration range (default: 1-14 days)
+- `CANCELLATION_RATE` - Percentage of cancelled bookings (default: 0.15 = 15%)
+
+### Prerequisites
+
+- Python 3.8+ with asyncpg and python-dotenv
+- Existing users and lockers in the database
+
+### Usage
+
+1. Set up Python environment:
+```bash
+cd scripts
+python3 -m venv env
+source env/bin/activate
+pip install asyncpg python-dotenv
+```
+
+2. Set environment variables (or use .env file in project root):
+```bash
+export DB_HOST=localhost
+export DB_PORT=3000
+export DB_NAME=postgres
+export DB_USER=postgres
+export DB_PASSWORD=postgres
+```
+
+3. Run the script:
+```bash
+python generate_past_bookings.py
+```
+
+### When to run
+
+- Before running performance tests to populate realistic analytics data
+- To test analytics dashboard with substantial historical data
+- After database reset to rebuild booking history
+
+### Business Logic Compliance
+
+The script follows all system constraints:
+- ✅ No overlapping bookings for same locker (exclusion constraint)
+- ✅ end_date >= start_date
+- ✅ Only uses 'completed' and 'cancelled' statuses (past bookings)
+- ✅ Users can have multiple past bookings (unlike active bookings)
+- ✅ Created timestamps are before start dates
+- ✅ Sets initial status to 'available'
+- ✅ Provides detailed summary for each floor

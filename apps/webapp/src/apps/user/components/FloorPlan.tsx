@@ -12,6 +12,7 @@ interface FloorPlanProps {
   translate?: { x: number; y: number };
   onScaleChange?: (scale: number) => void;
   onTranslateChange?: (translate: { x: number; y: number }) => void;
+  resetKey?: number;
 }
 
 const FloorPlan = ({
@@ -22,7 +23,8 @@ const FloorPlan = ({
   scale: externalScale,
   translate: externalTranslate,
   onScaleChange,
-  onTranslateChange
+  onTranslateChange,
+  resetKey = 0
 }: FloorPlanProps) => {
   const [internalScale, setInternalScale] = useState(1);
   const [internalTranslate, setInternalTranslate] = useState({ x: 0, y: 0 });
@@ -53,6 +55,20 @@ const FloorPlan = ({
     const maxY = Math.max(...lockers.map(l => l.y_coordinate || 0), 400);
     return { width: maxX + 100, height: maxY + 100 };
   }, [lockers, layout]);
+
+  useEffect(() => {
+    if (!containerRef.current || !dimensions) return;
+
+    const containerWidth = containerRef.current.offsetWidth;
+    const containerHeight = containerRef.current.offsetHeight;
+
+    const scaleX = (containerWidth * 0.9) / dimensions.width;
+    const scaleY = (containerHeight * 0.9) / dimensions.height;
+    const fitScale = Math.min(scaleX, scaleY, 1);
+
+    setScale(fitScale);
+    setTranslate({ x: 0, y: 0 });
+  }, [floorNumber, dimensions, setScale, setTranslate, resetKey]);
 
   // Attach wheel event listener with passive: false to prevent page scroll
   useEffect(() => {
@@ -101,7 +117,7 @@ const FloorPlan = ({
       onPointerLeave={handlePointerUp}
     >
       <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-75"
+        className="absolute left-1/2 top-1/2 transition-transform duration-75"
         style={{
           transform: `translate(calc(-50% + ${translate.x}px), calc(-50% + ${translate.y}px)) scale(${scale})`,
           width: dimensions.width,

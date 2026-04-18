@@ -78,3 +78,5 @@ Thumbs.db
 .DS_Store
 
 *.csv
+
+insert_floor_bookings.py

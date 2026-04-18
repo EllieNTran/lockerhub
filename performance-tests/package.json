@@ -1,0 +1,26 @@
+{
+  "name": "lockerhub-performance-tests",
+  "version": "1.0.0",
+  "description": "K6 performance testing suite for LockerHub",
+  "scripts": {
+    "test": "./run-all-tests.sh",
+    "test:startup": "./run-test.sh startup",
+    "test:core-api": "./run-test.sh core-api",
+    "test:analytics": "./run-test.sh analytics",
+    "test:concurrent": "./run-test.sh concurrent-users",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f k6",
+    "monitoring:up": "docker compose --profile monitoring up -d",
+    "monitoring:down": "docker compose --profile monitoring down",
+    "clean": "rm -rf results/*.json results/*.log results/SUMMARY.md"
+  },
+  "keywords": [
+    "k6",
+    "performance",
+    "testing",
+    "load-testing"
+  ],
+  "author": "",
+  "license": "ISC"
+}
