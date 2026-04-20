@@ -82,6 +82,10 @@ WITH available_locker AS (
         AND b.status NOT IN ('cancelled'::lockerhub.booking_status, 'completed'::lockerhub.booking_status, 'expired'::lockerhub.booking_status)
         AND daterange($2, $3, '[]') && daterange(b.start_date, b.end_date, '[]')
     )
+    ORDER BY CASE 
+        WHEN l.locker_id = (SELECT locker_id FROM lockerhub.requests WHERE request_id = $5) THEN 0 
+        ELSE 1 
+    END
     LIMIT 1
 ),
 created_booking AS (
